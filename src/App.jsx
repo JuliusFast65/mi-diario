@@ -509,7 +509,7 @@ const DiaryPanel = ({ currentEntry, onTitleChange, onTextChange, activities, onT
                         value={currentEntry?.title || ''}
                         onChange={onTitleChange}
                         placeholder="Título de la entrada..."
-                        className={`w-full bg-transparent text-white p-3 border-none focus:ring-0 resize-none notebook !text-3xl mb-2 ${fontClassMap[userPrefs.font]}`}
+                        className={`w-full bg-transparent text-white p-3 border-none focus:ring-0 resize-none notebook font-bold mb-2 ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`}
                     />
                     <textarea 
                         value={currentEntry?.text || ''} 
@@ -548,8 +548,8 @@ const DiaryPanel = ({ currentEntry, onTitleChange, onTextChange, activities, onT
                            </div>
                         </div>
                         <div className="flex gap-2">
-                            <button onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>Asistente</button>
-                            <button onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>Terapeuta IA</button>
+                            <button title="Recibe sugerencias para mejorar tu escritura" onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>Asistente</button>
+                            <button title="Recibe una reflexión sobre tu entrada y actividades" onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>Terapeuta IA</button>
                         </div>
                     </div>
                 </div>
@@ -767,14 +767,47 @@ const StatisticsPanel = ({ db, userId, appId, activities }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedActivityId, setSelectedActivityId] = useState(null);
+    const [selectedRange, setSelectedRange] = useState('this_week');
 
-    const getFormattedDate = (date) => date.toISOString().split('T')[0];
-    const today = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(today.getDate() - 30);
+    const dateRanges = useMemo(() => {
+        const getFormattedDate = (date) => date.toISOString().split('T')[0];
+        const today = new Date();
+        const ranges = {
+            this_week: {
+                name: 'Esta semana',
+                startDate: (() => {
+                    const d = new Date(today);
+                    const day = d.getDay();
+                    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+                    return getFormattedDate(new Date(d.setDate(diff)));
+                })(),
+                endDate: getFormattedDate(today)
+            },
+            this_month: {
+                name: 'Este mes',
+                startDate: getFormattedDate(new Date(today.getFullYear(), today.getMonth(), 1)),
+                endDate: getFormattedDate(today)
+            },
+            this_year: {
+                name: 'Este año',
+                startDate: getFormattedDate(new Date(today.getFullYear(), 0, 1)),
+                endDate: getFormattedDate(today)
+            },
+            last_year: {
+                name: 'Año anterior',
+                startDate: getFormattedDate(new Date(today.getFullYear() - 1, 0, 1)),
+                endDate: getFormattedDate(new Date(today.getFullYear() - 1, 11, 31))
+            },
+            since_last_year: {
+                name: 'Desde el año pasado',
+                startDate: getFormattedDate(new Date(today.getFullYear() - 1, 0, 1)),
+                endDate: getFormattedDate(today)
+            }
+        };
+        return ranges;
+    }, []);
 
-    const [startDate, setStartDate] = useState(getFormattedDate(thirtyDaysAgo));
-    const [endDate, setEndDate] = useState(getFormattedDate(today));
+    const { startDate, endDate } = dateRanges[selectedRange];
 
     useEffect(() => {
         const fetchEntries = async () => {
@@ -811,10 +844,10 @@ const StatisticsPanel = ({ db, userId, appId, activities }) => {
         return <ActivityDetailView activity={activities[selectedActivityId]} entries={rawEntries} onBack={() => setSelectedActivityId(null)} />;
     }
 
-    return <StatisticsOverview rawEntries={rawEntries} activities={activities} onBarClick={handleBarClick} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} />;
+    return <StatisticsOverview rawEntries={rawEntries} activities={activities} onBarClick={handleBarClick} dateRanges={dateRanges} selectedRange={selectedRange} onRangeChange={setSelectedRange} />;
 };
 
-const StatisticsOverview = ({ rawEntries, activities, onBarClick, startDate, setStartDate, endDate, setEndDate }) => {
+const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, selectedRange, onRangeChange }) => {
     const overviewData = useMemo(() => {
         const activityCounts = {};
         rawEntries.forEach(entry => {
@@ -834,17 +867,19 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, startDate, set
     return (
         <div className="p-4 md:p-6 space-y-6">
             <div className="bg-gray-800 rounded-lg p-6">
-                <h3 className="text-xl font-semibold text-white mb-6">Frecuencia de Actividades</h3>
-                <div className="flex flex-col sm:flex-row gap-4 mb-8 p-4 bg-gray-700/50 rounded-lg">
-                    <div className="flex-1">
-                        <label htmlFor="start-date" className="block text-sm font-medium text-gray-300 mb-1">Desde</label>
-                        <input type="date" id="start-date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500" />
-                    </div>
-                    <div className="flex-1">
-                        <label htmlFor="end-date" className="block text-sm font-medium text-gray-300 mb-1">Hasta</label>
-                        <input type="date" id="end-date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500" />
-                    </div>
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-semibold text-white">Frecuencia de Actividades</h3>
+                    <select
+                        value={selectedRange}
+                        onChange={(e) => onRangeChange(e.target.value)}
+                        className="bg-gray-700 text-white rounded-md p-2 border border-gray-600"
+                    >
+                        {Object.entries(dateRanges).map(([key, value]) => (
+                            <option key={key} value={key}>{value.name}</option>
+                        ))}
+                    </select>
                 </div>
+                
                 {overviewData.length > 0 ? (
                     <div style={{ width: '100%', height: 400 }}>
                         <ResponsiveContainer>
