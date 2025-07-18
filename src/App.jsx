@@ -69,7 +69,7 @@ const LoginScreen = ({ onGoogleSignIn }) => (
                 onClick={onGoogleSignIn}
                 className="bg-white text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-200 transition-colors duration-300 flex items-center gap-3 text-lg"
             >
-                <svg className="w-6 h-6" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
+                <svg className="w-6 h-6" viewBox="0 0 48 F48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
                 Iniciar sesión con Google
             </button>
         </div>
@@ -83,6 +83,7 @@ const DiaryApp = ({ user, onLogout }) => {
     const [currentEntry, setCurrentEntry] = useState({ text: '', tracked: {} });
     const [activities, setActivities] = useState({});
     const [view, setView] = useState('diary');
+    const [userPrefs, setUserPrefs] = useState({ font: 'patrick-hand', fontSize: 'text-3xl' });
     
     // State de Modales
     const [isNewActivityModalOpen, setNewActivityModalOpen] = useState(false);
@@ -111,6 +112,17 @@ const DiaryApp = ({ user, onLogout }) => {
             const fetchedActivities = {};
             snapshot.forEach(doc => { fetchedActivities[doc.id] = { id: doc.id, ...doc.data() }; });
             setActivities(fetchedActivities);
+        });
+        return () => unsubscribe();
+    }, [db, user]);
+
+    useEffect(() => {
+        if (!db || !user?.uid) return;
+        const prefsDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'settings');
+        const unsubscribe = onSnapshot(prefsDocRef, (doc) => {
+            if (doc.exists()) {
+                setUserPrefs(prev => ({ ...prev, ...doc.data() }));
+            }
         });
         return () => unsubscribe();
     }, [db, user]);
@@ -150,6 +162,11 @@ const DiaryApp = ({ user, onLogout }) => {
     }, [currentEntry, saveData]);
 
     // Manejadores de eventos y lógica de la aplicación
+    const handleUpdateUserPrefs = async (newPrefs) => {
+        if (!db || !user?.uid) return;
+        const prefsDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'settings');
+        await setDoc(prefsDocRef, newPrefs, { merge: true });
+    };
     const handleTextChange = (e) => setCurrentEntry(prev => ({ ...prev, text: e.target.value }));
     const handleTrackActivity = (activityId, value) => {
         setCurrentEntry(prev => ({ ...prev, tracked: { ...prev.tracked, [activityId]: value } }));
@@ -244,59 +261,30 @@ const DiaryApp = ({ user, onLogout }) => {
         setAIModalOpen(false);
     };
     
-    // --- LÓGICA DE EXPORTACIÓN ---
     const handleExportEntries = async (startDate, endDate) => {
         if (!db || !user?.uid) return;
-
         let entriesQuery;
         const entriesRef = collection(db, 'artifacts', appId, 'users', user.uid, 'entries');
-
         if (startDate && endDate) {
             entriesQuery = query(entriesRef, where(documentId(), '>=', startDate), where(documentId(), '<=', endDate));
         } else {
             entriesQuery = query(entriesRef);
         }
-
         try {
             const querySnapshot = await getDocs(entriesQuery);
             const entries = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
             if (entries.length === 0) {
                 alert("No hay entradas en el período seleccionado para exportar.");
                 return;
             }
-
-            // Desencriptar todas las entradas en paralelo
             const decryptedEntries = await Promise.all(
                 entries.map(async (entry) => {
                     const decryptedText = await decryptText(entry.text, user.uid);
                     return { ...entry, text: decryptedText };
                 })
             );
-
-            // Ordenar por fecha
             decryptedEntries.sort((a, b) => a.id.localeCompare(b.id));
-
-            // Generar contenido HTML
-            let htmlContent = `
-                <!DOCTYPE html>
-                <html lang="es">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Diario de ${user.displayName}</title>
-                    <style>
-                        body { font-family: sans-serif; line-height: 1.6; color: #333; }
-                        h1 { color: #2c3e50; }
-                        h2 { color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; margin-top: 40px; }
-                        p { white-space: pre-wrap; }
-                        ul { list-style-type: none; padding-left: 0; }
-                        li { background-color: #f8f9f9; border-left: 3px solid #3498db; margin-bottom: 5px; padding: 5px 10px; }
-                    </style>
-                </head>
-                <body>
-                    <h1>Diario de ${user.displayName}</h1>
-            `;
-
+            let htmlContent = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Diario de ${user.displayName}</title><style>body{font-family:sans-serif;line-height:1.6;color:#333}h1{color:#2c3e50}h2{color:#34495e;border-bottom:2px solid #ecf0f1;padding-bottom:5px;margin-top:40px}p{white-space:pre-wrap}ul{list-style-type:none;padding-left:0}li{background-color:#f8f9f9;border-left:3px solid #3498db;margin-bottom:5px;padding:5px 10px}</style></head><body><h1>Diario de ${user.displayName}</h1>`;
             decryptedEntries.forEach(entry => {
                 htmlContent += `<h2>${entry.id}</h2>`;
                 htmlContent += `<p>${entry.text || '<i>Sin entrada de texto.</i>'}</p>`;
@@ -309,10 +297,7 @@ const DiaryApp = ({ user, onLogout }) => {
                     htmlContent += '</ul>';
                 }
             });
-
             htmlContent += '</body></html>';
-
-            // Crear y descargar el archivo
             const blob = new Blob([htmlContent], { type: 'text/html' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -321,13 +306,11 @@ const DiaryApp = ({ user, onLogout }) => {
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
-
         } catch (error) {
             console.error("Error al exportar las entradas:", error);
             alert("Ocurrió un error al exportar. Revisa la consola para más detalles.");
         }
     };
-
 
     return (
         <div className="bg-gray-900 text-gray-100 min-h-screen font-sans flex flex-col">
@@ -356,7 +339,7 @@ const DiaryApp = ({ user, onLogout }) => {
 
                 <main className="flex-grow flex flex-col">
                     {view === 'diary' ? (
-                        <DiaryPanel currentEntry={currentEntry} onTextChange={handleTextChange} activities={activities} onTrackActivity={handleTrackActivity} onAddOption={handleAddOptionToActivity} onOpenNewActivityModal={() => setNewActivityModalOpen(true)} onConsultAI={handleConsultAI} onWritingAssistant={handleWritingAssistant} onUntrackActivity={handleUntrackActivity} onOpenManageModal={() => setManageModalOpen(true)} />
+                        <DiaryPanel currentEntry={currentEntry} onTextChange={handleTextChange} activities={activities} onTrackActivity={handleTrackActivity} onAddOption={handleAddOptionToActivity} onOpenNewActivityModal={() => setNewActivityModalOpen(true)} onConsultAI={handleConsultAI} onWritingAssistant={handleWritingAssistant} onUntrackActivity={handleUntrackActivity} onOpenManageModal={() => setManageModalOpen(true)} userPrefs={userPrefs} onUpdateUserPrefs={handleUpdateUserPrefs} />
                     ) : (
                        <StatisticsPanel db={db} userId={user.uid} appId={appId} activities={activities} />
                     )}
@@ -410,8 +393,39 @@ export default function App() {
 }
 
 // --- Componentes de UI específicos ---
-const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenNewActivityModal, onConsultAI, onWritingAssistant, onUntrackActivity, onOpenManageModal }) => {
+const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenNewActivityModal, onConsultAI, onWritingAssistant, onUntrackActivity, onOpenManageModal, userPrefs, onUpdateUserPrefs }) => {
     const [activeTab, setActiveTab] = useState('entrada');
+
+    const fontOptions = [
+        { id: 'patrick-hand', name: 'Patrick Hand' },
+        { id: 'caveat', name: 'Caveat' },
+        { id: 'indie-flower', name: 'Indie Flower' },
+        { id: 'kalam', name: 'Kalam' },
+        { id: 'gochi-hand', name: 'Gochi Hand' },
+    ];
+
+    const fontSizeOptions = [
+        { id: 'text-xl', name: 'Pequeño' },
+        { id: 'text-2xl', name: 'Mediano' },
+        { id: 'text-3xl', name: 'Grande' },
+        { id: 'text-4xl', name: 'Extra Grande' },
+    ];
+
+    // --- MAPA DE CLASES PARA TAILWIND ---
+    const fontClassMap = {
+        'patrick-hand': 'font-patrick-hand',
+        'caveat': 'font-caveat',
+        'indie-flower': 'font-indie-flower',
+        'kalam': 'font-kalam',
+        'gochi-hand': 'font-gochi-hand',
+    };
+
+    const fontSizeClassMap = {
+        'text-xl': 'text-xl',
+        'text-2xl': 'text-2xl',
+        'text-3xl': 'text-3xl',
+        'text-4xl': 'text-4xl',
+    };
 
     const [trackedActivityIds, untrackedActivities] = useMemo(() => {
         const trackedIds = Object.keys(currentEntry?.tracked || {});
@@ -441,19 +455,42 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
             
             {activeTab === 'entrada' && (
                 <div className="bg-gray-800 rounded-b-lg p-4 flex flex-col flex-grow">
-                    <div className="flex justify-between items-center mb-2 flex-wrap gap-2 flex-shrink-0">
-                        <h3 className="text-lg font-semibold text-white">Diario</h3>
+                    <div className="flex justify-between items-center mb-4 flex-wrap gap-4 flex-shrink-0">
+                        <div className="flex items-center gap-4">
+                           <div className="flex items-center gap-2">
+                               <label htmlFor="font-select" className="text-sm text-gray-300">Fuente:</label>
+                               <select 
+                                 id="font-select"
+                                 value={userPrefs.font}
+                                 onChange={(e) => onUpdateUserPrefs({ font: e.target.value })}
+                                 className="bg-gray-700 text-white rounded-md p-1 border border-gray-600 text-sm"
+                               >
+                                   {fontOptions.map(font => (
+                                       <option key={font.id} value={font.id}>{font.name}</option>
+                                   ))}
+                               </select>
+                           </div>
+                           <div className="flex items-center gap-2">
+                               <label htmlFor="fontsize-select" className="text-sm text-gray-300">Tamaño:</label>
+                               <select 
+                                 id="fontsize-select"
+                                 value={userPrefs.fontSize}
+                                 onChange={(e) => onUpdateUserPrefs({ fontSize: e.target.value })}
+                                 className="bg-gray-700 text-white rounded-md p-1 border border-gray-600 text-sm"
+                               >
+                                   {fontSizeOptions.map(size => (
+                                       <option key={size.id} value={size.id}>{size.name}</option>
+                                   ))}
+                               </select>
+                           </div>
+                        </div>
                         <div className="flex gap-2">
                             <button onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>Asistente</button>
                             <button onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>Terapeuta IA</button>
                         </div>
                     </div>
-                    <textarea 
-                      value={currentEntry?.text || ''} 
-                        onChange={onTextChange} 
-                        placeholder="¿Qué pasó hoy...?" 
-                        className="w-full flex-grow rounded-md p-3 border border-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none font-handwriting text-2xl notebook" 
-                    />                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>Tus entradas están encriptadas para tu privacidad.</p>
+                    <textarea value={currentEntry?.text || ''} onChange={onTextChange} placeholder="¿Qué pasó hoy...?" className={`w-full flex-grow rounded-md p-3 border border-gray-600 transition resize-none notebook ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} />
+                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>Tus entradas están encriptadas para tu privacidad.</p>
                 </div>
             )}
 
