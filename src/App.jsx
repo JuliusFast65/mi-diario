@@ -317,7 +317,23 @@ export default function App() {
 }
 
 // --- Componentes de UI específicos ---
-const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenNewActivityModal, onConsultAI, onWritingAssistant, onUntrackActivity, onOpenManageModal }) => {
+// --- Componentes de UI específicos que no necesitan estado global ---
+
+const DiaryPanel = ({
+    currentEntry,
+    onTextChange,
+    activities,
+    onTrackActivity,
+    onAddOption,
+    onOpenNewActivityModal,
+    onConsultAI,
+    onWritingAssistant,
+    onUntrackActivity,
+    onOpenManageModal
+}) => {
+    // --- ESTADO PARA CONTROLAR LAS PESTAÑAS ---
+    const [activeTab, setActiveTab] = useState('entrada'); // 'entrada' o 'actividades'
+
     const [trackedActivityIds, untrackedActivities] = useMemo(() => {
         const trackedIds = Object.keys(currentEntry?.tracked || {});
         const untracked = Object.values(activities).filter(act => !trackedIds.includes(act.id));
@@ -333,38 +349,66 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
         e.target.value = "";
     };
 
+    const tabBaseStyle = "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors duration-200";
+    const tabActiveStyle = "bg-gray-800 text-white";
+    const tabInactiveStyle = "bg-gray-700 text-gray-400 hover:bg-gray-600";
+
     return (
         <div className="p-4 md:p-6 space-y-6">
-            <div className="bg-gray-800 rounded-lg p-4">
-                <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
-                    <h3 className="text-lg font-semibold text-white">Diario</h3>
-                    <div className="flex gap-2">
-                        <button onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-3 rounded-lg transition-colors duration-200 text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>Asistente</button>
-                        <button onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg transition-colors duration-200 text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>Terapeuta IA</button>
+            {/* --- NAVEGACIÓN DE PESTAÑAS --- */}
+            <div className="flex border-b border-gray-700">
+                <button
+                    onClick={() => setActiveTab('entrada')}
+                    className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}
+                >
+                    Entrada del Diario
+                </button>
+                <button
+                    onClick={() => setActiveTab('actividades')}
+                    className={`${tabBaseStyle} ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}
+                >
+                    Actividades del Día
+                </button>
+            </div>
+
+            {/* --- CONTENIDO DE LAS PESTAÑAS --- */}
+            
+            {/* --- Pestaña de Entrada --- */}
+            {activeTab === 'entrada' && (
+                <div className="bg-gray-800 rounded-b-lg p-4">
+                    <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
+                        <h3 className="text-lg font-semibold text-white">Diario</h3>
+                        <div className="flex gap-2">
+                            <button onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>Asistente</button>
+                            <button onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>Terapeuta IA</button>
+                        </div>
+                    </div>
+                    <textarea value={currentEntry?.text || ''} onChange={onTextChange} placeholder="¿Qué pasó hoy...?" className="w-full h-80 bg-gray-700 text-gray-200 rounded-md p-3 border border-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" />
+                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>Tus entradas están encriptadas para tu privacidad.</p>
+                </div>
+            )}
+
+            {/* --- Pestaña de Actividades --- */}
+            {activeTab === 'actividades' && (
+                 <div className="bg-gray-800 rounded-b-lg p-4">
+                    <div className="space-y-4 min-h-[50px]">
+                        {trackedActivityIds.length > 0 ? (
+                            trackedActivityIds.map(id => activities[id]).filter(Boolean).sort((a,b) => a.name.localeCompare(b.name)).map(activity => (
+                                <ActivityTrackerItem key={activity.id} activity={activity} selectedValue={currentEntry?.tracked?.[activity.id] || ''} onValueChange={(value) => onTrackActivity(activity.id, value)} onUntrack={onUntrackActivity} />
+                            ))
+                        ) : (
+                            <div className="text-center py-4 text-gray-400 italic">No hay actividades registradas para este día.</div>
+                        )}
+                    </div>
+                    <div className="mt-6 border-t border-gray-700 pt-4 flex flex-col sm:flex-row items-center gap-4">
+                        <select onChange={handleAddActivitySelect} defaultValue="" className="w-full sm:flex-grow bg-gray-600 text-white rounded-md p-2 border border-gray-500 focus:ring-1 focus:ring-indigo-400"><option value="" disabled>+ Registrar una actividad...</option>{untrackedActivities.sort((a,b) => a.name.localeCompare(b.name)).map(act => (<option key={act.id} value={act.id}>{act.name}</option>))}</select>
+                        <div className="flex items-center gap-4">
+                            <button onClick={onOpenNewActivityModal} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 whitespace-nowrap">Crear Nueva</button>
+                            <button onClick={onOpenManageModal} className="text-sm text-gray-400 hover:text-white transition-colors">Gestionar</button>
+                        </div>
                     </div>
                 </div>
-                <textarea value={currentEntry?.text || ''} onChange={onTextChange} placeholder="¿Qué pasó hoy...?" className="w-full h-40 bg-gray-700 text-gray-200 rounded-md p-3 border border-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" />
-                <p className="text-xs text-gray-500 flex items-center gap-1 mt-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>Tus entradas están encriptadas para tu privacidad.</p>
-            </div>
-            <div className="bg-gray-800 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-white mb-4">Actividades del Día</h3>
-                <div className="space-y-4 min-h-[50px]">
-                    {trackedActivityIds.length > 0 ? (
-                        trackedActivityIds.map(id => activities[id]).filter(Boolean).sort((a,b) => a.name.localeCompare(b.name)).map(activity => (
-                            <ActivityTrackerItem key={activity.id} activity={activity} selectedValue={currentEntry?.tracked?.[activity.id] || ''} onValueChange={(value) => onTrackActivity(activity.id, value)} onUntrack={onUntrackActivity} />
-                        ))
-                    ) : (
-                        <div className="text-center py-4 text-gray-400 italic">No hay actividades registradas para este día.</div>
-                    )}
-                </div>
-                <div className="mt-6 border-t border-gray-700 pt-4 flex flex-col sm:flex-row items-center gap-4">
-                    <select onChange={handleAddActivitySelect} defaultValue="" className="w-full sm:flex-grow bg-gray-600 text-white rounded-md p-2 border border-gray-500 focus:ring-1 focus:ring-indigo-400"><option value="" disabled>+ Registrar una actividad...</option>{untrackedActivities.sort((a,b) => a.name.localeCompare(b.name)).map(act => (<option key={act.id} value={act.id}>{act.name}</option>))}</select>
-                    <div className="flex items-center gap-4">
-                        <button onClick={onOpenNewActivityModal} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 whitespace-nowrap">Crear Nueva</button>
-                        <button onClick={onOpenManageModal} className="text-sm text-gray-400 hover:text-white transition-colors">Gestionar</button>
-                    </div>
-                </div>
-            </div>
+            )}
         </div>
     );
 };
