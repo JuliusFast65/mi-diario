@@ -89,6 +89,7 @@ const DiaryApp = ({ user, onLogout }) => {
     const [newActivityName, setNewActivityName] = useState('');
     const [newActivityOptions, setNewActivityOptions] = useState(['']);
     const [isManageModalOpen, setManageModalOpen] = useState(false);
+    const [isExportModalOpen, setExportModalOpen] = useState(false);
     
     const [isAIModalOpen, setAIModalOpen] = useState(false);
     const [aiResponse, setAiResponse] = useState('');
@@ -242,6 +243,91 @@ const DiaryApp = ({ user, onLogout }) => {
         if (writingAssistantSuggestion) setCurrentEntry(prev => ({ ...prev, text: writingAssistantSuggestion }));
         setAIModalOpen(false);
     };
+    
+    // --- LÓGICA DE EXPORTACIÓN ---
+    const handleExportEntries = async (startDate, endDate) => {
+        if (!db || !user?.uid) return;
+
+        let entriesQuery;
+        const entriesRef = collection(db, 'artifacts', appId, 'users', user.uid, 'entries');
+
+        if (startDate && endDate) {
+            entriesQuery = query(entriesRef, where(documentId(), '>=', startDate), where(documentId(), '<=', endDate));
+        } else {
+            entriesQuery = query(entriesRef);
+        }
+
+        try {
+            const querySnapshot = await getDocs(entriesQuery);
+            const entries = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            if (entries.length === 0) {
+                alert("No hay entradas en el período seleccionado para exportar.");
+                return;
+            }
+
+            // Desencriptar todas las entradas en paralelo
+            const decryptedEntries = await Promise.all(
+                entries.map(async (entry) => {
+                    const decryptedText = await decryptText(entry.text, user.uid);
+                    return { ...entry, text: decryptedText };
+                })
+            );
+
+            // Ordenar por fecha
+            decryptedEntries.sort((a, b) => a.id.localeCompare(b.id));
+
+            // Generar contenido HTML
+            let htmlContent = `
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Diario de ${user.displayName}</title>
+                    <style>
+                        body { font-family: sans-serif; line-height: 1.6; color: #333; }
+                        h1 { color: #2c3e50; }
+                        h2 { color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; margin-top: 40px; }
+                        p { white-space: pre-wrap; }
+                        ul { list-style-type: none; padding-left: 0; }
+                        li { background-color: #f8f9f9; border-left: 3px solid #3498db; margin-bottom: 5px; padding: 5px 10px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Diario de ${user.displayName}</h1>
+            `;
+
+            decryptedEntries.forEach(entry => {
+                htmlContent += `<h2>${entry.id}</h2>`;
+                htmlContent += `<p>${entry.text || '<i>Sin entrada de texto.</i>'}</p>`;
+                if (entry.tracked && Object.keys(entry.tracked).length > 0) {
+                    htmlContent += '<h3>Actividades Registradas:</h3><ul>';
+                    Object.entries(entry.tracked).forEach(([activityId, option]) => {
+                        const activityName = activities[activityId]?.name || 'Actividad Desconocida';
+                        htmlContent += `<li><strong>${activityName}:</strong> ${option}</li>`;
+                    });
+                    htmlContent += '</ul>';
+                }
+            });
+
+            htmlContent += '</body></html>';
+
+            // Crear y descargar el archivo
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `diario_${user.displayName.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+
+        } catch (error) {
+            console.error("Error al exportar las entradas:", error);
+            alert("Ocurrió un error al exportar. Revisa la consola para más detalles.");
+        }
+    };
+
 
     return (
         <div className="bg-gray-900 text-gray-100 min-h-screen font-sans flex flex-col">
@@ -251,7 +337,13 @@ const DiaryApp = ({ user, onLogout }) => {
                         <img src={user.photoURL} alt="Foto de perfil" className="w-10 h-10 rounded-full" />
                         <h1 className="text-xl md:text-2xl font-bold text-white">Diario de {user.displayName}</h1>
                     </div>
-                    <button onClick={onLogout} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Salir</button>
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => setExportModalOpen(true)} className="text-sm text-gray-300 hover:text-white transition-colors flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                            Exportar
+                        </button>
+                        <button onClick={onLogout} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Salir</button>
+                    </div>
                 </header>
                 
                 <nav className="flex flex-wrap justify-between items-center p-2 bg-gray-800 gap-2 flex-shrink-0">
@@ -275,6 +367,7 @@ const DiaryApp = ({ user, onLogout }) => {
             {isNewActivityModalOpen && <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"><div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md"><h2 className="text-2xl font-bold text-white mb-4">Crear Nueva Actividad</h2><form onSubmit={handleCreateNewActivity} className="space-y-4"><div><label htmlFor="activity-name" className="block text-sm font-medium text-gray-300 mb-1">Nombre</label><input id="activity-name" type="text" value={newActivityName} onChange={(e) => setNewActivityName(e.target.value)} placeholder="Ej: Leer" className="w-full bg-gray-700 text-white rounded-md p-2 border border-gray-600" required /></div><div><label className="block text-sm font-medium text-gray-300 mb-2">Opciones</label>{newActivityOptions.map((o, i) => <div key={i} className="flex items-center space-x-2 mb-2"><input type="text" value={o} onChange={(e) => {const u=[...newActivityOptions];u[i]=e.target.value;setNewActivityOptions(u)}} placeholder={`Opción ${i+1}`} className="flex-grow bg-gray-700 text-white rounded-md p-2 border border-gray-600" /><button type="button" onClick={() => setNewActivityOptions(newActivityOptions.filter((_,j)=>i!==j))} className="p-2 bg-red-600 hover:bg-red-700 rounded-full text-white"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" /></svg></button></div>)}<button type="button" onClick={() => setNewActivityOptions([...newActivityOptions,''])} className="text-indigo-400 hover:text-indigo-300 text-sm font-semibold">+ Añadir</button></div><div className="flex justify-end space-x-3 pt-4"><button type="button" onClick={() => setNewActivityModalOpen(false)} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg">Cancelar</button><button type="submit" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 font-bold rounded-lg">Crear</button></div></form></div></div>}
             {isAIModalOpen && <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"><div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-lg flex flex-col"><h2 className="text-2xl font-bold text-purple-300 mb-4">{aiModalTitle}</h2><div className="overflow-y-auto max-h-[60vh] pr-2">{isAILoading ? <div className="text-center py-10"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div><p className="mt-4 text-gray-300">Analizando...</p></div> : <div className="text-gray-200 whitespace-pre-wrap prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: aiResponse.replace(/\n/g, '<br />') }} />}</div><div className="flex justify-end mt-6 pt-4 border-t border-gray-700 gap-3">{aiModalTitle === 'Sugerencias del Asistente' && !isAILoading && <button onClick={acceptWritingSuggestion} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition">Usar esta versión</button>}<button onClick={() => setAIModalOpen(false)} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg">Cerrar</button></div></div></div>}
             <ManageActivitiesModal isOpen={isManageModalOpen} onClose={() => setManageModalOpen(false)} activities={activities} onDeleteActivity={handleDeleteActivity} onAddOption={handleAddOptionToActivity} onDeleteOption={handleDeleteOptionFromActivity} />
+            <ExportModal isOpen={isExportModalOpen} onClose={() => setExportModalOpen(false)} onExport={handleExportEntries} />
         </div>
     );
 };
@@ -355,7 +448,12 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
                             <button onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>Terapeuta IA</button>
                         </div>
                     </div>
-                    <textarea value={currentEntry?.text || ''} onChange={onTextChange} placeholder="¿Qué pasó hoy...?" className="w-full flex-grow bg-gray-700 text-gray-200 rounded-md p-3 border border-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none" />
+                    <textarea 
+                        value={currentEntry?.text || ''} 
+                        onChange={onTextChange} 
+                        placeholder="¿Qué pasó hoy...?" 
+                        className="w-full flex-grow rounded-md p-3 border border-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none font-handwriting text-2xl notebook" // <-- LÍNEA MODIFICADA
+                    />
                     <p className="text-xs text-gray-500 flex items-center gap-1 mt-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>Tus entradas están encriptadas para tu privacidad.</p>
                 </div>
             )}
@@ -440,6 +538,75 @@ const ManageActivitiesModal = ({ isOpen, onClose, activities, onDeleteActivity, 
         </div>
     );
 };
+
+// --- Componente del Modal de Exportación ---
+const ExportModal = ({ isOpen, onClose, onExport }) => {
+    if (!isOpen) return null;
+
+    const [exportType, setExportType] = useState('all'); // 'all' or 'range'
+    const today = new Date().toISOString().split('T')[0];
+    const [startDate, setStartDate] = useState(today);
+    const [endDate, setEndDate] = useState(today);
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleExportClick = async () => {
+        setIsExporting(true);
+        if (exportType === 'all') {
+            await onExport(null, null);
+        } else {
+            if (startDate > endDate) {
+                alert("La fecha de inicio no puede ser posterior a la fecha de fin.");
+                setIsExporting(false);
+                return;
+            }
+            await onExport(startDate, endDate);
+        }
+        setIsExporting(false);
+        onClose();
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md">
+                <h2 className="text-2xl font-bold text-white mb-4">Exportar Entradas</h2>
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <input type="radio" id="all" name="exportType" value="all" checked={exportType === 'all'} onChange={() => setExportType('all')} />
+                        <label htmlFor="all" className="text-white">Exportar todo</label>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <input type="radio" id="range" name="exportType" value="range" checked={exportType === 'range'} onChange={() => setExportType('range')} />
+                        <label htmlFor="range" className="text-white">Seleccionar período</label>
+                    </div>
+                    {exportType === 'range' && (
+                        <div className="pl-8 flex flex-col sm:flex-row gap-4">
+                            <div className="flex-1">
+                                <label htmlFor="start-date-export" className="block text-sm font-medium text-gray-300 mb-1">Desde</label>
+                                <input type="date" id="start-date-export" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500" />
+                            </div>
+                            <div className="flex-1">
+                                <label htmlFor="end-date-export" className="block text-sm font-medium text-gray-300 mb-1">Hasta</label>
+                                <input type="date" id="end-date-export" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500" />
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <div className="flex justify-end space-x-3 pt-6 mt-4 border-t border-gray-700">
+                    <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg">Cancelar</button>
+                    <button 
+                        type="button" 
+                        onClick={handleExportClick} 
+                        disabled={isExporting}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 font-bold rounded-lg disabled:bg-gray-500 disabled:cursor-wait"
+                    >
+                        {isExporting ? 'Exportando...' : 'Descargar'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 // --- Panel de Estadísticas (con lógica mejorada) ---
 const StatisticsPanel = ({ db, userId, appId, activities }) => {
