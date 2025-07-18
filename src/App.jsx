@@ -79,10 +79,11 @@ const LoginScreen = ({ onGoogleSignIn }) => (
 const DiaryApp = ({ user, onLogout }) => {
     const [db, setDb] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    const [currentEntry, setCurrentEntry] = useState({ text: '', tracked: {} });
+    const [currentEntry, setCurrentEntry] = useState({ title: '', text: '', tracked: {} });
     const [activities, setActivities] = useState({});
     const [view, setView] = useState('diary');
     const [userPrefs, setUserPrefs] = useState({ font: 'patrick-hand', fontSize: 'text-3xl' });
+    const [allEntries, setAllEntries] = useState([]);
     
     // State de Modales
     const [isNewActivityModalOpen, setNewActivityModalOpen] = useState(false);
@@ -127,6 +128,19 @@ const DiaryApp = ({ user, onLogout }) => {
     }, [db, user]);
 
     useEffect(() => {
+        if (!db || !user?.uid) return;
+        const entriesRef = collection(db, 'artifacts', appId, 'users', user.uid, 'entries');
+        const unsubscribe = onSnapshot(entriesRef, (snapshot) => {
+            const entriesData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                title: doc.data().title || ''
+            }));
+            setAllEntries(entriesData);
+        });
+        return () => unsubscribe();
+    }, [db, user]);
+
+    useEffect(() => {
         if (!db || !user?.uid || !selectedDate) return;
         const fetchEntry = async () => {
             const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate);
@@ -134,10 +148,13 @@ const DiaryApp = ({ user, onLogout }) => {
                 const docSnap = await getDoc(entryDocRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    const decryptedText = await decryptText(data.text, user.uid);
-                    setCurrentEntry({ ...data, text: decryptedText });
+                    const [decryptedTitle, decryptedText] = await Promise.all([
+                        decryptText(data.title || '', user.uid),
+                        decryptText(data.text || '', user.uid)
+                    ]);
+                    setCurrentEntry({ ...data, title: decryptedTitle, text: decryptedText });
                 } else {
-                    setCurrentEntry({ text: '', tracked: {} });
+                    setCurrentEntry({ title: '', text: '', tracked: {} });
                 }
             } catch (error) { console.error("Error fetching entry:", error); }
         };
@@ -148,9 +165,12 @@ const DiaryApp = ({ user, onLogout }) => {
     const saveData = useCallback(async (entryData) => {
         if (!db || !user?.uid || !selectedDate) return;
         const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate);
-        const encryptedText = await encryptText(entryData.text, user.uid);
-        const dataToSave = { ...entryData, text: encryptedText };
-        await setDoc(entryDocRef, dataToSave, { merge: true }).catch(error => console.error("Error saving entry:", error));
+        const [encryptedTitle, encryptedText] = await Promise.all([
+            encryptText(entryData.title, user.uid),
+            encryptText(entryData.text, user.uid)
+        ]);
+        const dataToSave = { ...entryData, title: encryptedTitle, text: encryptedText };
+        await setDoc(entryDocRef, dataToSave, { merge: true });
     }, [db, user, selectedDate]);
 
     useEffect(() => {
@@ -166,6 +186,7 @@ const DiaryApp = ({ user, onLogout }) => {
         const prefsDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'settings');
         await setDoc(prefsDocRef, newPrefs, { merge: true });
     };
+    const handleTitleChange = (e) => setCurrentEntry(prev => ({ ...prev, title: e.target.value }));
     const handleTextChange = (e) => setCurrentEntry(prev => ({ ...prev, text: e.target.value }));
     const handleTrackActivity = (activityId, value) => {
         setCurrentEntry(prev => ({ ...prev, tracked: { ...prev.tracked, [activityId]: value } }));
@@ -282,17 +303,21 @@ const DiaryApp = ({ user, onLogout }) => {
             }
             const decryptedEntries = await Promise.all(
                 entries.map(async (entry) => {
-                    const decryptedText = await decryptText(entry.text, user.uid);
-                    return { ...entry, text: decryptedText };
+                    const [decryptedTitle, decryptedText] = await Promise.all([
+                        decryptText(entry.title || '', user.uid),
+                        decryptText(entry.text || '', user.uid)
+                    ]);
+                    return { ...entry, title: decryptedTitle, text: decryptedText };
                 })
             );
             decryptedEntries.sort((a, b) => a.id.localeCompare(b.id));
-            let htmlContent = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Diario de ${user.displayName}</title><style>body{font-family:sans-serif;line-height:1.6;color:#333}h1{color:#2c3e50}h2{color:#34495e;border-bottom:2px solid #ecf0f1;padding-bottom:5px;margin-top:40px}p{white-space:pre-wrap}ul{list-style-type:none;padding-left:0}li{background-color:#f8f9f9;border-left:3px solid #3498db;margin-bottom:5px;padding:5px 10px}</style></head><body><h1>Diario de ${user.displayName}</h1>`;
+            let htmlContent = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Diario de ${user.displayName}</title><style>body{font-family:sans-serif;line-height:1.6;color:#333}h1{color:#2c3e50}h2{color:#34495e;border-bottom:2px solid #ecf0f1;padding-bottom:5px;margin-top:40px}h3{color:#3498db}p{white-space:pre-wrap}ul{list-style-type:none;padding-left:0}li{background-color:#f8f9f9;border-left:3px solid #3498db;margin-bottom:5px;padding:5px 10px}</style></head><body><h1>Diario de ${user.displayName}</h1>`;
             decryptedEntries.forEach(entry => {
                 htmlContent += `<h2>${entry.id}</h2>`;
+                htmlContent += `<h3>${entry.title || 'Sin Título'}</h3>`;
                 htmlContent += `<p>${entry.text || '<i>Sin entrada de texto.</i>'}</p>`;
                 if (entry.tracked && Object.keys(entry.tracked).length > 0) {
-                    htmlContent += '<h3>Actividades Registradas:</h3><ul>';
+                    htmlContent += '<h4>Actividades Registradas:</h4><ul>';
                     Object.entries(entry.tracked).forEach(([activityId, option]) => {
                         const activityName = activities[activityId]?.name || 'Actividad Desconocida';
                         htmlContent += `<li><strong>${activityName}:</strong> ${option}</li>`;
@@ -319,15 +344,25 @@ const DiaryApp = ({ user, onLogout }) => {
         <div className="bg-gray-900 text-gray-100 min-h-screen font-sans flex flex-col">
             <div className="max-w-5xl mx-auto w-full flex flex-col flex-grow">
                 <header className="p-4 border-b border-gray-700 flex justify-between items-center flex-shrink-0">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                         <img src={user.photoURL} alt="Foto de perfil" className="w-10 h-10 rounded-full" />
-                        <h1 className="text-xl md:text-2xl font-bold text-white">Diario de {user.displayName}</h1>
+                        <div>
+                            <h1 className="text-xl md:text-2xl font-bold text-white">Diario de {user.displayName}</h1>
+                            <p className="text-xs text-gray-400 flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
+                                Tus entradas están encriptadas
+                            </p>
+                        </div>
                     </div>
                     <div className="flex items-center gap-4">
                         <button onClick={handleInspirationalMessage} title="Mensaje Inspirador" className="text-gray-300 hover:text-yellow-300 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 100 2h.01a1 1 0 100-2H11zM10 16a1 1 0 102 0 1 1 0 00-2 0zM5.414 5.414a1 1 0 00-1.414 1.414L5.414 8.243a1 1 0 001.414-1.414L5.414 5.414zM13.757 14.586a1 1 0 00-1.414 1.414l1.414 1.414a1 1 0 001.414-1.414l-1.414-1.414zM4 11a1 1 0 102 0 1 1 0 00-2 0zM15 11a1 1 0 102 0 1 1 0 00-2 0zM8.243 5.414a1 1 0 00-1.414-1.414L5.414 5.414a1 1 0 001.414 1.414L8.243 5.414zM14.586 13.757a1 1 0 00-1.414-1.414l-1.414 1.414a1 1 0 001.414 1.414l1.414-1.414zM10 4a6 6 0 100 12 6 6 0 000-12zM3 10a7 7 0 1114 0 7 7 0 01-14 0z" /></svg>
                         </button>
-                        <button onClick={() => setExportModalOpen(true)} className="text-sm text-gray-300 hover:text-white transition-colors flex items-center gap-2">
+                        <a href="mailto:tu-email-aqui@example.com?subject=Feedback sobre la App de Diario" title="Enviar Feedback" className="text-sm text-gray-300 hover:text-white transition-colors flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.874 8.874 0 01-4.083-.98L2 17l1.02-3.06A8.008 8.008 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM4.416 14.242l.03-.028a6.002 6.002 0 008.487-7.854l.028-.03A6.002 6.002 0 004.416 14.242z" clipRule="evenodd" /></svg>
+                            Feedback
+                        </a>
+                        <button onClick={() => setExportModalOpen(true)} className="text-sm text-gray-300 hover:text-white transition-colors flex items-center gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                             Exportar
                         </button>
@@ -338,14 +373,16 @@ const DiaryApp = ({ user, onLogout }) => {
                 <nav className="flex flex-wrap justify-between items-center p-2 bg-gray-800 gap-2 flex-shrink-0">
                     <div className="flex items-center gap-2">
                         <button onClick={() => setView('diary')} className={`px-4 py-2 text-sm font-medium rounded-md ${view === 'diary' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Diario</button>
-                        {view === 'diary' && <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="bg-gray-700 border-gray-600 text-white rounded-lg p-2 focus:ring-2 focus:ring-indigo-500" />}
+                        <button onClick={() => setView('archive')} className={`px-4 py-2 text-sm font-medium rounded-md ${view === 'archive' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Archivo</button>
+                        <button onClick={() => setView('stats')} className={`px-4 py-2 text-sm font-medium rounded-md ${view === 'stats' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Estadísticas</button>
                     </div>
-                    <button onClick={() => setView('stats')} className={`px-4 py-2 text-sm font-medium rounded-md ${view === 'stats' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Estadísticas</button>
                 </nav>
 
                 <main className="flex-grow flex flex-col">
                     {view === 'diary' ? (
-                        <DiaryPanel currentEntry={currentEntry} onTextChange={handleTextChange} activities={activities} onTrackActivity={handleTrackActivity} onAddOption={handleAddOptionToActivity} onOpenNewActivityModal={() => setNewActivityModalOpen(true)} onConsultAI={handleConsultAI} onWritingAssistant={handleWritingAssistant} onUntrackActivity={handleUntrackActivity} onOpenManageModal={() => setManageModalOpen(true)} userPrefs={userPrefs} onUpdateUserPrefs={handleUpdateUserPrefs} />
+                        <DiaryPanel currentEntry={currentEntry} onTitleChange={handleTitleChange} onTextChange={handleTextChange} activities={activities} onTrackActivity={handleTrackActivity} onAddOption={handleAddOptionToActivity} onOpenNewActivityModal={() => setNewActivityModalOpen(true)} onConsultAI={handleConsultAI} onWritingAssistant={handleWritingAssistant} onUntrackActivity={handleUntrackActivity} onOpenManageModal={() => setManageModalOpen(true)} userPrefs={userPrefs} onUpdateUserPrefs={handleUpdateUserPrefs} selectedDate={selectedDate} onDateChange={setSelectedDate} />
+                    ) : view === 'archive' ? (
+                        <ArchiveView allEntries={allEntries} onSelectEntry={(date) => { setSelectedDate(date); setView('diary'); }} user={user} />
                     ) : (
                        <StatisticsPanel db={db} userId={user.uid} appId={appId} activities={activities} />
                     )}
@@ -399,7 +436,7 @@ export default function App() {
 }
 
 // --- Componentes de UI específicos ---
-const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenNewActivityModal, onConsultAI, onWritingAssistant, onUntrackActivity, onOpenManageModal, userPrefs, onUpdateUserPrefs }) => {
+const DiaryPanel = ({ currentEntry, onTitleChange, onTextChange, activities, onTrackActivity, onAddOption, onOpenNewActivityModal, onConsultAI, onWritingAssistant, onUntrackActivity, onOpenManageModal, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange }) => {
     const [activeTab, setActiveTab] = useState('entrada');
 
     const fontOptions = [
@@ -419,7 +456,6 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
         { id: 'text-4xl', name: 'Extra Grande' },
     ];
 
-    // --- MAPA DE CLASES PARA TAILWIND ---
     const fontClassMap = {
         'patrick-hand': 'font-patrick-hand',
         'caveat': 'font-caveat',
@@ -458,14 +494,29 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
 
     return (
         <div className="p-4 md:p-6 flex flex-col flex-grow">
-            <div className="flex border-b border-gray-700 flex-shrink-0">
-                <button onClick={() => setActiveTab('entrada')} className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}>Entrada del Diario</button>
-                <button onClick={() => setActiveTab('actividades')} className={`${tabBaseStyle} ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>Actividades del Día</button>
+            <div className="flex justify-between items-center flex-shrink-0">
+                <div className="flex border-b border-gray-700">
+                    <button onClick={() => setActiveTab('entrada')} className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}>Entrada del Diario</button>
+                    <button onClick={() => setActiveTab('actividades')} className={`${tabBaseStyle} ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>Actividades del Día</button>
+                </div>
+                <input type="date" value={selectedDate} onChange={(e) => onDateChange(e.target.value)} className="bg-gray-700 border-gray-600 text-white rounded-lg p-2 focus:ring-2 focus:ring-indigo-500" />
             </div>
             
             {activeTab === 'entrada' && (
                 <div className="bg-gray-800 rounded-b-lg p-4 flex flex-col flex-grow">
-                    <textarea value={currentEntry?.text || ''} onChange={onTextChange} placeholder="¿Qué pasó hoy...?" className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} />
+                    <input
+                        type="text"
+                        value={currentEntry?.title || ''}
+                        onChange={onTitleChange}
+                        placeholder="Título de la entrada..."
+                        className={`w-full bg-transparent text-white p-3 border-none focus:ring-0 resize-none notebook !text-3xl mb-2 ${fontClassMap[userPrefs.font]}`}
+                    />
+                    <textarea 
+                        value={currentEntry?.text || ''} 
+                        onChange={onTextChange} 
+                        placeholder="¿Qué pasó hoy...?" 
+                        className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} 
+                    />
                     
                     <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-700 flex-wrap gap-4 flex-shrink-0">
                         <div className="flex items-center gap-4 flex-wrap">
@@ -525,6 +576,62 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
         </div>
     );
 };
+
+const ArchiveView = ({ allEntries, onSelectEntry, user }) => {
+    const [decryptedEntries, setDecryptedEntries] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const decryptTitles = async () => {
+            setIsLoading(true);
+            const decrypted = await Promise.all(
+                allEntries.map(async (entry) => {
+                    const decryptedTitle = await decryptText(entry.title, user.uid);
+                    return { ...entry, title: decryptedTitle || 'Sin Título' };
+                })
+            );
+            decrypted.sort((a, b) => b.id.localeCompare(a.id)); // Sort descending
+            setDecryptedEntries(decrypted);
+            setIsLoading(false);
+        };
+        if (allEntries.length > 0) {
+            decryptTitles();
+        } else {
+            setIsLoading(false);
+            setDecryptedEntries([]);
+        }
+    }, [allEntries, user.uid]);
+
+    if (isLoading) {
+        return <div className="p-8 text-center text-gray-400">Cargando archivo...</div>;
+    }
+
+    return (
+        <div className="p-4 md:p-6">
+            <div className="bg-gray-800 rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-white mb-6">Archivo de Entradas</h3>
+                {decryptedEntries.length > 0 ? (
+                    <ul className="space-y-2">
+                        {decryptedEntries.map(entry => (
+                            <li key={entry.id}>
+                                <button
+                                    onClick={() => onSelectEntry(entry.id)}
+                                    className="w-full text-left p-3 bg-gray-700 hover:bg-indigo-900 rounded-lg transition-colors"
+                                >
+                                    <span className="font-bold text-indigo-300">{entry.id}</span>
+                                    <p className="text-gray-200">{entry.title}</p>
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="text-center text-gray-400 italic">Aún no has escrito ninguna entrada.</p>
+                )}
+            </div>
+        </div>
+    );
+};
+
 
 const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack }) => {
     const hasOptions = Array.isArray(activity.options) && activity.options.length > 0;
