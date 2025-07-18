@@ -6,13 +6,12 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 
 // --- Configuración de Firebase ---
 const firebaseConfig = {
-  apiKey: "AIzaSyBsP6-EZQzLLt6HTKHc8axuiAib3NxJc44",
-  authDomain: "mi-diario-personal-1badc.firebaseapp.com",
-  projectId: "mi-diario-personal-1badc",
-  storageBucket: "mi-diario-personal-1badc.firebasestorage.app",
-  messagingSenderId: "235248517491",
-  appId: "1:235248517491:web:b9ff88ba47bfd961540506",
-  measurementId: "G-3SC9G9H40R"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const appId = firebaseConfig.projectId;
@@ -62,14 +61,14 @@ const decryptText = async (encryptedBase64, uid) => {
 // --- Componente de Login ---
 const LoginScreen = ({ onGoogleSignIn }) => (
     <div className="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="text-center">
+        <div className="text-center flex flex-col items-center">
             <h1 className="text-4xl md:text-5xl font-bold text-white">Diario Personal</h1>
             <p className="text-gray-300 mt-2 mb-8">Guarda tus pensamientos y sigue tus hábitos de forma segura.</p>
             <button
                 onClick={onGoogleSignIn}
-                className="bg-white text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-200 transition-colors duration-300 flex items-center gap-3 text-lg"
+                className="bg-white text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-200 transition-colors duration-300 inline-flex items-center gap-3 text-lg"
             >
-                <svg className="w-6 h-6" viewBox="0 0 48 F48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
+                <svg className="w-6 h-6" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
                 Iniciar sesión con Google
             </button>
         </div>
@@ -260,6 +259,10 @@ const DiaryApp = ({ user, onLogout }) => {
         if (writingAssistantSuggestion) setCurrentEntry(prev => ({ ...prev, text: writingAssistantSuggestion }));
         setAIModalOpen(false);
     };
+    const handleInspirationalMessage = () => {
+        const prompt = "Actúa como un sabio filósofo. Escribe una frase inspiradora, corta y única para empezar el día. Sé profundo pero conciso. No añadas introducciones, saludos, ni comillas, solo la frase.";
+        callAI(prompt, "Mensaje del Día");
+    };
     
     const handleExportEntries = async (startDate, endDate) => {
         if (!db || !user?.uid) return;
@@ -321,6 +324,9 @@ const DiaryApp = ({ user, onLogout }) => {
                         <h1 className="text-xl md:text-2xl font-bold text-white">Diario de {user.displayName}</h1>
                     </div>
                     <div className="flex items-center gap-4">
+                        <button onClick={handleInspirationalMessage} title="Mensaje Inspirador" className="text-gray-300 hover:text-yellow-300 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 100 2h.01a1 1 0 100-2H11zM10 16a1 1 0 102 0 1 1 0 00-2 0zM5.414 5.414a1 1 0 00-1.414 1.414L5.414 8.243a1 1 0 001.414-1.414L5.414 5.414zM13.757 14.586a1 1 0 00-1.414 1.414l1.414 1.414a1 1 0 001.414-1.414l-1.414-1.414zM4 11a1 1 0 102 0 1 1 0 00-2 0zM15 11a1 1 0 102 0 1 1 0 00-2 0zM8.243 5.414a1 1 0 00-1.414-1.414L5.414 5.414a1 1 0 001.414 1.414L8.243 5.414zM14.586 13.757a1 1 0 00-1.414-1.414l-1.414 1.414a1 1 0 001.414 1.414l1.414-1.414zM10 4a6 6 0 100 12 6 6 0 000-12zM3 10a7 7 0 1114 0 7 7 0 01-14 0z" /></svg>
+                        </button>
                         <button onClick={() => setExportModalOpen(true)} className="text-sm text-gray-300 hover:text-white transition-colors flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                             Exportar
@@ -402,6 +408,8 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
         { id: 'indie-flower', name: 'Indie Flower' },
         { id: 'kalam', name: 'Kalam' },
         { id: 'gochi-hand', name: 'Gochi Hand' },
+        { id: 'lora', name: 'Lora (Serif)' },
+        { id: 'sans', name: 'Nunito Sans (Simple)' },
     ];
 
     const fontSizeOptions = [
@@ -411,12 +419,15 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
         { id: 'text-4xl', name: 'Extra Grande' },
     ];
 
+    // --- MAPA DE CLASES PARA TAILWIND ---
     const fontClassMap = {
         'patrick-hand': 'font-patrick-hand',
         'caveat': 'font-caveat',
         'indie-flower': 'font-indie-flower',
         'kalam': 'font-kalam',
         'gochi-hand': 'font-gochi-hand',
+        'lora': 'font-lora',
+        'sans': 'font-sans',
     };
 
     const fontSizeClassMap = {
@@ -456,9 +467,8 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
                 <div className="bg-gray-800 rounded-b-lg p-4 flex flex-col flex-grow">
                     <textarea value={currentEntry?.text || ''} onChange={onTextChange} placeholder="¿Qué pasó hoy...?" className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} />
                     
-                    {/* --- NUEVA BARRA DE HERRAMIENTAS INFERIOR --- */}
                     <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-700 flex-wrap gap-4 flex-shrink-0">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-wrap">
                            <div className="flex items-center gap-2">
                                <label htmlFor="font-select" className="text-sm text-gray-300">Fuente:</label>
                                <select 
@@ -515,6 +525,7 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
         </div>
     );
 };
+
 const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack }) => {
     const hasOptions = Array.isArray(activity.options) && activity.options.length > 0;
     return (

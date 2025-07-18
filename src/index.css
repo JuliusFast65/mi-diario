@@ -7,32 +7,26 @@
   /* --- Estilos para el Modo Claro (Light Mode) --- */
   .notebook {
     background-color: #fdfaf2; /* Un color crema para el papel */
+    /* Eliminamos la línea vertical del background-image */
     background-image:
-      linear-gradient(90deg, transparent 49px, #ffdbdb 49px, #ffdbdb 51px, transparent 51px),  /* Línea vertical roja del margen */
       linear-gradient(#e8e8e8 .05em, transparent .05em); /* Líneas horizontales grises */
     background-size: 100% 2.5rem; /* El espaciado entre las líneas horizontales */
     
-    /* Movemos el fondo de las líneas un poco hacia abajo para que el texto se asiente sobre ellas */
     background-position-y: 0.5rem; 
 
-    line-height: 2.5rem !important; /* ¡Importante! Alinea el texto con las líneas */
-    color: #3b3b3b; /* Un color de tinta oscuro, no negro puro */
-    padding-left: 60px !important; /* Espacio para el margen izquierdo */
+    line-height: 2.5rem !important;
+    color: #3b3b3b;
+    /* Reducimos el padding izquierdo al no tener margen */
+    padding-left: 20px !important; 
     padding-top: 20px !important;
     padding-bottom: 20px !important;
   }
 
   /* --- Estilos para el Modo Oscuro (Dark Mode) --- */
   .dark .notebook {
-    /* --- AJUSTES CLAVE --- */
-    background-color: #000000; /* Fondo completamente negro */
-    
-    /* Dejamos solo las líneas horizontales con un blanco muy tenue */
+    background-color: #000000;
     background-image: linear-gradient(rgba(255, 255, 255, 0.1) .05em, transparent .05em);
-    
-    color: #e2e8f0; /* Color de "tinta" claro (casi blanco) */
-    
-    /* Eliminamos el padding izquierdo extra ya que no hay línea de margen */
+    color: #e2e8f0;
     padding-left: 20px !important;
   }
 }

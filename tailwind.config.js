@@ -8,13 +8,15 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        // Definimos todas las fuentes manuscritas que ofreceremos
+        sans: ['Nunito Sans', 'sans-serif'], // Actualizamos la fuente por defecto
+        // Fuentes manuscritas
         caveat: ['Caveat', 'cursive'],
         'patrick-hand': ['"Patrick Hand"', 'cursive'],
         'indie-flower': ['"Indie Flower"', 'cursive'],
         kalam: ['Kalam', 'cursive'],
         'gochi-hand': ['"Gochi Hand"', 'cursive'],
+        // Nuevas fuentes clásicas
+        lora: ['Lora', 'serif'],
       },
     },
   },
