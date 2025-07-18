@@ -411,7 +411,6 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
         { id: 'text-4xl', name: 'Extra Grande' },
     ];
 
-    // --- MAPA DE CLASES PARA TAILWIND ---
     const fontClassMap = {
         'patrick-hand': 'font-patrick-hand',
         'caveat': 'font-caveat',
@@ -455,7 +454,10 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
             
             {activeTab === 'entrada' && (
                 <div className="bg-gray-800 rounded-b-lg p-4 flex flex-col flex-grow">
-                    <div className="flex justify-between items-center mb-4 flex-wrap gap-4 flex-shrink-0">
+                    <textarea value={currentEntry?.text || ''} onChange={onTextChange} placeholder="¿Qué pasó hoy...?" className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} />
+                    
+                    {/* --- NUEVA BARRA DE HERRAMIENTAS INFERIOR --- */}
+                    <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-700 flex-wrap gap-4 flex-shrink-0">
                         <div className="flex items-center gap-4">
                            <div className="flex items-center gap-2">
                                <label htmlFor="font-select" className="text-sm text-gray-300">Fuente:</label>
@@ -489,8 +491,6 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
                             <button onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>Terapeuta IA</button>
                         </div>
                     </div>
-                    <textarea value={currentEntry?.text || ''} onChange={onTextChange} placeholder="¿Qué pasó hoy...?" className={`w-full flex-grow rounded-md p-3 border border-gray-600 transition resize-none notebook ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} />
-                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-2 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>Tus entradas están encriptadas para tu privacidad.</p>
                 </div>
             )}
 
@@ -515,7 +515,6 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
         </div>
     );
 };
-
 const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack }) => {
     const hasOptions = Array.isArray(activity.options) && activity.options.length > 0;
     return (
