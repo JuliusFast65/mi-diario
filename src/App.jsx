@@ -346,25 +346,17 @@ const DiaryApp = ({ user, onLogout }) => {
                 <header className="p-4 border-b border-gray-700 flex justify-between items-center flex-shrink-0">
                     <div className="flex items-center gap-4">
                         <img src={user.photoURL} alt="Foto de perfil" className="w-10 h-10 rounded-full" />
-                        <div>
-                            <h1 className="text-xl md:text-2xl font-bold text-white">Diario de {user.displayName}</h1>
-                            <p className="text-xs text-gray-400 flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
-                                Tus entradas están encriptadas
-                            </p>
-                        </div>
+                        <h1 className="text-xl md:text-2xl font-bold text-white">Diario de {user.displayName}</h1>
                     </div>
                     <div className="flex items-center gap-4">
                         <button onClick={handleInspirationalMessage} title="Mensaje Inspirador" className="text-gray-300 hover:text-yellow-300 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 100 2h.01a1 1 0 100-2H11zM10 16a1 1 0 102 0 1 1 0 00-2 0zM5.414 5.414a1 1 0 00-1.414 1.414L5.414 8.243a1 1 0 001.414-1.414L5.414 5.414zM13.757 14.586a1 1 0 00-1.414 1.414l1.414 1.414a1 1 0 001.414-1.414l-1.414-1.414zM4 11a1 1 0 102 0 1 1 0 00-2 0zM15 11a1 1 0 102 0 1 1 0 00-2 0zM8.243 5.414a1 1 0 00-1.414-1.414L5.414 5.414a1 1 0 001.414 1.414L8.243 5.414zM14.586 13.757a1 1 0 00-1.414-1.414l-1.414 1.414a1 1 0 001.414 1.414l1.414-1.414zM10 4a6 6 0 100 12 6 6 0 000-12zM3 10a7 7 0 1114 0 7 7 0 01-14 0z" /></svg>
                         </button>
-                        <a href="mailto:tu-email-aqui@example.com?subject=Feedback sobre la App de Diario" title="Enviar Feedback" className="text-sm text-gray-300 hover:text-white transition-colors flex items-center gap-1">
+                        <a href="mailto:tu-email-aqui@example.com?subject=Feedback sobre la App de Diario" title="Enviar Feedback" className="text-gray-300 hover:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.874 8.874 0 01-4.083-.98L2 17l1.02-3.06A8.008 8.008 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM4.416 14.242l.03-.028a6.002 6.002 0 008.487-7.854l.028-.03A6.002 6.002 0 004.416 14.242z" clipRule="evenodd" /></svg>
-                            Feedback
                         </a>
-                        <button onClick={() => setExportModalOpen(true)} className="text-sm text-gray-300 hover:text-white transition-colors flex items-center gap-1">
+                        <button onClick={() => setExportModalOpen(true)} title="Exportar Entradas" className="text-gray-300 hover:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-                            Exportar
                         </button>
                         <button onClick={onLogout} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Salir</button>
                     </div>
@@ -376,6 +368,10 @@ const DiaryApp = ({ user, onLogout }) => {
                         <button onClick={() => setView('archive')} className={`px-4 py-2 text-sm font-medium rounded-md ${view === 'archive' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Archivo</button>
                         <button onClick={() => setView('stats')} className={`px-4 py-2 text-sm font-medium rounded-md ${view === 'stats' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Estadísticas</button>
                     </div>
+                    <p className="text-xs text-gray-400 flex items-center gap-1 pr-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
+                        Tus entradas están encriptadas
+                    </p>
                 </nav>
 
                 <main className="flex-grow flex flex-col">
@@ -494,8 +490,8 @@ const DiaryPanel = ({ currentEntry, onTitleChange, onTextChange, activities, onT
     const tabInactiveStyle = "bg-gray-700 text-gray-400 hover:bg-gray-600";
 
     return (
-        <div className="p-4 md:p-6 flex flex-col flex-grow">
-            <div className="flex justify-between items-center flex-shrink-0">
+        <div className="flex flex-col flex-grow">
+            <div className="flex justify-between items-center flex-shrink-0 px-4 md:px-6 pt-4">
                 <div className="flex border-b border-gray-700">
                     <button onClick={() => setActiveTab('entrada')} className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}>Entrada del Diario</button>
                     <button onClick={() => setActiveTab('actividades')} className={`${tabBaseStyle} ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>Actividades del Día</button>
@@ -504,13 +500,13 @@ const DiaryPanel = ({ currentEntry, onTitleChange, onTextChange, activities, onT
             </div>
             
             {activeTab === 'entrada' && (
-                <div className="bg-gray-800 rounded-b-lg p-4 flex flex-col flex-grow">
+                <div className="bg-gray-800 rounded-b-lg p-4 flex flex-col flex-grow mx-4 md:mx-6 mb-4 md:mb-6">
                     <input
                         type="text"
                         value={currentEntry?.title || ''}
                         onChange={onTitleChange}
                         placeholder="Título de la entrada..."
-                        className={`w-full bg-transparent text-white p-3 border-none focus:ring-0 resize-none notebook font-bold mb-2 ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`}
+                        className={`w-full bg-transparent text-white py-1 px-3 border-none focus:ring-0 resize-none notebook font-bold mb-2 ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`}
                     />
                     <textarea 
                         value={currentEntry?.text || ''} 
@@ -557,7 +553,7 @@ const DiaryPanel = ({ currentEntry, onTitleChange, onTextChange, activities, onT
             )}
 
             {activeTab === 'actividades' && (
-                 <div className="bg-gray-800 rounded-b-lg p-4">
+                 <div className="bg-gray-800 rounded-b-lg p-4 mx-4 md:mx-6 mb-4 md:mb-6">
                     <div className="space-y-4 min-h-[50px]">
                         {trackedActivityIds.length > 0 ? (
                             trackedActivityIds.map(id => activities[id]).filter(Boolean).sort((a,b) => a.name.localeCompare(b.name)).map(activity => (
