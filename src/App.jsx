@@ -456,6 +456,7 @@ const DiaryPanel = ({ currentEntry, onTitleChange, onTextChange, activities, onT
         { id: 'text-4xl', name: 'Extra Grande' },
     ];
 
+    // --- MAPA DE CLASES PARA TAILWIND ---
     const fontClassMap = {
         'patrick-hand': 'font-patrick-hand',
         'caveat': 'font-caveat',
