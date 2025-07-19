@@ -1027,4 +1027,4 @@ const ActivityDetailView = ({ activity, entries, onBack }) => {
     );
 };
 
-const APP_VERSION = 'V 1.01'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.02'; // Cambia este valor en cada iteración
