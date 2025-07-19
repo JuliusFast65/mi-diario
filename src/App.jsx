@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { initializeApp } from 'firebase/app';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { getFirestore, doc, onSnapshot, setDoc, collection, addDoc, getDocs, getDoc, deleteDoc, query, where, documentId } from 'firebase/firestore';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { auth, db } from './firebase';
 
 // --- Configuración de Firebase ---
 const firebaseConfig = {
@@ -67,6 +67,7 @@ const LoginScreen = ({ onGoogleSignIn }) => (
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Introspect</h1>
                 <p className="text-gray-300 text-lg md:text-xl mb-2">Tu Diario Personal</p>
                 <p className="text-gray-300 text-lg md:text-xl">Guarda tus pensamientos y sigue tus hábitos de forma segura.</p>
+                <span className="block mt-4 text-xs text-gray-400">Versión {APP_VERSION}</span>
             </div>
             <button
                 onClick={onGoogleSignIn}
@@ -80,7 +81,7 @@ const LoginScreen = ({ onGoogleSignIn }) => (
 );
 
 // --- Componente Principal de la App ---
-const DiaryApp = ({ user, onLogout }) => {
+const DiaryApp = ({ user }) => {
     const [db, setDb] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [currentEntry, setCurrentEntry] = useState({ text: '', tracked: {} });
@@ -101,10 +102,12 @@ const DiaryApp = ({ user, onLogout }) => {
     const [isAILoading, setAILoading] = useState(false);
     const [aiModalTitle, setAIModalTitle] = useState('');
     const [writingAssistantSuggestion, setWritingAssistantSuggestion] = useState('');
+    const [isLoadingEntry, setIsLoadingEntry] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const textareaRef = useRef();
 
     useEffect(() => {
-        const app = initializeApp(firebaseConfig);
-        const firestoreDb = getFirestore(app);
+        const firestoreDb = getFirestore();
         setDb(firestoreDb);
     }, []);
 
@@ -146,24 +149,34 @@ const DiaryApp = ({ user, onLogout }) => {
 
     useEffect(() => {
         if (!db || !user?.uid || !selectedDate) return;
+        setIsLoadingEntry(true);
+        setCurrentEntry({ text: '', tracked: {} });
+        let isMounted = true;
         const fetchEntry = async () => {
             const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate);
             try {
                 const docSnap = await getDoc(entryDocRef);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    const [decryptedTitle, decryptedText] = await Promise.all([
-                        decryptText(data.title || '', user.uid),
-                        decryptText(data.text || '', user.uid)
-                    ]);
-                    const combinedText = decryptedTitle + (decryptedText ? '\n' + decryptedText : '');
-                    setCurrentEntry({ text: combinedText, tracked: data.tracked || {} });
-                } else {
-                    setCurrentEntry({ text: '', tracked: {} });
+                if (isMounted) {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        const [decryptedTitle, decryptedText] = await Promise.all([
+                            decryptText(data.title || '', user.uid),
+                            decryptText(data.text || '', user.uid)
+                        ]);
+                        const combinedText = decryptedTitle + (decryptedText ? '\n' + decryptedText : '');
+                        setCurrentEntry({ text: combinedText, tracked: data.tracked || {} });
+                    } else {
+                        setCurrentEntry({ text: '', tracked: {} });
+                    }
+                    setIsLoadingEntry(false);
                 }
-            } catch (error) { console.error("Error fetching entry:", error); }
+            } catch (error) {
+                if (isMounted) setIsLoadingEntry(false);
+                console.error("Error fetching entry:", error);
+            }
         };
         fetchEntry();
+        return () => { isMounted = false; };
     }, [db, user, selectedDate]);
 
     // Guardado automático de datos
@@ -185,12 +198,14 @@ const DiaryApp = ({ user, onLogout }) => {
         await setDoc(entryDocRef, dataToSave, { merge: true });
     }, [db, user, selectedDate]);
 
+    
     useEffect(() => {
+        if (isLoadingEntry) return;
         const handler = setTimeout(() => {
             if (currentEntry) saveData(currentEntry);
         }, 1500);
         return () => clearTimeout(handler);
-    }, [currentEntry, saveData]);
+    }, [currentEntry, saveData, isLoadingEntry]);
 
     // Manejadores de eventos y lógica de la aplicación
     const handleUpdateUserPrefs = async (newPrefs) => {
@@ -357,6 +372,20 @@ const DiaryApp = ({ user, onLogout }) => {
         }
     };
 
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        const textarea = textareaRef.current;
+        let text = textarea ? textarea.value : (currentEntry?.text || '');
+        const entry = { ...currentEntry, text };
+        try {
+            await saveData(entry);
+            await signOut(auth);
+        } catch (error) {
+            console.error("Error en logout o guardado:", error);
+        }
+        // No pongas setIsLoggingOut(false)
+    };
+
     return (
         <div className="bg-gray-900 text-gray-100 min-h-screen font-sans flex flex-col">
             <div className="max-w-5xl mx-auto w-full flex flex-col flex-grow">
@@ -381,7 +410,13 @@ const DiaryApp = ({ user, onLogout }) => {
                         <button onClick={() => setExportModalOpen(true)} title="Exportar Entradas" className="text-gray-300 hover:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                         </button>
-                        <button onClick={onLogout} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Salir</button>
+                        <button 
+                            onClick={handleLogout}
+                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                            disabled={isLoggingOut}
+                        >
+                            {isLoggingOut ? 'Guardando...' : 'Salir'}
+                        </button>
                     </div>
                 </header>
                 
@@ -395,7 +430,7 @@ const DiaryApp = ({ user, onLogout }) => {
 
                 <main className="flex-grow flex flex-col">
                     {view === 'diary' ? (
-                        <DiaryPanel currentEntry={currentEntry} onTextChange={handleTextChange} activities={activities} onTrackActivity={handleTrackActivity} onAddOption={handleAddOptionToActivity} onOpenNewActivityModal={() => setNewActivityModalOpen(true)} onConsultAI={handleConsultAI} onWritingAssistant={handleWritingAssistant} onUntrackActivity={handleUntrackActivity} onOpenManageModal={() => setManageModalOpen(true)} userPrefs={userPrefs} onUpdateUserPrefs={handleUpdateUserPrefs} selectedDate={selectedDate} onDateChange={setSelectedDate} />
+                        <DiaryPanel currentEntry={currentEntry} onTextChange={handleTextChange} activities={activities} onTrackActivity={handleTrackActivity} onAddOption={handleAddOptionToActivity} onOpenNewActivityModal={() => setNewActivityModalOpen(true)} onConsultAI={handleConsultAI} onWritingAssistant={handleWritingAssistant} onUntrackActivity={handleUntrackActivity} onOpenManageModal={() => setManageModalOpen(true)} userPrefs={userPrefs} onUpdateUserPrefs={handleUpdateUserPrefs} selectedDate={selectedDate} onDateChange={setSelectedDate} textareaRef={textareaRef} />
                     ) : view === 'archive' ? (
                         <ArchiveView allEntries={allEntries} onSelectEntry={(date) => { setSelectedDate(date); setView('diary'); }} user={user} />
                     ) : (
@@ -420,8 +455,7 @@ export default function App() {
     const [isAuthReady, setIsAuthReady] = useState(false);
     useEffect(() => {
         try {
-            const app = initializeApp(firebaseConfig);
-            const firebaseAuth = getAuth(app);
+            const firebaseAuth = getAuth();
             setAuth(firebaseAuth);
             const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
                 setUser(user);
@@ -440,18 +474,13 @@ export default function App() {
         try { await signInWithPopup(auth, provider); } 
         catch (error) { console.error("Error al iniciar sesión con Google:", error); }
     };
-    const handleLogout = async () => {
-        if (!auth) return;
-        try { await signOut(auth); }
-        catch (error) { console.error("Error al cerrar sesión:", error); }
-    };
 
     if (!isAuthReady) return <div className="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center">Cargando...</div>;
-    return user ? <DiaryApp user={user} onLogout={handleLogout} /> : <LoginScreen onGoogleSignIn={handleGoogleSignIn} />;
+    return user ? <DiaryApp user={user} /> : <LoginScreen onGoogleSignIn={handleGoogleSignIn} />;
 }
 
 // --- Componentes de UI específicos ---
-const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenNewActivityModal, onConsultAI, onWritingAssistant, onUntrackActivity, onOpenManageModal, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange }) => {
+const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenNewActivityModal, onConsultAI, onWritingAssistant, onUntrackActivity, onOpenManageModal, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef }) => {
     const [activeTab, setActiveTab] = useState('entrada');
 
     const fontOptions = [
@@ -523,6 +552,7 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
             {activeTab === 'entrada' && (
                 <div className="bg-gray-800 rounded-b-lg p-4 flex flex-col flex-grow mx-4 md:mx-6 mb-4 md:mb-6">
                     <textarea 
+                        ref={textareaRef}
                         value={currentEntry?.text || ''} 
                         onChange={onTextChange} 
                         placeholder="Escribe un título en la primera línea..." 
@@ -996,3 +1026,5 @@ const ActivityDetailView = ({ activity, entries, onBack }) => {
         </div>
     );
 };
+
+const APP_VERSION = 'V 1.01'; // Cambia este valor en cada iteración
