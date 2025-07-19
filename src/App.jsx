@@ -62,8 +62,12 @@ const decryptText = async (encryptedBase64, uid) => {
 const LoginScreen = ({ onGoogleSignIn }) => (
     <div className="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
         <div className="text-center flex flex-col items-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-white">Diario Personal</h1>
-            <p className="text-gray-300 mt-2 mb-8">Guarda tus pensamientos y sigue tus hábitos de forma segura.</p>
+            <div className="mb-8">
+                <img src="/favicon.svg" alt="Logo Diario Personal" className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-6" />
+                <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Introspect</h1>
+                <p className="text-gray-300 text-lg md:text-xl mb-2">Tu Diario Personal</p>
+                <p className="text-gray-300 text-lg md:text-xl">Guarda tus pensamientos y sigue tus hábitos de forma segura.</p>
+            </div>
             <button
                 onClick={onGoogleSignIn}
                 className="bg-white text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-200 transition-colors duration-300 inline-flex items-center gap-3 text-lg"
@@ -323,7 +327,8 @@ const DiaryApp = ({ user, onLogout }) => {
                 })
             );
             decryptedEntries.sort((a, b) => a.id.localeCompare(b.id));
-            let htmlContent = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Diario de ${user.displayName}</title><style>body{font-family:sans-serif;line-height:1.6;color:#333}h1{color:#2c3e50}h2{color:#34495e;border-bottom:2px solid #ecf0f1;padding-bottom:5px;margin-top:40px}h3{color:#3498db}p{white-space:pre-wrap}ul{list-style-type:none;padding-left:0}li{background-color:#f8f9f9;border-left:3px solid #3498db;margin-bottom:5px;padding:5px 10px}</style></head><body><h1>Diario de ${user.displayName}</h1>`;
+          //  let htmlContent = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Diario de ${user.displayName}</title><style>body{font-family:sans-serif;line-height:1.6;color:#333}h1{color:#2c3e50}h2{color:#34495e;border-bottom:2px solid #ecf0f1;padding-bottom:5px;margin-top:40px}h3{color:#3498db}p{white-space:pre-wrap}ul{list-style-type:none;padding-left:0}li{background-color:#f8f9f9;border-left:3px solid #3498db;margin-bottom:5px;padding:5px 10px}</style></head><body><h1>Diario de ${user.displayName}</h1>`;
+            let htmlContent = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Diario de ${user.displayName}</title><style>body{font-family:sans-serif;line-height:1.6;color:#333}h1{color:#2c3e50}h2{color:#34495e;border-bottom:2px solid #ecf0f1;padding-bottom:5px;margin-top:40px}h3{color:#3498db}p{white-space:pre-wrap}ul{list-style-type:none;padding-left:0}li{background-color:#f8f9f9;border-left:3px solid #3498db;margin-bottom:5px;padding:5px 10px}</style></head><body><h1>Mi Diario</h1>`;
             decryptedEntries.forEach(entry => {
                 htmlContent += `<h2>${entry.id}</h2>`;
                 htmlContent += `<h3>${entry.title || 'Sin Título'}</h3>`;
@@ -359,10 +364,10 @@ const DiaryApp = ({ user, onLogout }) => {
                     <div className="flex items-center gap-4">
                         <img src={user.photoURL} alt="Foto de perfil" className="w-10 h-10 rounded-full" />
                         <div>
-                            <h1 className="text-xl md:text-2xl font-bold text-white">Diario de {user.displayName}</h1>
+                            <h1 className="text-xl md:text-2xl font-bold text-white">Mi Diario</h1>
                             <p className="text-xs text-gray-400 flex items-center gap-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
-                                100% Encriptado
+                                100% Encrip
                             </p>
                         </div>
                     </div>
@@ -460,6 +465,7 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
     ];
 
     const fontSizeOptions = [
+        { id: 'text-lg', name: 'Muy Pequeño'},
         { id: 'text-xl', name: 'Pequeño' },
         { id: 'text-2xl', name: 'Mediano' },
         { id: 'text-3xl', name: 'Grande' },
@@ -478,6 +484,7 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
     };
 
     const fontSizeClassMap = {
+        'text-lg': 'text-lg',
         'text-xl': 'text-xl',
         'text-2xl': 'text-2xl',
         'text-3xl': 'text-3xl',
@@ -519,31 +526,33 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
                         value={currentEntry?.text || ''} 
                         onChange={onTextChange} 
                         placeholder="Escribe un título en la primera línea..." 
-                        className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook journal-editor ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} 
+                        className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook journal-editor leading-[0.5] ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} 
                     />
                     
                     <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-700 flex-wrap gap-4 flex-shrink-0">
-                        <div className="flex items-center gap-4 flex-wrap">
-                           <div className="flex items-center gap-2" title="Cambiar tipo de letra">
-                               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M10.755 2.168A.75.75 0 009.245 2.168L3.32 13.5h2.978l1.035-2.5h4.334l1.035 2.5h2.978L10.755 2.168zm-2.034 7.5L10 4.17l1.279 5.5H8.721z" /></svg>
+                        <div className="flex items-center gap-2 flex-wrap text-xs">
+                           <div className="flex items-center gap-1 min-w-0">
+                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M10.755 2.168A.75.75 0 009.245 2.168L3.32 13.5h2.978l1.035-2.5h4.334l1.035 2.5h2.978L10.755 2.168zm-2.034 7.5L10 4.17l1.279 5.5H8.721z" /></svg>
                                <select 
                                  id="font-select"
                                  value={userPrefs.font}
                                  onChange={(e) => onUpdateUserPrefs({ font: e.target.value })}
-                                 className="bg-gray-700 text-white rounded-md p-1 border border-gray-600 text-sm"
+                                 className="bg-gray-700 text-white rounded p-0.5 border border-gray-600 text-xs min-w-0"
+                                 style={{maxWidth:'90px'}}
                                >
                                    {fontOptions.map(font => (
                                        <option key={font.id} value={font.id}>{font.name}</option>
                                    ))}
                                </select>
                            </div>
-                           <div className="flex items-center gap-2" title="Cambiar tamaño de letra">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M8.25 3.75a.75.75 0 01.75.75v10.5a.75.75 0 01-1.5 0V4.5a.75.75 0 01.75-.75zM13.25 5.75a.75.75 0 01.75.75v8.5a.75.75 0 01-1.5 0V6.5a.75.75 0 01.75-.75zM4.25 8.75a.75.75 0 01.75.75v2.5a.75.75 0 01-1.5 0v-2.5a.75.75 0 01.75-.75z" /></svg>
+                           <div className="flex items-center gap-1 min-w-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M8.25 3.75a.75.75 0 01.75.75v10.5a.75.75 0 01-1.5 0V4.5a.75.75 0 01.75-.75zM13.25 5.75a.75.75 0 01.75.75v8.5a.75.75 0 01-1.5 0V6.5a.75.75 0 01.75-.75zM4.25 8.75a.75.75 0 01.75.75v2.5a.75.75 0 01-1.5 0v-2.5a.75.75 0 01.75-.75z" /></svg>
                                <select 
                                  id="fontsize-select"
                                  value={userPrefs.fontSize}
                                  onChange={(e) => onUpdateUserPrefs({ fontSize: e.target.value })}
-                                 className="bg-gray-700 text-white rounded-md p-1 border border-gray-600 text-sm"
+                                 className="bg-gray-700 text-white rounded p-0.5 border border-gray-600 text-xs min-w-0"
+                                 style={{maxWidth:'70px'}}
                                >
                                    {fontSizeOptions.map(size => (
                                        <option key={size.id} value={size.id}>{size.name}</option>

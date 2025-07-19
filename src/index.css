@@ -10,11 +10,11 @@
     /* Eliminamos la línea vertical del background-image */
     background-image:
       linear-gradient(#e8e8e8 .05em, transparent .05em); /* Líneas horizontales grises */
-    background-size: 100% 2.5rem; /* El espaciado entre las líneas horizontales */
+    background-size: 100% 1.2rem; /* El espaciado entre las líneas horizontales */
     
     background-position-y: 0.5rem; 
 
-    line-height: 2.5rem !important;
+    line-height: 1.2rem !important;
     color: #3b3b3b;
     /* Reducimos el padding izquierdo al no tener margen */
     padding-left: 20px !important; 
