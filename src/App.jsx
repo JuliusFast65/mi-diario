@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { getFirestore, doc, onSnapshot, setDoc, collection, addDoc, getDocs, getDoc, deleteDoc, query, where, documentId } from 'firebase/firestore';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 // --- Configuración de Firebase ---
 const firebaseConfig = {
@@ -79,7 +79,7 @@ const LoginScreen = ({ onGoogleSignIn }) => (
 const DiaryApp = ({ user, onLogout }) => {
     const [db, setDb] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    const [currentEntry, setCurrentEntry] = useState({ title: '', text: '', tracked: {} });
+    const [currentEntry, setCurrentEntry] = useState({ text: '', tracked: {} });
     const [activities, setActivities] = useState({});
     const [view, setView] = useState('diary');
     const [userPrefs, setUserPrefs] = useState({ font: 'patrick-hand', fontSize: 'text-3xl' });
@@ -152,9 +152,10 @@ const DiaryApp = ({ user, onLogout }) => {
                         decryptText(data.title || '', user.uid),
                         decryptText(data.text || '', user.uid)
                     ]);
-                    setCurrentEntry({ ...data, title: decryptedTitle, text: decryptedText });
+                    const combinedText = decryptedTitle + (decryptedText ? '\n' + decryptedText : '');
+                    setCurrentEntry({ text: combinedText, tracked: data.tracked || {} });
                 } else {
-                    setCurrentEntry({ title: '', text: '', tracked: {} });
+                    setCurrentEntry({ text: '', tracked: {} });
                 }
             } catch (error) { console.error("Error fetching entry:", error); }
         };
@@ -165,11 +166,18 @@ const DiaryApp = ({ user, onLogout }) => {
     const saveData = useCallback(async (entryData) => {
         if (!db || !user?.uid || !selectedDate) return;
         const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate);
+        
+        const [titleLine, ...bodyLines] = (entryData.text || '').split('\n');
+        const bodyText = bodyLines.join('\n');
+
         const [encryptedTitle, encryptedText] = await Promise.all([
-            encryptText(entryData.title, user.uid),
-            encryptText(entryData.text, user.uid)
+            encryptText(titleLine, user.uid),
+            encryptText(bodyText, user.uid)
         ]);
-        const dataToSave = { ...entryData, title: encryptedTitle, text: encryptedText };
+
+        const { text, ...restOfEntry } = entryData;
+        const dataToSave = { ...restOfEntry, title: encryptedTitle, text: encryptedText };
+        
         await setDoc(entryDocRef, dataToSave, { merge: true });
     }, [db, user, selectedDate]);
 
@@ -186,7 +194,6 @@ const DiaryApp = ({ user, onLogout }) => {
         const prefsDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'settings');
         await setDoc(prefsDocRef, newPrefs, { merge: true });
     };
-    const handleTitleChange = (e) => setCurrentEntry(prev => ({ ...prev, title: e.target.value }));
     const handleTextChange = (e) => setCurrentEntry(prev => ({ ...prev, text: e.target.value }));
     const handleTrackActivity = (activityId, value) => {
         setCurrentEntry(prev => ({ ...prev, tracked: { ...prev.tracked, [activityId]: value } }));
@@ -243,6 +250,11 @@ const DiaryApp = ({ user, onLogout }) => {
                 return { ...prev, tracked: newTracked };
             });
         } catch (error) { console.error("Error al eliminar la actividad:", error); alert("No se pudo eliminar la actividad."); }
+    };
+    const handleSaveGoal = async (activityId, goal) => {
+        if (!db || !user?.uid || !activityId) return;
+        const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
+        await setDoc(activityRef, { goal }, { merge: true });
     };
     const callAI = async (prompt, title) => {
         setAIModalTitle(title);
@@ -346,7 +358,13 @@ const DiaryApp = ({ user, onLogout }) => {
                 <header className="p-4 border-b border-gray-700 flex justify-between items-center flex-shrink-0">
                     <div className="flex items-center gap-4">
                         <img src={user.photoURL} alt="Foto de perfil" className="w-10 h-10 rounded-full" />
-                        <h1 className="text-xl md:text-2xl font-bold text-white">Diario de {user.displayName}</h1>
+                        <div>
+                            <h1 className="text-xl md:text-2xl font-bold text-white">Diario de {user.displayName}</h1>
+                            <p className="text-xs text-gray-400 flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
+                                100% Encriptado
+                            </p>
+                        </div>
                     </div>
                     <div className="flex items-center gap-4">
                         <button onClick={handleInspirationalMessage} title="Mensaje Inspirador" className="text-gray-300 hover:text-yellow-300 transition-colors">
@@ -368,15 +386,11 @@ const DiaryApp = ({ user, onLogout }) => {
                         <button onClick={() => setView('archive')} className={`px-4 py-2 text-sm font-medium rounded-md ${view === 'archive' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Archivo</button>
                         <button onClick={() => setView('stats')} className={`px-4 py-2 text-sm font-medium rounded-md ${view === 'stats' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Estadísticas</button>
                     </div>
-                    <p className="text-xs text-gray-400 flex items-center gap-1 pr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
-                        Tus entradas están encriptadas
-                    </p>
                 </nav>
 
                 <main className="flex-grow flex flex-col">
                     {view === 'diary' ? (
-                        <DiaryPanel currentEntry={currentEntry} onTitleChange={handleTitleChange} onTextChange={handleTextChange} activities={activities} onTrackActivity={handleTrackActivity} onAddOption={handleAddOptionToActivity} onOpenNewActivityModal={() => setNewActivityModalOpen(true)} onConsultAI={handleConsultAI} onWritingAssistant={handleWritingAssistant} onUntrackActivity={handleUntrackActivity} onOpenManageModal={() => setManageModalOpen(true)} userPrefs={userPrefs} onUpdateUserPrefs={handleUpdateUserPrefs} selectedDate={selectedDate} onDateChange={setSelectedDate} />
+                        <DiaryPanel currentEntry={currentEntry} onTextChange={handleTextChange} activities={activities} onTrackActivity={handleTrackActivity} onAddOption={handleAddOptionToActivity} onOpenNewActivityModal={() => setNewActivityModalOpen(true)} onConsultAI={handleConsultAI} onWritingAssistant={handleWritingAssistant} onUntrackActivity={handleUntrackActivity} onOpenManageModal={() => setManageModalOpen(true)} userPrefs={userPrefs} onUpdateUserPrefs={handleUpdateUserPrefs} selectedDate={selectedDate} onDateChange={setSelectedDate} />
                     ) : view === 'archive' ? (
                         <ArchiveView allEntries={allEntries} onSelectEntry={(date) => { setSelectedDate(date); setView('diary'); }} user={user} />
                     ) : (
@@ -388,7 +402,7 @@ const DiaryApp = ({ user, onLogout }) => {
             {/* Modals */}
             {isNewActivityModalOpen && <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"><div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md"><h2 className="text-2xl font-bold text-white mb-4">Crear Nueva Actividad</h2><form onSubmit={handleCreateNewActivity} className="space-y-4"><div><label htmlFor="activity-name" className="block text-sm font-medium text-gray-300 mb-1">Nombre</label><input id="activity-name" type="text" value={newActivityName} onChange={(e) => setNewActivityName(e.target.value)} placeholder="Ej: Leer" className="w-full bg-gray-700 text-white rounded-md p-2 border border-gray-600" required /></div><div><label className="block text-sm font-medium text-gray-300 mb-2">Opciones</label>{newActivityOptions.map((o, i) => <div key={i} className="flex items-center space-x-2 mb-2"><input type="text" value={o} onChange={(e) => {const u=[...newActivityOptions];u[i]=e.target.value;setNewActivityOptions(u)}} placeholder={`Opción ${i+1}`} className="flex-grow bg-gray-700 text-white rounded-md p-2 border border-gray-600" /><button type="button" onClick={() => setNewActivityOptions(newActivityOptions.filter((_,j)=>i!==j))} className="p-2 bg-red-600 hover:bg-red-700 rounded-full text-white"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" /></svg></button></div>)}<button type="button" onClick={() => setNewActivityOptions([...newActivityOptions,''])} className="text-indigo-400 hover:text-indigo-300 text-sm font-semibold">+ Añadir</button></div><div className="flex justify-end space-x-3 pt-4"><button type="button" onClick={() => setNewActivityModalOpen(false)} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg">Cancelar</button><button type="submit" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 font-bold rounded-lg">Crear</button></div></form></div></div>}
             {isAIModalOpen && <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"><div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-lg flex flex-col"><h2 className="text-2xl font-bold text-purple-300 mb-4">{aiModalTitle}</h2><div className="overflow-y-auto max-h-[60vh] pr-2">{isAILoading ? <div className="text-center py-10"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div><p className="mt-4 text-gray-300">Analizando...</p></div> : <div className="text-gray-200 whitespace-pre-wrap prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: aiResponse.replace(/\n/g, '<br />') }} />}</div><div className="flex justify-end mt-6 pt-4 border-t border-gray-700 gap-3">{aiModalTitle === 'Sugerencias del Asistente' && !isAILoading && <button onClick={acceptWritingSuggestion} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition">Usar esta versión</button>}<button onClick={() => setAIModalOpen(false)} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg">Cerrar</button></div></div></div>}
-            <ManageActivitiesModal isOpen={isManageModalOpen} onClose={() => setManageModalOpen(false)} activities={activities} onDeleteActivity={handleDeleteActivity} onAddOption={handleAddOptionToActivity} onDeleteOption={handleDeleteOptionFromActivity} />
+            <ManageActivitiesModal isOpen={isManageModalOpen} onClose={() => setManageModalOpen(false)} activities={activities} onDeleteActivity={handleDeleteActivity} onAddOption={handleAddOptionToActivity} onDeleteOption={handleDeleteOptionFromActivity} onSaveGoal={handleSaveGoal} />
             <ExportModal isOpen={isExportModalOpen} onClose={() => setExportModalOpen(false)} onExport={handleExportEntries} />
         </div>
     );
@@ -432,7 +446,7 @@ export default function App() {
 }
 
 // --- Componentes de UI específicos ---
-const DiaryPanel = ({ currentEntry, onTitleChange, onTextChange, activities, onTrackActivity, onAddOption, onOpenNewActivityModal, onConsultAI, onWritingAssistant, onUntrackActivity, onOpenManageModal, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange }) => {
+const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenNewActivityModal, onConsultAI, onWritingAssistant, onUntrackActivity, onOpenManageModal, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange }) => {
     const [activeTab, setActiveTab] = useState('entrada');
 
     const fontOptions = [
@@ -493,32 +507,25 @@ const DiaryPanel = ({ currentEntry, onTitleChange, onTextChange, activities, onT
         <div className="flex flex-col flex-grow">
             <div className="flex justify-between items-center flex-shrink-0 px-4 md:px-6 pt-4">
                 <div className="flex border-b border-gray-700">
-                    <button onClick={() => setActiveTab('entrada')} className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}>Entrada del Diario</button>
-                    <button onClick={() => setActiveTab('actividades')} className={`${tabBaseStyle} ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>Actividades del Día</button>
+                    <button onClick={() => setActiveTab('entrada')} className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}>Entrada</button>
+                    <button onClick={() => setActiveTab('actividades')} className={`${tabBaseStyle} ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>Actividades</button>
                 </div>
                 <input type="date" value={selectedDate} onChange={(e) => onDateChange(e.target.value)} className="bg-gray-700 border-gray-600 text-white rounded-lg p-2 focus:ring-2 focus:ring-indigo-500" />
             </div>
             
             {activeTab === 'entrada' && (
                 <div className="bg-gray-800 rounded-b-lg p-4 flex flex-col flex-grow mx-4 md:mx-6 mb-4 md:mb-6">
-                    <input
-                        type="text"
-                        value={currentEntry?.title || ''}
-                        onChange={onTitleChange}
-                        placeholder="Título de la entrada..."
-                        className={`w-full bg-transparent text-white py-1 px-3 border-none focus:ring-0 resize-none notebook font-bold mb-2 ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`}
-                    />
                     <textarea 
                         value={currentEntry?.text || ''} 
                         onChange={onTextChange} 
-                        placeholder="¿Qué pasó hoy...?" 
-                        className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} 
+                        placeholder="Escribe un título en la primera línea..." 
+                        className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook journal-editor ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} 
                     />
                     
                     <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-700 flex-wrap gap-4 flex-shrink-0">
                         <div className="flex items-center gap-4 flex-wrap">
-                           <div className="flex items-center gap-2">
-                               <label htmlFor="font-select" className="text-sm text-gray-300">Fuente:</label>
+                           <div className="flex items-center gap-2" title="Cambiar tipo de letra">
+                               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M10.755 2.168A.75.75 0 009.245 2.168L3.32 13.5h2.978l1.035-2.5h4.334l1.035 2.5h2.978L10.755 2.168zm-2.034 7.5L10 4.17l1.279 5.5H8.721z" /></svg>
                                <select 
                                  id="font-select"
                                  value={userPrefs.font}
@@ -530,8 +537,8 @@ const DiaryPanel = ({ currentEntry, onTitleChange, onTextChange, activities, onT
                                    ))}
                                </select>
                            </div>
-                           <div className="flex items-center gap-2">
-                               <label htmlFor="fontsize-select" className="text-sm text-gray-300">Tamaño:</label>
+                           <div className="flex items-center gap-2" title="Cambiar tamaño de letra">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M8.25 3.75a.75.75 0 01.75.75v10.5a.75.75 0 01-1.5 0V4.5a.75.75 0 01.75-.75zM13.25 5.75a.75.75 0 01.75.75v8.5a.75.75 0 01-1.5 0V6.5a.75.75 0 01.75-.75zM4.25 8.75a.75.75 0 01.75.75v2.5a.75.75 0 01-1.5 0v-2.5a.75.75 0 01.75-.75z" /></svg>
                                <select 
                                  id="fontsize-select"
                                  value={userPrefs.fontSize}
@@ -545,8 +552,12 @@ const DiaryPanel = ({ currentEntry, onTitleChange, onTextChange, activities, onT
                            </div>
                         </div>
                         <div className="flex gap-2">
-                            <button title="Recibe sugerencias para mejorar tu escritura" onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>Asistente</button>
-                            <button title="Recibe una reflexión sobre tu entrada y actividades" onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>Terapeuta IA</button>
+                            <button title="Recibe sugerencias para mejorar tu escritura" onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
+                            </button>
+                            <button title="Recibe una reflexión sobre tu entrada y actividades" onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
