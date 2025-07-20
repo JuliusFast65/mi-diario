@@ -51,7 +51,7 @@ const DiaryApp = ({ user }) => {
     const [db, setDb] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [currentEntry, setCurrentEntry] = useState({ text: '', tracked: {} });
-    const { activities, handleSaveActivity } = useActivities(db, user, appId);
+    const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity } = useActivities(db, user, appId);
     const [view, setView] = useState('diary');
     const [userPrefs, setUserPrefs] = useState({ font: 'patrick-hand', fontSize: 'text-3xl' });
     const [allEntries, setAllEntries] = useState([]);
@@ -187,19 +187,6 @@ const DiaryApp = ({ user }) => {
             return { ...prev, tracked: newTracked };
         });
     };
-    const handleAddOptionToActivity = async (activityId, newOption) => {
-        if (!db || !user?.uid || !newOption.trim()) return;
-        const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
-        const currentOptions = activities[activityId].options || [];
-        if (!currentOptions.includes(newOption.trim())) {
-            const currentPoints = activities[activityId].points || {};
-            const updatedPoints = { ...currentPoints, [newOption.trim()]: 0 };
-            await setDoc(activityRef, { 
-                options: [...currentOptions, newOption.trim()],
-                points: updatedPoints
-            }, { merge: true });
-        }
-    };
     const handleDeleteOptionFromActivity = async (activityId, optionToDelete) => {
         if (!db || !user?.uid) return;
         try {
@@ -211,20 +198,6 @@ const DiaryApp = ({ user }) => {
             delete newPoints[optionToDelete];
             await setDoc(activityRef, { options: newOptions, points: newPoints }, { merge: true });
         } catch (error) { console.error("Error borrando la opción:", error); alert("No se pudo borrar la opción."); }
-    };
-    const handleDeleteActivity = async (activityId) => {
-        if (!window.confirm(`¿Estás seguro de que quieres eliminar la actividad "${activities[activityId]?.name}"? Esta acción no se puede deshacer.`)) return;
-        if (!db || !user?.uid || !activityId) return;
-        try {
-            const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
-            await deleteDoc(activityRef);
-            // La lógica de actualización de actividades ahora está en el hook useActivities
-            setCurrentEntry(prev => {
-                const newTracked = { ...prev.tracked };
-                if (newTracked[activityId]) delete newTracked[activityId];
-                return { ...prev, tracked: newTracked };
-            });
-        } catch (error) { console.error("Error al eliminar la actividad:", error); alert("No se pudo eliminar la actividad."); }
     };
     const handleSaveGoal = async (activityId, goal) => {
         if (!db || !user?.uid || !activityId) return;
