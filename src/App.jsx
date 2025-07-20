@@ -92,10 +92,10 @@ const DiaryApp = ({ user }) => {
     
     // State de Modales
     const [isNewActivityModalOpen, setNewActivityModalOpen] = useState(false);
-
     const [isManageModalOpen, setManageModalOpen] = useState(false);
+    const [isDefineActivitiesModalOpen, setDefineActivitiesModalOpen] = useState(false);
     const [isExportModalOpen, setExportModalOpen] = useState(false);
-    
+
     const [isAIModalOpen, setAIModalOpen] = useState(false);
     const [aiResponse, setAiResponse] = useState('');
     const [isAILoading, setAILoading] = useState(false);
@@ -457,7 +457,7 @@ const DiaryApp = ({ user }) => {
 
                 <main className="flex-grow flex flex-col">
                     {view === 'diary' ? (
-                        <DiaryPanel currentEntry={currentEntry} onTextChange={handleTextChange} activities={activities} onTrackActivity={handleTrackActivity} onAddOption={handleAddOptionToActivity} onOpenNewActivityModal={() => setNewActivityModalOpen(true)} onConsultAI={handleConsultAI} onWritingAssistant={handleWritingAssistant} onUntrackActivity={handleUntrackActivity} onOpenManageModal={() => setManageModalOpen(true)} userPrefs={userPrefs} onUpdateUserPrefs={handleUpdateUserPrefs} selectedDate={selectedDate} onDateChange={setSelectedDate} textareaRef={textareaRef} />
+                        <DiaryPanel currentEntry={currentEntry} onTextChange={handleTextChange} activities={activities} onTrackActivity={handleTrackActivity} onAddOption={handleAddOptionToActivity} onOpenDefineActivitiesModal={() => setDefineActivitiesModalOpen(true)} onConsultAI={handleConsultAI} onWritingAssistant={handleWritingAssistant} onUntrackActivity={handleUntrackActivity} userPrefs={userPrefs} onUpdateUserPrefs={handleUpdateUserPrefs} selectedDate={selectedDate} onDateChange={setSelectedDate} textareaRef={textareaRef} />
                     ) : view === 'archive' ? (
                         <ArchiveView allEntries={allEntries} onSelectEntry={(date) => { setSelectedDate(date); setView('diary'); }} user={user} />
                     ) : (
@@ -475,7 +475,17 @@ const DiaryApp = ({ user }) => {
                 />
             )}
             {isAIModalOpen && <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"><div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-lg flex flex-col"><h2 className="text-2xl font-bold text-purple-300 mb-4">{aiModalTitle}</h2><div className="overflow-y-auto max-h-[60vh] pr-2">{isAILoading ? <div className="text-center py-10"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div><p className="mt-4 text-gray-300">Analizando...</p></div> : <div className="text-gray-200 whitespace-pre-wrap prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: aiResponse.replace(/\n/g, '<br />') }} />}</div><div className="flex justify-end mt-6 pt-4 border-t border-gray-700 gap-3">{aiModalTitle === 'Sugerencias del Asistente' && !isAILoading && <button onClick={acceptWritingSuggestion} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition">Usar esta versión</button>}<button onClick={() => setAIModalOpen(false)} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg">Cerrar</button></div></div></div>}
-            <ManageActivitiesModal isOpen={isManageModalOpen} onClose={() => setManageModalOpen(false)} activities={activities} onDeleteActivity={handleDeleteActivity} onAddOption={handleAddOptionToActivity} onDeleteOption={handleDeleteOptionFromActivity} onSaveGoal={handleSaveGoal} onUpdatePoints={handleUpdatePoints} />
+            <DefineActivitiesModal 
+                isOpen={isDefineActivitiesModalOpen} 
+                onClose={() => setDefineActivitiesModalOpen(false)} 
+                activities={activities} 
+                onCreateActivity={handleCreateNewActivity}
+                onDeleteActivity={handleDeleteActivity} 
+                onAddOption={handleAddOptionToActivity} 
+                onDeleteOption={handleDeleteOptionFromActivity} 
+                onSaveGoal={handleSaveGoal} 
+                onUpdatePoints={handleUpdatePoints} 
+            />
             <ExportModal isOpen={isExportModalOpen} onClose={() => setExportModalOpen(false)} onExport={handleExportEntries} />
         </div>
     );
@@ -513,7 +523,7 @@ export default function App() {
 }
 
 // --- Componentes de UI específicos ---
-const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenNewActivityModal, onConsultAI, onWritingAssistant, onUntrackActivity, onOpenManageModal, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef }) => {
+const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenDefineActivitiesModal, onConsultAI, onWritingAssistant, onUntrackActivity, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef }) => {
     const [activeTab, setActiveTab] = useState('entrada');
 
     const fontOptions = [
@@ -647,8 +657,7 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
                     <div className="mt-6 border-t border-gray-700 pt-4 flex flex-col sm:flex-row items-center gap-4">
                         <select onChange={handleAddActivitySelect} defaultValue="" className="w-full sm:flex-grow bg-gray-600 text-white rounded-md p-2 border border-gray-500 focus:ring-1 focus:ring-indigo-400"><option value="" disabled>+ Registrar una actividad...</option>{untrackedActivities.sort((a,b) => a.name.localeCompare(b.name)).map(act => (<option key={act.id} value={act.id}>{act.name}</option>))}</select>
                         <div className="flex items-center gap-4">
-                            <button onClick={onOpenNewActivityModal} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 whitespace-nowrap">Crear Nueva</button>
-                            <button onClick={onOpenManageModal} className="text-sm text-gray-400 hover:text-white transition-colors">Gestionar</button>
+                            <button onClick={onOpenDefineActivitiesModal} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 whitespace-nowrap">Definir Actividades</button>
                         </div>
                     </div>
                 </div>
@@ -1362,6 +1371,254 @@ const GoalConfigModal = ({ activity, onClose, onSaveGoal }) => {
                 </div>
             </div>
         </div>
+    );
+};
+
+// --- Modal de Definición de Actividades ---
+const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, onDeleteActivity, onAddOption, onDeleteOption, onSaveGoal, onUpdatePoints }) => {
+    const [view, setView] = useState('list'); // 'list' or 'edit' or 'create'
+    const [selectedActivity, setSelectedActivity] = useState(null);
+    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+    const [newOptionValues, setNewOptionValues] = useState({});
+    const [newPointValues, setNewPointValues] = useState({});
+
+    const handleNewOptionChange = (activityId, value) => {
+        setNewOptionValues(prev => ({ ...prev, [activityId]: value }));
+    };
+
+    const handleAddNewOption = (activityId) => {
+        const newOption = newOptionValues[activityId];
+        if (newOption && newOption.trim()) {
+            onAddOption(activityId, newOption.trim());
+            handleNewOptionChange(activityId, '');
+        }
+    };
+
+    const handleUpdatePoints = (activityId, option, points) => {
+        if (points && !isNaN(points) && points >= 0) {
+            onUpdatePoints(activityId, option, parseInt(points));
+        }
+    };
+
+    const handleOpenGoalModal = (activity) => {
+        setSelectedActivity(activity);
+        setIsGoalModalOpen(true);
+    };
+
+    const handleEditActivity = (activity) => {
+        setSelectedActivity(activity);
+        setView('edit');
+    };
+
+    const handleCreateNew = () => {
+        setSelectedActivity(null);
+        setView('create');
+    };
+
+    const handleBackToList = () => {
+        setView('list');
+        setSelectedActivity(null);
+    };
+
+    const sortedActivities = Object.values(activities).sort((a, b) => a.name.localeCompare(b.name));
+
+    if (!isOpen) return null;
+
+    return (
+        <>
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+                <div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-4xl max-h-[80vh] flex flex-col">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-bold text-white">
+                            {view === 'list' && 'Definir Actividades'}
+                            {view === 'edit' && `Editar: ${selectedActivity?.name}`}
+                            {view === 'create' && 'Crear Nueva Actividad'}
+                        </h2>
+                        <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-700">
+                            <svg className="w-6 h-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div className="overflow-y-auto space-y-4 pr-2">
+                        {view === 'list' && (
+                            <>
+                                <div className="mb-4">
+                                    <button 
+                                        onClick={handleCreateNew}
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Crear Nueva Actividad
+                                    </button>
+                                </div>
+                                
+                                {sortedActivities.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {sortedActivities.map(activity => (
+                                            <div key={activity.id} className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer" onClick={() => handleEditActivity(activity)}>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex-grow">
+                                                        <h3 className="font-bold text-lg text-white mb-1">{activity.name}</h3>
+                                                        <div className="flex items-center gap-4 text-sm text-gray-300">
+                                                            <span>{activity.options?.length || 0} subniveles</span>
+                                                            {activity.goal && (
+                                                                <span className="text-yellow-400">🎯 Meta: {activity.goal.target} pts</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleOpenGoalModal(activity);
+                                                            }}
+                                                            className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-full text-white"
+                                                            title="Configurar meta"
+                                                        >
+                                                            🎯
+                                                        </button>
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                onDeleteActivity(activity.id);
+                                                            }}
+                                                            className="p-2 bg-red-800 hover:bg-red-700 rounded-full text-white" 
+                                                            aria-label={`Eliminar ${activity.name}`}
+                                                        >
+                                                            <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8 text-gray-400">
+                                        <p className="text-lg mb-2">No hay actividades definidas</p>
+                                        <p className="text-sm">Crea tu primera actividad para comenzar a hacer seguimiento</p>
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {view === 'edit' && selectedActivity && (
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <button onClick={handleBackToList} className="text-blue-400 hover:text-blue-300 flex items-center gap-2">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                        Volver a la lista
+                                    </button>
+                                </div>
+
+                                <div className="bg-gray-700 p-4 rounded-lg">
+                                    <h3 className="font-bold text-xl text-white mb-4">{selectedActivity.name}</h3>
+                                    
+                                    {/* Meta actual */}
+                                    {selectedActivity.goal && (
+                                        <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-600/50 rounded-lg">
+                                            <div className="flex items-center gap-2 text-yellow-300 text-sm">
+                                                <span>🎯 Meta:</span>
+                                                <span className="font-semibold">
+                                                    {selectedActivity.goal.target} puntos
+                                                    {selectedActivity.goal.type === 'weekly' && ' (semanal)'}
+                                                    {selectedActivity.goal.type === 'monthly' && ' (mensual)'}
+                                                    {selectedActivity.goal.type === 'custom' && ` (${selectedActivity.goal.startDate} a ${selectedActivity.goal.endDate})`}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="border-t border-gray-600 pt-4">
+                                        <h4 className="text-sm font-semibold text-gray-300 mb-3">Subniveles y Puntos:</h4>
+                                        <div className="space-y-2">
+                                            {(selectedActivity.options && selectedActivity.options.length > 0) ? (
+                                                selectedActivity.options.map(option => (
+                                                    <div key={option} className="flex items-center gap-2 bg-gray-600 px-3 py-2 rounded">
+                                                        <span className="text-gray-200 flex-grow">{option}</span>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            placeholder="Puntos"
+                                                            value={selectedActivity.points?.[option] || ''}
+                                                            onChange={(e) => handleUpdatePoints(selectedActivity.id, option, e.target.value)}
+                                                            className="w-16 bg-gray-700 text-white rounded px-2 py-1 text-sm border border-gray-500"
+                                                        />
+                                                        <button 
+                                                            onClick={() => onDeleteOption(selectedActivity.id, option)} 
+                                                            className="p-1 text-gray-400 hover:text-white"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-xs text-gray-400 italic">Sin subniveles predefinidos.</p>
+                                            )}
+                                        </div>
+                                        <div className="mt-3 flex gap-2">
+                                            <input 
+                                                type="text" 
+                                                placeholder="Añadir nuevo subnivel" 
+                                                value={newOptionValues[selectedActivity.id] || ''} 
+                                                onChange={(e) => handleNewOptionChange(selectedActivity.id, e.target.value)} 
+                                                className="flex-grow bg-gray-600 text-white rounded-md p-2 text-sm border border-gray-500" 
+                                            />
+                                            <button 
+                                                onClick={() => handleAddNewOption(selectedActivity.id)} 
+                                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 rounded-lg text-sm"
+                                            >
+                                                Añadir
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'create' && (
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <button onClick={handleBackToList} className="text-blue-400 hover:text-blue-300 flex items-center gap-2">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                        Volver a la lista
+                                    </button>
+                                </div>
+                                
+                                <CreateActivityModal 
+                                    isOpen={true}
+                                    onClose={handleBackToList}
+                                    onCreateActivity={(activityData) => {
+                                        onCreateActivity(activityData);
+                                        handleBackToList();
+                                    }}
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+            
+            {/* Modal de configuración de metas */}
+            {isGoalModalOpen && selectedActivity && (
+                <GoalConfigModal 
+                    activity={selectedActivity}
+                    onClose={() => setIsGoalModalOpen(false)}
+                    onSaveGoal={onSaveGoal}
+                />
+            )}
+        </>
     );
 };
 
