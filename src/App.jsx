@@ -66,7 +66,7 @@ const LoginScreen = ({ onGoogleSignIn }) => (
                 <img src="/favicon.svg" alt="Logo Diario Personal" className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-6" />
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Introspect</h1>
                 <p className="text-gray-300 text-lg md:text-xl mb-2">Tu Diario Personal</p>
-                <p className="text-gray-300 text-lg md:text-xl">Guarda tus pensamientos y sigue tus hábitos de forma segura.</p>
+                <p className="text-gray-300 text-lg md:text-xl">Guarda tus pensamientos y sigue tus hábitos con propósito.</p>
                 <span className="block mt-4 text-xs text-gray-400">Versión {APP_VERSION}</span>
             </div>
             <button
