@@ -567,14 +567,23 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
         return [trackedIds, untracked];
     }, [currentEntry, activities]);
 
+    const [lastTrackedId, setLastTrackedId] = React.useState(null);
     const handleAddActivitySelect = (e) => {
         const activityId = e.target.value;
         if (!activityId || !activities[activityId]) { e.target.value = ""; return; }
         const activity = activities[activityId];
         const initialValue = activity.options?.[0] || '';
         onTrackActivity(activityId, initialValue);
+        setLastTrackedId(activityId);
         e.target.value = "";
     };
+    React.useEffect(() => {
+        // Limpiar el enfoque después de un tiempo para evitar que se quede en el mismo select
+        if (lastTrackedId) {
+            const timeout = setTimeout(() => setLastTrackedId(null), 1000);
+            return () => clearTimeout(timeout);
+        }
+    }, [lastTrackedId]);
 
     const tabBaseStyle = "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors duration-200";
     const tabActiveStyle = "bg-gray-800 text-white";
@@ -647,8 +656,15 @@ const DiaryPanel = ({ currentEntry, onTextChange, activities, onTrackActivity, o
                  <div className="bg-gray-800 rounded-b-lg p-4 mx-4 md:mx-6 mb-4 md:mb-6">
                     <div className="space-y-4 min-h-[50px]">
                         {trackedActivityIds.length > 0 ? (
-                            trackedActivityIds.map(id => activities[id]).filter(Boolean).sort((a,b) => a.name.localeCompare(b.name)).map(activity => (
-                                <ActivityTrackerItem key={activity.id} activity={activity} selectedValue={currentEntry?.tracked?.[activity.id] || ''} onValueChange={(value) => onTrackActivity(activity.id, value)} onUntrack={onUntrackActivity} />
+                            trackedActivityIds.map((id, idx) => activities[id]).filter(Boolean).sort((a,b) => a.name.localeCompare(b.name)).map(activity => (
+                                <ActivityTrackerItem
+                                    key={activity.id}
+                                    activity={activity}
+                                    selectedValue={currentEntry?.tracked?.[activity.id] || ''}
+                                    onValueChange={(value) => onTrackActivity(activity.id, value)}
+                                    onUntrack={onUntrackActivity}
+                                    autoFocus={lastTrackedId === activity.id}
+                                />
                             ))
                         ) : (<div className="text-center py-4 text-gray-400 italic">No hay actividades registradas para este día.</div>)}
                     </div>
@@ -720,7 +736,13 @@ const ArchiveView = ({ allEntries, onSelectEntry, user }) => {
 };
 
 
-const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack }) => {
+const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack, autoFocus }) => {
+    const selectRef = React.useRef();
+    React.useEffect(() => {
+        if (autoFocus && selectRef.current) {
+            selectRef.current.focus();
+        }
+    }, [autoFocus]);
     const hasOptions = Array.isArray(activity.options) && activity.options.length > 0;
     const selectedPoints = activity.points?.[selectedValue] || 0;
     
@@ -731,6 +753,7 @@ const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack
                 <div className="flex-grow w-full">
                     {hasOptions ? (
                         <select 
+                            ref={selectRef}
                             value={selectedValue} 
                             onChange={(e) => onValueChange(e.target.value)} 
                             className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500"
@@ -2049,8 +2072,13 @@ const APP_VERSION = 'V 1.08'; // Cambia este valor en cada iteración
 const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => {
     const isEdit = !!initialData;
     const [activityName, setActivityName] = React.useState(initialData?.name || '');
-    const [options, setOptions] = React.useState(initialData?.options?.length ? [...initialData.options] : ['']);
-    const [points, setPoints] = React.useState(initialData?.points ? { ...initialData.points } : {});
+    // Cambiar estructura de options: [{desc: '', pts: ''}]
+    const [options, setOptions] = React.useState(
+        initialData?.options?.length
+            ? initialData.options.map(opt => ({ desc: opt, pts: initialData.points?.[opt] || '' }))
+            : [{ desc: '', pts: '' }]
+    );
+    // points ya no se usa como estado separado
     const [goalType, setGoalType] = React.useState(initialData?.goal?.type || 'weekly');
     const [goalTarget, setGoalTarget] = React.useState(initialData?.goal?.target || '');
     const [goalStartDate, setGoalStartDate] = React.useState(initialData?.goal?.startDate || new Date().toISOString().split('T')[0]);
@@ -2060,8 +2088,11 @@ const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => 
     React.useEffect(() => {
         if (isOpen && initialData) {
             setActivityName(initialData.name || '');
-            setOptions(initialData.options?.length ? [...initialData.options] : ['']);
-            setPoints(initialData.points ? { ...initialData.points } : {});
+            setOptions(
+                initialData.options?.length
+                    ? initialData.options.map(opt => ({ desc: opt, pts: initialData.points?.[opt] || '' }))
+                    : [{ desc: '', pts: '' }]
+            );
             setGoalType(initialData.goal?.type || 'weekly');
             setGoalTarget(initialData.goal?.target || '');
             setGoalStartDate(initialData.goal?.startDate || new Date().toISOString().split('T')[0]);
@@ -2069,8 +2100,7 @@ const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => 
             setShowGoalSection(!!initialData.goal);
         } else if (isOpen && !initialData) {
             setActivityName('');
-            setOptions(['']);
-            setPoints({});
+            setOptions([{ desc: '', pts: '' }]);
             setGoalType('weekly');
             setGoalTarget('');
             setGoalStartDate(new Date().toISOString().split('T')[0]);
@@ -2079,37 +2109,24 @@ const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => 
         }
     }, [isOpen, initialData]);
 
-    const handleOptionChange = (index, value) => {
-        const newOptions = [...options];
-        newOptions[index] = value;
-        setOptions(newOptions);
-        const newPoints = { ...points };
-        if (value.trim() && !newPoints[value]) {
-            newPoints[value] = 0;
-        }
-        setPoints(newPoints);
+    const handleOptionChange = (index, field, value) => {
+        setOptions(prev => prev.map((opt, i) => i === index ? { ...opt, [field]: value } : opt));
     };
-    const addOption = () => setOptions([...options, '']);
-    const removeOption = (index) => {
-        const newOptions = options.filter((_, i) => i !== index);
-        setOptions(newOptions);
-        const removedOption = options[index];
-        if (removedOption && points[removedOption]) {
-            const newPoints = { ...points };
-            delete newPoints[removedOption];
-            setPoints(newPoints);
-        }
-    };
-    const handlePointChange = (option, value) => {
-        setPoints(prev => ({ ...prev, [option]: parseInt(value) || 0 }));
-    };
+    const addOption = () => setOptions([...options, { desc: '', pts: '' }]);
+    const removeOption = (index) => setOptions(options.filter((_, i) => i !== index));
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!activityName.trim()) {
             alert('Por favor ingresa un nombre para la actividad.');
             return;
         }
-        const finalOptions = options.map(o => o.trim()).filter(o => o !== '');
+        // Construir estructura para guardar
+        const finalOptions = options.map(o => o.desc.trim()).filter(o => o !== '');
+        const points = {};
+        options.forEach(o => {
+            if (o.desc.trim()) points[o.desc.trim()] = parseInt(o.pts) || 0;
+        });
         const activityData = {
             ...initialData,
             name: activityName.trim(),
@@ -2171,28 +2188,29 @@ const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => 
                         </label>
                         <div className="space-y-3">
                             {options.map((option, index) => (
-                                <div key={index} className="flex items-center gap-3">
+                                <div key={index} className="flex items-center gap-2 w-full">
                                     <input
                                         type="text"
-                                        value={option}
-                                        onChange={(e) => handleOptionChange(index, e.target.value)}
+                                        value={option.desc}
+                                        onChange={e => handleOptionChange(index, 'desc', e.target.value)}
                                         placeholder={`Opción ${index + 1}`}
-                                        className="flex-grow bg-gray-700 text-white rounded-md p-2 border border-gray-600"
+                                        className="flex-grow min-w-0 bg-gray-700 text-white rounded-md p-2 border border-gray-600"
+                                        style={{ maxWidth: '60%' }}
                                     />
-                                    {option.trim() && (
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            placeholder="Puntos"
-                                            value={points[option] || ''}
-                                            onChange={(e) => handlePointChange(option, e.target.value)}
-                                            className="w-20 bg-gray-700 text-white rounded-md p-2 border border-gray-600 text-center"
-                                        />
-                                    )}
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={option.pts}
+                                        onChange={e => handleOptionChange(index, 'pts', e.target.value)}
+                                        placeholder="Puntos"
+                                        className="bg-gray-700 text-white rounded-md p-2 border border-gray-600 text-center"
+                                        style={{ width: 70 }}
+                                    />
                                     <button
                                         type="button"
                                         onClick={() => removeOption(index)}
-                                        className="p-2 bg-red-600 hover:bg-red-700 rounded-full text-white"
+                                        className="p-2 bg-red-600 hover:bg-red-700 rounded-full text-white flex-shrink-0"
+                                        tabIndex={-1}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
