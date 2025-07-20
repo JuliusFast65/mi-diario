@@ -1311,29 +1311,8 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                 <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
                     <h3 className="text-xl font-semibold text-white">Desempeño de Actividades</h3>
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <label className="text-gray-300 text-sm">Mostrar metas:</label>
-                            <input
-                                type="checkbox"
-                                checked={showGoals}
-                                onChange={(e) => setShowGoals(e.target.checked)}
-                                className="rounded"
-                            />
-                        </div>
-                        <div className="flex items-center gap-2 bg-gray-700/50 p-1 rounded-lg">
-                            <button 
-                                onClick={() => setChartType('bars')} 
-                                className={`px-3 py-1 text-sm font-medium rounded-md ${chartType === 'bars' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-600'}`}
-                            >
-                                Barras
-                            </button>
-                            <button 
-                                onClick={() => setChartType('lines')} 
-                                className={`px-3 py-1 text-sm font-medium rounded-md ${chartType === 'lines' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-600'}`}
-                            >
-                                Líneas
-                            </button>
-                        </div>
+
+
                         <select
                             value={selectedRange}
                             onChange={(e) => onRangeChange(e.target.value)}
@@ -1347,89 +1326,55 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                 </div>
                 
                                 {overviewData.length > 0 ? (
-                    <div>
-                        {/* Botones de prueba removidos */}
-                        
-                        <div style={{ width: '100%', height: 400 }}>
-                            <ResponsiveContainer>
-                                {chartType === 'bars' ? (
-                                    <BarChart data={overviewData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }} onClick={onBarClick}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#4A5568" />
-                                        <XAxis type="number" allowDecimals={false} stroke="#A0AEC0" />
-                                        <YAxis dataKey="name" type="category" stroke="#A0AEC0" width={120} tick={{ fontSize: 12 }} />
-                                        <Tooltip content={<CustomTooltip />} />
-                                        <Legend wrapperStyle={{ color: '#E2E8F0' }} />
-                                        <Bar 
-                                            dataKey="totalPoints" 
-                                            name="Puntos Totales" 
-                                            fill="#667EEA" 
-                                            cursor="pointer"
-                                            radius={[0, 4, 4, 0]}
-                                        />
-                                        {showGoals && overviewData.some(d => d.goal) && (
-                                            <ReferenceLine 
-                                                x={0} 
-                                                stroke="#FFD700" 
-                                                strokeDasharray="3 3" 
-                                                strokeWidth={2}
-                                            />
-                                        )}
-                                    </BarChart>
-                                ) : (
-                                    <LineChart data={overviewData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }} onClick={onBarClick}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#4A5568" />
-                                        <XAxis dataKey="name" stroke="#A0AEC0" tick={{ fontSize: 12 }} />
-                                        <YAxis stroke="#A0AEC0" allowDecimals={false} />
-                                        <Tooltip content={<CustomTooltip />} />
-                                        <Legend wrapperStyle={{ color: '#E2E8F0' }} />
-                                        <Line 
-                                            type="monotone" 
-                                            dataKey="totalPoints" 
-                                            name="Puntos Totales" 
-                                            stroke="#667EEA" 
-                                            strokeWidth={3}
-                                            dot={{ fill: '#667EEA', strokeWidth: 2, r: 6 }}
-                                            cursor="pointer"
-                                        />
-                                    </LineChart>
-                                )}
-                            </ResponsiveContainer>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {overviewData.map(activity => (
+                            <div 
+                                key={activity.id} 
+                                className="bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors"
+                                onClick={() => onBarClick({ activePayload: [{ payload: activity }] })}
+                            >
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-white font-medium text-lg">{activity.name}</span>
+                                    {activity.goal && (
+                                        <span className={`text-sm font-bold ${activity.isGoalMet ? 'text-green-400' : 'text-red-400'}`}>
+                                            {activity.isGoalMet ? '✅' : '❌'}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="text-sm text-gray-300 space-y-2">
+                                    <div className="flex justify-between">
+                                        <span>Puntos:</span>
+                                        <span className="text-green-400 font-bold">{activity.totalPoints}</span>
+                                    </div>
+                                    {activity.goal && (
+                                        <>
+                                            <div className="flex justify-between">
+                                                <span>Meta:</span>
+                                                <span className="text-yellow-400">{activity.goal.target}</span>
+                                            </div>
+                                            <div className="mt-2">
+                                                <div className="w-full bg-gray-600 rounded-full h-2">
+                                                    <div 
+                                                        className={`h-2 rounded-full ${activity.isGoalMet ? 'bg-green-500' : 'bg-red-500'}`}
+                                                        style={{ width: `${Math.min(activity.completionPercentage, 100)}%` }}
+                                                    ></div>
+                                                </div>
+                                                <span className="text-xs">{activity.completionPercentage}%</span>
+                                            </div>
+                                        </>
+                                    )}
+                                    <div className="text-xs text-gray-400 mt-2">
+                                        Haz clic para ver detalles
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : (
                     <p className="text-center text-gray-400 italic">No hay datos para el rango de fechas seleccionado.</p>
                 )}
                 
-                {/* Resumen de metas */}
-                {showGoals && overviewData.some(d => d.goal) && (
-                    <div className="mt-6 pt-4 border-t border-gray-700">
-                        <h4 className="text-lg font-semibold text-white mb-3">Resumen de Metas</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {overviewData.filter(d => d.goal).map(activity => (
-                                <div key={activity.id} className="bg-gray-700 p-3 rounded-lg">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-white font-medium">{activity.name}</span>
-                                        <span className={`text-sm font-bold ${activity.isGoalMet ? 'text-green-400' : 'text-red-400'}`}>
-                                            {activity.isGoalMet ? '✅' : '❌'}
-                                        </span>
-                                    </div>
-                                    <div className="text-sm text-gray-300">
-                                        <div>Puntos: {activity.totalPoints} / {activity.goal.target}</div>
-                                        <div className="mt-1">
-                                            <div className="w-full bg-gray-600 rounded-full h-2">
-                                                <div 
-                                                    className={`h-2 rounded-full ${activity.isGoalMet ? 'bg-green-500' : 'bg-red-500'}`}
-                                                    style={{ width: `${Math.min(activity.completionPercentage, 100)}%` }}
-                                                ></div>
-                                            </div>
-                                            <span className="text-xs">{activity.completionPercentage}%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+
             </div>
         </div>
     );
@@ -1696,4 +1641,4 @@ const ActivityPeriodDetail = ({ period, activity, onBack }) => {
     );
 };
 
-const APP_VERSION = 'V 1.05'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.06'; // Cambia este valor en cada iteración
