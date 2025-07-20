@@ -1348,21 +1348,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                 
                                 {overviewData.length > 0 ? (
                     <div>
-                        {/* Botón de prueba para debug */}
-                        <div className="mb-4 p-2 bg-gray-700 rounded text-sm">
-                            <p className="text-gray-300 mb-2">Debug: Haz clic en una barra del gráfico para navegar, o usa estos botones de prueba:</p>
-                            <div className="flex flex-wrap gap-2">
-                                {overviewData.slice(0, 3).map(activity => (
-                                    <button
-                                        key={activity.id}
-                                        onClick={() => onBarClick({ activePayload: [{ payload: activity }] })}
-                                        className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded"
-                                    >
-                                        Ver {activity.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        {/* Botones de prueba removidos */}
                         
                         <div style={{ width: '100%', height: 400 }}>
                             <ResponsiveContainer>
@@ -1617,21 +1603,7 @@ const ActivityDetailView = ({ activity, entries, onBack }) => {
                 
                                 {processedData.length > 0 ? (
                     <div>
-                        {/* Botones de prueba para periodos */}
-                        <div className="mb-4 p-2 bg-gray-700 rounded text-sm">
-                            <p className="text-gray-300 mb-2">Debug: Haz clic en una barra del gráfico para ver el detalle del periodo, o usa estos botones de prueba:</p>
-                            <div className="flex flex-wrap gap-2">
-                                {processedData.slice(0, 3).map(period => (
-                                    <button
-                                        key={period.timePeriod}
-                                        onClick={() => handlePeriodClick({ activePayload: [{ payload: period }] })}
-                                        className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded"
-                                    >
-                                        Ver {period.timePeriod} ({period.totalPoints} pts)
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        {/* Botones de prueba removidos */}
                         
                         <div style={{ width: '100%', height: 400 }}>
                             <ResponsiveContainer>
@@ -1724,4 +1696,4 @@ const ActivityPeriodDetail = ({ period, activity, onBack }) => {
     );
 };
 
-const APP_VERSION = 'V 1.04'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.05'; // Cambia este valor en cada iteración
