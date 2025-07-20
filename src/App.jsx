@@ -10,6 +10,7 @@ import { getCryptoKey, encryptText, decryptText } from './utils/crypto';
 import CreateActivityModal from './components/CreateActivityModal';
 import DefineActivitiesModal from './components/DefineActivitiesModal';
 import ExportModal from './components/ExportModal';
+import useActivities from './hooks/useActivities';
 
 // --- Configuración de Firebase ---
 const firebaseConfig = {
@@ -50,7 +51,7 @@ const DiaryApp = ({ user }) => {
     const [db, setDb] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [currentEntry, setCurrentEntry] = useState({ text: '', tracked: {} });
-    const [activities, setActivities] = useState({});
+    const { activities, handleSaveActivity } = useActivities(db, user, appId);
     const [view, setView] = useState('diary');
     const [userPrefs, setUserPrefs] = useState({ font: 'patrick-hand', fontSize: 'text-3xl' });
     const [allEntries, setAllEntries] = useState([]);
@@ -80,9 +81,7 @@ const DiaryApp = ({ user }) => {
         if (!db || !user?.uid) return;
         const activitiesCol = collection(db, 'artifacts', appId, 'users', user.uid, 'activities');
         const unsubscribe = onSnapshot(activitiesCol, (snapshot) => {
-            const fetchedActivities = {};
-            snapshot.forEach(doc => { fetchedActivities[doc.id] = { id: doc.id, ...doc.data() }; });
-            setActivities(fetchedActivities);
+            // La lógica de actualización de actividades ahora está en el hook useActivities
         });
         return () => unsubscribe();
     }, [db, user]);
@@ -201,26 +200,6 @@ const DiaryApp = ({ user }) => {
             }, { merge: true });
         }
     };
-    const handleSaveActivity = async (activityData) => {
-        if (!db || !user?.uid) return;
-        if (activityData.id) {
-            // Edición: actualizar documento existente
-            const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityData.id);
-            const { id, ...dataToSave } = activityData;
-            await setDoc(activityRef, dataToSave, { merge: true });
-        } else {
-            // Creación
-            const activitiesCol = collection(db, 'artifacts', appId, 'users', user.uid, 'activities');
-            const newActivityRef = await addDoc(activitiesCol, activityData);
-            setActivities(prev => ({
-                ...prev,
-                [newActivityRef.id]: {
-                    id: newActivityRef.id,
-                    ...activityData
-                }
-            }));
-        }
-    };
     const handleDeleteOptionFromActivity = async (activityId, optionToDelete) => {
         if (!db || !user?.uid) return;
         try {
@@ -239,11 +218,7 @@ const DiaryApp = ({ user }) => {
         try {
             const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
             await deleteDoc(activityRef);
-            setActivities(prev => {
-                const newActivities = { ...prev };
-                delete newActivities[activityId];
-                return newActivities;
-            });
+            // La lógica de actualización de actividades ahora está en el hook useActivities
             setCurrentEntry(prev => {
                 const newTracked = { ...prev.tracked };
                 if (newTracked[activityId]) delete newTracked[activityId];
