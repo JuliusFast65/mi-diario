@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { getFirestore, doc, onSnapshot, setDoc, collection, addDoc, getDocs, getDoc, deleteDoc, query, where, documentId } from 'firebase/firestore';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, LineChart, Line } from 'recharts';
 import { auth, db } from './firebase';
 
 // --- Configuración de Firebase ---
@@ -1206,9 +1206,28 @@ const StatisticsPanel = ({ db, userId, appId, activities }) => {
     }, [db, userId, appId, startDate, endDate]);
 
     const handleBarClick = (data) => {
-        if (data && data.activePayload && data.activePayload[0]) {
-            const activityId = data.activePayload[0].payload.id;
+        console.log('Bar clicked:', data);
+        
+        // Buscar la actividad por nombre (activeLabel) o por payload
+        let activityId = null;
+        
+        if (data && data.activeLabel) {
+            // Buscar por nombre de actividad
+            activityId = Object.keys(activities).find(id => 
+                activities[id]?.name === data.activeLabel
+            );
+        } else if (data && data.activePayload && data.activePayload[0]) {
+            // Buscar por payload (para los botones de prueba)
+            activityId = data.activePayload[0].payload.id;
+        }
+        
+        console.log('Selected activity ID:', activityId);
+        console.log('Available activities:', Object.keys(activities));
+        
+        if (activityId && activities[activityId]) {
             setSelectedActivityId(activityId);
+        } else {
+            console.error('Activity not found:', activityId);
         }
     };
 
@@ -1223,52 +1242,208 @@ const StatisticsPanel = ({ db, userId, appId, activities }) => {
 };
 
 const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, selectedRange, onRangeChange }) => {
+    const [chartType, setChartType] = useState('bars'); // 'bars' or 'lines'
+    const [showGoals, setShowGoals] = useState(true);
+
     const overviewData = useMemo(() => {
-        const activityCounts = {};
+        const activityStats = {};
+        
+        // Calcular puntos totales por actividad
         rawEntries.forEach(entry => {
             if (entry.tracked) {
-                Object.keys(entry.tracked).forEach(activityId => {
-                    activityCounts[activityId] = (activityCounts[activityId] || 0) + 1;
+                Object.entries(entry.tracked).forEach(([activityId, option]) => {
+                    if (!activityStats[activityId]) {
+                        activityStats[activityId] = {
+                            id: activityId,
+                            name: activities[activityId]?.name || 'Actividad Desconocida',
+                            totalPoints: 0,
+                            daysCount: 0,
+                            goal: activities[activityId]?.goal
+                        };
+                    }
+                    
+                    const points = activities[activityId]?.points?.[option] || 0;
+                    activityStats[activityId].totalPoints += points;
+                    activityStats[activityId].daysCount += 1;
                 });
             }
         });
-        return Object.keys(activityCounts).map(activityId => ({
-            id: activityId,
-            name: activities[activityId]?.name || 'Actividad Desconocida',
-            count: activityCounts[activityId]
-        })).sort((a, b) => b.count - a.count);
+
+        // Calcular porcentaje de cumplimiento para cada actividad
+        Object.values(activityStats).forEach(activity => {
+            if (activity.goal) {
+                const goalTarget = activity.goal.target;
+                activity.completionPercentage = Math.round((activity.totalPoints / goalTarget) * 100);
+                activity.isGoalMet = activity.totalPoints >= goalTarget;
+            }
+        });
+
+        return Object.values(activityStats)
+            .sort((a, b) => b.totalPoints - a.totalPoints);
     }, [rawEntries, activities]);
+
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            return (
+                <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg">
+                    <p className="text-white font-semibold">{data.name}</p>
+                    <p className="text-gray-300">Puntos totales: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
+                    <p className="text-gray-300">Días registrados: <span className="text-blue-400">{data.daysCount}</span></p>
+                    {data.goal && (
+                        <div className="mt-2 pt-2 border-t border-gray-600">
+                            <p className="text-yellow-300">Meta: {data.goal.target} puntos</p>
+                            <p className={`font-bold ${data.isGoalMet ? 'text-green-400' : 'text-red-400'}`}>
+                                {data.completionPercentage}% cumplido
+                                {data.isGoalMet ? ' ✅' : ' ❌'}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        return null;
+    };
 
     return (
         <div className="p-4 md:p-6 space-y-6">
             <div className="bg-gray-800 rounded-lg p-6">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-semibold text-white">Frecuencia de Actividades</h3>
-                    <select
-                        value={selectedRange}
-                        onChange={(e) => onRangeChange(e.target.value)}
-                        className="bg-gray-700 text-white rounded-md p-2 border border-gray-600"
-                    >
-                        {Object.entries(dateRanges).map(([key, value]) => (
-                            <option key={key} value={key}>{value.name}</option>
-                        ))}
-                    </select>
+                <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+                    <h3 className="text-xl font-semibold text-white">Desempeño de Actividades</h3>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <label className="text-gray-300 text-sm">Mostrar metas:</label>
+                            <input
+                                type="checkbox"
+                                checked={showGoals}
+                                onChange={(e) => setShowGoals(e.target.checked)}
+                                className="rounded"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2 bg-gray-700/50 p-1 rounded-lg">
+                            <button 
+                                onClick={() => setChartType('bars')} 
+                                className={`px-3 py-1 text-sm font-medium rounded-md ${chartType === 'bars' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-600'}`}
+                            >
+                                Barras
+                            </button>
+                            <button 
+                                onClick={() => setChartType('lines')} 
+                                className={`px-3 py-1 text-sm font-medium rounded-md ${chartType === 'lines' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-600'}`}
+                            >
+                                Líneas
+                            </button>
+                        </div>
+                        <select
+                            value={selectedRange}
+                            onChange={(e) => onRangeChange(e.target.value)}
+                            className="bg-gray-700 text-white rounded-md p-2 border border-gray-600"
+                        >
+                            {Object.entries(dateRanges).map(([key, value]) => (
+                                <option key={key} value={key}>{value.name}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
                 
-                {overviewData.length > 0 ? (
-                    <div style={{ width: '100%', height: 400 }}>
-                        <ResponsiveContainer>
-                            <BarChart data={overviewData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }} onClick={onBarClick}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#4A5568" />
-                                <XAxis type="number" allowDecimals={false} stroke="#A0AEC0" />
-                                <YAxis dataKey="name" type="category" stroke="#A0AEC0" width={120} tick={{ fontSize: 12 }} />
-                                <Tooltip contentStyle={{ backgroundColor: '#2D3748', border: '1px solid #4A5568' }} labelStyle={{ color: '#E2E8F0' }} />
-                                <Legend wrapperStyle={{ color: '#E2E8F0' }} />
-                                <Bar dataKey="count" name="Días Registrados" fill="#667EEA" cursor="pointer" />
-                            </BarChart>
-                        </ResponsiveContainer>
+                                {overviewData.length > 0 ? (
+                    <div>
+                        {/* Botón de prueba para debug */}
+                        <div className="mb-4 p-2 bg-gray-700 rounded text-sm">
+                            <p className="text-gray-300 mb-2">Debug: Haz clic en una barra del gráfico para navegar, o usa estos botones de prueba:</p>
+                            <div className="flex flex-wrap gap-2">
+                                {overviewData.slice(0, 3).map(activity => (
+                                    <button
+                                        key={activity.id}
+                                        onClick={() => onBarClick({ activePayload: [{ payload: activity }] })}
+                                        className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded"
+                                    >
+                                        Ver {activity.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div style={{ width: '100%', height: 400 }}>
+                            <ResponsiveContainer>
+                                {chartType === 'bars' ? (
+                                    <BarChart data={overviewData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }} onClick={onBarClick}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#4A5568" />
+                                        <XAxis type="number" allowDecimals={false} stroke="#A0AEC0" />
+                                        <YAxis dataKey="name" type="category" stroke="#A0AEC0" width={120} tick={{ fontSize: 12 }} />
+                                        <Tooltip content={<CustomTooltip />} />
+                                        <Legend wrapperStyle={{ color: '#E2E8F0' }} />
+                                        <Bar 
+                                            dataKey="totalPoints" 
+                                            name="Puntos Totales" 
+                                            fill="#667EEA" 
+                                            cursor="pointer"
+                                            radius={[0, 4, 4, 0]}
+                                        />
+                                        {showGoals && overviewData.some(d => d.goal) && (
+                                            <ReferenceLine 
+                                                x={0} 
+                                                stroke="#FFD700" 
+                                                strokeDasharray="3 3" 
+                                                strokeWidth={2}
+                                            />
+                                        )}
+                                    </BarChart>
+                                ) : (
+                                    <LineChart data={overviewData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }} onClick={onBarClick}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#4A5568" />
+                                        <XAxis dataKey="name" stroke="#A0AEC0" tick={{ fontSize: 12 }} />
+                                        <YAxis stroke="#A0AEC0" allowDecimals={false} />
+                                        <Tooltip content={<CustomTooltip />} />
+                                        <Legend wrapperStyle={{ color: '#E2E8F0' }} />
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="totalPoints" 
+                                            name="Puntos Totales" 
+                                            stroke="#667EEA" 
+                                            strokeWidth={3}
+                                            dot={{ fill: '#667EEA', strokeWidth: 2, r: 6 }}
+                                            cursor="pointer"
+                                        />
+                                    </LineChart>
+                                )}
+                            </ResponsiveContainer>
+                        </div>
                     </div>
-                ) : (<p className="text-center text-gray-400 italic">No hay datos para el rango de fechas seleccionado.</p>)}
+                ) : (
+                    <p className="text-center text-gray-400 italic">No hay datos para el rango de fechas seleccionado.</p>
+                )}
+                
+                {/* Resumen de metas */}
+                {showGoals && overviewData.some(d => d.goal) && (
+                    <div className="mt-6 pt-4 border-t border-gray-700">
+                        <h4 className="text-lg font-semibold text-white mb-3">Resumen de Metas</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {overviewData.filter(d => d.goal).map(activity => (
+                                <div key={activity.id} className="bg-gray-700 p-3 rounded-lg">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-white font-medium">{activity.name}</span>
+                                        <span className={`text-sm font-bold ${activity.isGoalMet ? 'text-green-400' : 'text-red-400'}`}>
+                                            {activity.isGoalMet ? '✅' : '❌'}
+                                        </span>
+                                    </div>
+                                    <div className="text-sm text-gray-300">
+                                        <div>Puntos: {activity.totalPoints} / {activity.goal.target}</div>
+                                        <div className="mt-1">
+                                            <div className="w-full bg-gray-600 rounded-full h-2">
+                                                <div 
+                                                    className={`h-2 rounded-full ${activity.isGoalMet ? 'bg-green-500' : 'bg-red-500'}`}
+                                                    style={{ width: `${Math.min(activity.completionPercentage, 100)}%` }}
+                                                ></div>
+                                            </div>
+                                            <span className="text-xs">{activity.completionPercentage}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -1276,6 +1451,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
 
 const ActivityDetailView = ({ activity, entries, onBack }) => {
     const [timeGroup, setTimeGroup] = useState('weekly'); // 'weekly' or 'monthly'
+    const [selectedPeriod, setSelectedPeriod] = useState(null);
 
     const processedData = useMemo(() => {
         if (!activity || !entries) return [];
@@ -1294,65 +1470,258 @@ const ActivityDetailView = ({ activity, entries, onBack }) => {
         const relevantEntries = entries.filter(e => e.tracked && e.tracked[activity.id]);
         
         const groupedData = relevantEntries.reduce((acc, entry) => {
-            const date = new Date(`${entry.id}T00:00:00`); // Ensure date is parsed correctly
+            const date = new Date(`${entry.id}T00:00:00`);
             const key = timeGroup === 'weekly' ? getWeek(date) : getMonth(date);
             const option = entry.tracked[activity.id] || 'N/A';
+            const points = activity.points?.[option] || 0;
             
-            if (!acc[key]) acc[key] = { timePeriod: key };
-            acc[key][option] = (acc[key][option] || 0) + 1;
+            if (!acc[key]) {
+                acc[key] = { 
+                    timePeriod: key, 
+                    totalPoints: 0,
+                    daysCount: 0,
+                    activities: []
+                };
+            }
+            
+            acc[key].totalPoints += points;
+            acc[key].daysCount += 1;
+            acc[key].activities.push({
+                date: entry.id,
+                option: option,
+                points: points
+            });
             
             return acc;
         }, {});
 
         return Object.values(groupedData).sort((a,b) => a.timePeriod.localeCompare(b.timePeriod));
     }, [activity, entries, timeGroup]);
-    
-    const allOptions = useMemo(() => {
-        const optionsSet = new Set(activity.options || []);
-        processedData.forEach(d => {
-            Object.keys(d).forEach(key => {
-                if(key !== 'timePeriod') optionsSet.add(key);
-            })
-        });
-        return Array.from(optionsSet);
-    }, [activity, processedData]);
 
-    const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+    // Calcular meta para el periodo seleccionado
+    const calculateGoalForPeriod = useMemo(() => {
+        if (!activity.goal || processedData.length === 0) return null;
+        
+        const { type, target } = activity.goal;
+        const totalDays = processedData.reduce((sum, period) => sum + period.daysCount, 0);
+        
+        if (type === 'weekly') {
+            const weeksCount = processedData.length;
+            return target * weeksCount;
+        } else if (type === 'monthly') {
+            const monthsCount = processedData.length;
+            return target * monthsCount;
+        } else if (type === 'custom') {
+            // Para metas personalizadas, usar el target total
+            return target;
+        }
+        
+        return null;
+    }, [activity.goal, processedData]);
+
+    const totalPoints = processedData.reduce((sum, period) => sum + period.totalPoints, 0);
+    const goalMet = calculateGoalForPeriod ? totalPoints >= calculateGoalForPeriod : false;
+    const completionPercentage = calculateGoalForPeriod ? Math.round((totalPoints / calculateGoalForPeriod) * 100) : 0;
+
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            return (
+                <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg">
+                    <p className="text-white font-semibold">{data.timePeriod}</p>
+                    <p className="text-gray-300">Puntos: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
+                    <p className="text-gray-300">Días: <span className="text-blue-400">{data.daysCount}</span></p>
+                    <p className="text-gray-300">Actividades: <span className="text-purple-400">{data.activities.length}</span></p>
+                </div>
+            );
+        }
+        return null;
+    };
+
+    const handlePeriodClick = (data) => {
+        console.log('Period clicked:', data);
+        
+        let period = null;
+        
+        if (data && data.activePayload && data.activePayload[0]) {
+            // Para botones de prueba
+            period = data.activePayload[0].payload;
+        } else if (data && data.activeLabel) {
+            // Para clic en barras - buscar por timePeriod
+            period = processedData.find(p => p.timePeriod === data.activeLabel);
+        }
+        
+        console.log('Selected period:', period);
+        
+        if (period) {
+            setSelectedPeriod(period);
+        } else {
+            console.error('Period not found');
+        }
+    };
+
+    if (selectedPeriod) {
+        return (
+            <ActivityPeriodDetail 
+                period={selectedPeriod} 
+                activity={activity}
+                onBack={() => setSelectedPeriod(null)}
+            />
+        );
+    }
     
     return (
         <div className="p-4 md:p-6">
             <button onClick={onBack} className="text-indigo-400 hover:text-indigo-300 mb-4 inline-flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
                 Volver a todas las actividades
             </button>
+            
             <div className="bg-gray-800 rounded-lg p-6">
                 <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
                     <h3 className="text-xl font-semibold text-white">Análisis de: {activity.name}</h3>
                     <div className="flex items-center gap-2 bg-gray-700/50 p-1 rounded-lg">
-                        <button onClick={() => setTimeGroup('weekly')} className={`px-3 py-1 text-sm font-medium rounded-md ${timeGroup === 'weekly' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-600'}`}>Semanal</button>
-                        <button onClick={() => setTimeGroup('monthly')} className={`px-3 py-1 text-sm font-medium rounded-md ${timeGroup === 'monthly' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-600'}`}>Mensual</button>
+                        <button onClick={() => setTimeGroup('weekly')} className={`px-3 py-1 text-sm font-medium rounded-md ${timeGroup === 'weekly' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-600'}`}>
+                            Semanal
+                        </button>
+                        <button onClick={() => setTimeGroup('monthly')} className={`px-3 py-1 text-sm font-medium rounded-md ${timeGroup === 'monthly' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-600'}`}>
+                            Mensual
+                        </button>
+                    </div>
+                </div>
+
+                {/* Resumen de la actividad */}
+                <div className="mb-6 p-4 bg-gray-700 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="text-center">
+                            <div className="text-2xl font-bold text-green-400">{totalPoints}</div>
+                            <div className="text-sm text-gray-300">Puntos Totales</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-2xl font-bold text-blue-400">{processedData.length}</div>
+                            <div className="text-sm text-gray-300">{timeGroup === 'weekly' ? 'Semanas' : 'Meses'}</div>
+                        </div>
+                        {calculateGoalForPeriod && (
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-yellow-400">{calculateGoalForPeriod}</div>
+                                <div className="text-sm text-gray-300">Meta del Periodo</div>
+                                <div className={`text-sm font-bold ${goalMet ? 'text-green-400' : 'text-red-400'}`}>
+                                    {completionPercentage}% {goalMet ? '✅' : '❌'}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
                 
-                {processedData.length > 0 ? (
-                     <div style={{ width: '100%', height: 400 }}>
-                        <ResponsiveContainer>
-                            <BarChart data={processedData} margin={{top: 20, right: 30, left: 20, bottom: 5}}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#4A5568"/>
-                                <XAxis dataKey="timePeriod" stroke="#A0AEC0" tick={{fontSize: 12}}/>
-                                <YAxis stroke="#A0AEC0" allowDecimals={false}/>
-                                <Tooltip contentStyle={{ backgroundColor: '#2D3748', border: '1px solid #4A5568' }} labelStyle={{ color: '#E2E8F0' }}/>
-                                <Legend wrapperStyle={{ color: '#E2E8F0' }} />
-                                {allOptions.map((option, index) => (
-                                    <Bar key={option} dataKey={option} stackId="a" fill={COLORS[index % COLORS.length]} />
+                                {processedData.length > 0 ? (
+                    <div>
+                        {/* Botones de prueba para periodos */}
+                        <div className="mb-4 p-2 bg-gray-700 rounded text-sm">
+                            <p className="text-gray-300 mb-2">Debug: Haz clic en una barra del gráfico para ver el detalle del periodo, o usa estos botones de prueba:</p>
+                            <div className="flex flex-wrap gap-2">
+                                {processedData.slice(0, 3).map(period => (
+                                    <button
+                                        key={period.timePeriod}
+                                        onClick={() => handlePeriodClick({ activePayload: [{ payload: period }] })}
+                                        className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded"
+                                    >
+                                        Ver {period.timePeriod} ({period.totalPoints} pts)
+                                    </button>
                                 ))}
-                            </BarChart>
-                        </ResponsiveContainer>
+                            </div>
+                        </div>
+                        
+                        <div style={{ width: '100%', height: 400 }}>
+                            <ResponsiveContainer>
+                                <BarChart data={processedData} margin={{top: 20, right: 30, left: 20, bottom: 5}} onClick={handlePeriodClick}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#4A5568"/>
+                                    <XAxis dataKey="timePeriod" stroke="#A0AEC0" tick={{fontSize: 12}}/>
+                                    <YAxis stroke="#A0AEC0" allowDecimals={false}/>
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend wrapperStyle={{ color: '#E2E8F0' }} />
+                                    <Bar 
+                                        dataKey="totalPoints" 
+                                        name="Puntos Totales" 
+                                        fill="#667EEA" 
+                                        cursor="pointer"
+                                        radius={[4, 4, 0, 0]}
+                                    />
+                                    {calculateGoalForPeriod && (
+                                        <ReferenceLine 
+                                            y={calculateGoalForPeriod} 
+                                            stroke="#FFD700" 
+                                            strokeDasharray="3 3" 
+                                            strokeWidth={2}
+                                            label={{ value: 'Meta', position: 'insideTopRight', fill: '#FFD700' }}
+                                        />
+                                    )}
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
-                ) : <p className="text-center text-gray-400 italic">No hay datos de esta actividad para el rango y período seleccionados.</p>}
+                ) : (
+                    <p className="text-center text-gray-400 italic">No hay datos de esta actividad para el rango y período seleccionados.</p>
+                )}
             </div>
         </div>
     );
 };
 
-const APP_VERSION = 'V 1.03'; // Cambia este valor en cada iteración
+// --- Componente para mostrar el detalle de un periodo específico ---
+const ActivityPeriodDetail = ({ period, activity, onBack }) => {
+    const totalPoints = period.activities.reduce((sum, act) => sum + act.points, 0);
+    
+    return (
+        <div className="p-4 md:p-6">
+            <button onClick={onBack} className="text-indigo-400 hover:text-indigo-300 mb-4 inline-flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Volver al análisis de {activity.name}
+            </button>
+            
+            <div className="bg-gray-800 rounded-lg p-6">
+                <div className="mb-6">
+                    <h3 className="text-xl font-semibold text-white mb-2">
+                        Detalle del Periodo: {period.timePeriod}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="text-center p-3 bg-gray-700 rounded-lg">
+                            <div className="text-2xl font-bold text-green-400">{totalPoints}</div>
+                            <div className="text-sm text-gray-300">Puntos Totales</div>
+                        </div>
+                        <div className="text-center p-3 bg-gray-700 rounded-lg">
+                            <div className="text-2xl font-bold text-blue-400">{period.daysCount}</div>
+                            <div className="text-sm text-gray-300">Días Registrados</div>
+                        </div>
+                        <div className="text-center p-3 bg-gray-700 rounded-lg">
+                            <div className="text-2xl font-bold text-purple-400">{period.activities.length}</div>
+                            <div className="text-sm text-gray-300">Actividades</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 className="text-lg font-semibold text-white mb-4">Actividades del Periodo</h4>
+                    <div className="space-y-3">
+                        {[...period.activities].sort((a, b) => a.date.localeCompare(b.date)).map((act, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                                <div className="flex items-center gap-4">
+                                    <div className="text-sm text-gray-400 w-20">{act.date}</div>
+                                    <div className="text-white font-medium">{act.option}</div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-green-400 font-bold">{act.points} pts</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const APP_VERSION = 'V 1.04'; // Cambia este valor en cada iteración
