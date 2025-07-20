@@ -50,5 +50,42 @@ export default function useActivities(db, user, appId) {
         }
     };
 
-    return { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity };
+    // Eliminar opción de actividad
+    const handleDeleteOptionFromActivity = async (activityId, optionToDelete) => {
+        if (!db || !user?.uid) return;
+        const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
+        const currentOptions = activities[activityId]?.options || [];
+        const currentPoints = activities[activityId]?.points || {};
+        const newOptions = currentOptions.filter(opt => opt !== optionToDelete);
+        const newPoints = { ...currentPoints };
+        delete newPoints[optionToDelete];
+        await setDoc(activityRef, { options: newOptions, points: newPoints }, { merge: true });
+    };
+
+    // Guardar meta
+    const handleSaveGoal = async (activityId, goal) => {
+        if (!db || !user?.uid || !activityId) return;
+        const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
+        await setDoc(activityRef, { goal }, { merge: true });
+    };
+
+    // Actualizar puntos
+    const handleUpdatePoints = async (activityId, option, points) => {
+        if (!db || !user?.uid || !activityId || !option) return;
+        const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
+        const currentActivity = activities[activityId];
+        const currentPoints = currentActivity.points || {};
+        const updatedPoints = { ...currentPoints, [option]: points };
+        await setDoc(activityRef, { points: updatedPoints }, { merge: true });
+    };
+
+    return {
+        activities,
+        handleSaveActivity,
+        handleDeleteActivity,
+        handleAddOptionToActivity,
+        handleDeleteOptionFromActivity,
+        handleSaveGoal,
+        handleUpdatePoints
+    };
 } 

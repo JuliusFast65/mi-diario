@@ -51,7 +51,7 @@ const DiaryApp = ({ user }) => {
     const [db, setDb] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [currentEntry, setCurrentEntry] = useState({ text: '', tracked: {} });
-    const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity } = useActivities(db, user, appId);
+    const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints } = useActivities(db, user, appId);
     const [view, setView] = useState('diary');
     const [userPrefs, setUserPrefs] = useState({ font: 'patrick-hand', fontSize: 'text-3xl' });
     const [allEntries, setAllEntries] = useState([]);
@@ -187,32 +187,7 @@ const DiaryApp = ({ user }) => {
             return { ...prev, tracked: newTracked };
         });
     };
-    const handleDeleteOptionFromActivity = async (activityId, optionToDelete) => {
-        if (!db || !user?.uid) return;
-        try {
-            const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
-            const currentOptions = activities[activityId]?.options || [];
-            const currentPoints = activities[activityId]?.points || {};
-            const newOptions = currentOptions.filter(opt => opt !== optionToDelete);
-            const newPoints = { ...currentPoints };
-            delete newPoints[optionToDelete];
-            await setDoc(activityRef, { options: newOptions, points: newPoints }, { merge: true });
-        } catch (error) { console.error("Error borrando la opción:", error); alert("No se pudo borrar la opción."); }
-    };
-    const handleSaveGoal = async (activityId, goal) => {
-        if (!db || !user?.uid || !activityId) return;
-        const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
-        await setDoc(activityRef, { goal }, { merge: true });
-    };
     
-    const handleUpdatePoints = async (activityId, option, points) => {
-        if (!db || !user?.uid || !activityId || !option) return;
-        const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
-        const currentActivity = activities[activityId];
-        const currentPoints = currentActivity.points || {};
-        const updatedPoints = { ...currentPoints, [option]: points };
-        await setDoc(activityRef, { points: updatedPoints }, { merge: true });
-    };
     const callAI = async (prompt, title) => {
         setAIModalTitle(title);
         setAIModalOpen(true);
