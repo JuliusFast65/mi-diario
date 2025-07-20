@@ -229,14 +229,31 @@ const DiaryApp = ({ user }) => {
         const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
         const currentOptions = activities[activityId].options || [];
         if (!currentOptions.includes(newOption.trim())) {
-            await setDoc(activityRef, { options: [...currentOptions, newOption.trim()] }, { merge: true });
+            const currentPoints = activities[activityId].points || {};
+            const updatedPoints = { ...currentPoints, [newOption.trim()]: 0 };
+            await setDoc(activityRef, { 
+                options: [...currentOptions, newOption.trim()],
+                points: updatedPoints
+            }, { merge: true });
         }
     };
     const handleCreateNewActivity = async (e) => {
         e.preventDefault();
         if (!db || !user?.uid || !newActivityName.trim()) return;
         const finalOptions = newActivityOptions.map(o => o.trim()).filter(o => o !== '');
-        const newActivityData = { name: newActivityName.trim(), options: finalOptions, createdAt: new Date() };
+        
+        // Inicializar puntos para cada opción
+        const initialPoints = {};
+        finalOptions.forEach(option => {
+            initialPoints[option] = 0;
+        });
+        
+        const newActivityData = { 
+            name: newActivityName.trim(), 
+            options: finalOptions, 
+            points: initialPoints,
+            createdAt: new Date() 
+        };
         const activitiesCol = collection(db, 'artifacts', appId, 'users', user.uid, 'activities');
         const newActivityRef = await addDoc(activitiesCol, newActivityData);
         setNewActivityModalOpen(false);
@@ -248,8 +265,11 @@ const DiaryApp = ({ user }) => {
         try {
             const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
             const currentOptions = activities[activityId]?.options || [];
+            const currentPoints = activities[activityId]?.points || {};
             const newOptions = currentOptions.filter(opt => opt !== optionToDelete);
-            await setDoc(activityRef, { options: newOptions }, { merge: true });
+            const newPoints = { ...currentPoints };
+            delete newPoints[optionToDelete];
+            await setDoc(activityRef, { options: newOptions, points: newPoints }, { merge: true });
         } catch (error) { console.error("Error borrando la opción:", error); alert("No se pudo borrar la opción."); }
     };
     const handleDeleteActivity = async (activityId) => {
@@ -274,6 +294,15 @@ const DiaryApp = ({ user }) => {
         if (!db || !user?.uid || !activityId) return;
         const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
         await setDoc(activityRef, { goal }, { merge: true });
+    };
+    
+    const handleUpdatePoints = async (activityId, option, points) => {
+        if (!db || !user?.uid || !activityId || !option) return;
+        const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
+        const currentActivity = activities[activityId];
+        const currentPoints = currentActivity.points || {};
+        const updatedPoints = { ...currentPoints, [option]: points };
+        await setDoc(activityRef, { points: updatedPoints }, { merge: true });
     };
     const callAI = async (prompt, title) => {
         setAIModalTitle(title);
@@ -442,7 +471,7 @@ const DiaryApp = ({ user }) => {
             {/* Modals */}
             {isNewActivityModalOpen && <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"><div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md"><h2 className="text-2xl font-bold text-white mb-4">Crear Nueva Actividad</h2><form onSubmit={handleCreateNewActivity} className="space-y-4"><div><label htmlFor="activity-name" className="block text-sm font-medium text-gray-300 mb-1">Nombre</label><input id="activity-name" type="text" value={newActivityName} onChange={(e) => setNewActivityName(e.target.value)} placeholder="Ej: Leer" className="w-full bg-gray-700 text-white rounded-md p-2 border border-gray-600" required /></div><div><label className="block text-sm font-medium text-gray-300 mb-2">Opciones</label>{newActivityOptions.map((o, i) => <div key={i} className="flex items-center space-x-2 mb-2"><input type="text" value={o} onChange={(e) => {const u=[...newActivityOptions];u[i]=e.target.value;setNewActivityOptions(u)}} placeholder={`Opción ${i+1}`} className="flex-grow bg-gray-700 text-white rounded-md p-2 border border-gray-600" /><button type="button" onClick={() => setNewActivityOptions(newActivityOptions.filter((_,j)=>i!==j))} className="p-2 bg-red-600 hover:bg-red-700 rounded-full text-white"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" /></svg></button></div>)}<button type="button" onClick={() => setNewActivityOptions([...newActivityOptions,''])} className="text-indigo-400 hover:text-indigo-300 text-sm font-semibold">+ Añadir</button></div><div className="flex justify-end space-x-3 pt-4"><button type="button" onClick={() => setNewActivityModalOpen(false)} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg">Cancelar</button><button type="submit" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 font-bold rounded-lg">Crear</button></div></form></div></div>}
             {isAIModalOpen && <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"><div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-lg flex flex-col"><h2 className="text-2xl font-bold text-purple-300 mb-4">{aiModalTitle}</h2><div className="overflow-y-auto max-h-[60vh] pr-2">{isAILoading ? <div className="text-center py-10"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div><p className="mt-4 text-gray-300">Analizando...</p></div> : <div className="text-gray-200 whitespace-pre-wrap prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: aiResponse.replace(/\n/g, '<br />') }} />}</div><div className="flex justify-end mt-6 pt-4 border-t border-gray-700 gap-3">{aiModalTitle === 'Sugerencias del Asistente' && !isAILoading && <button onClick={acceptWritingSuggestion} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition">Usar esta versión</button>}<button onClick={() => setAIModalOpen(false)} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg">Cerrar</button></div></div></div>}
-            <ManageActivitiesModal isOpen={isManageModalOpen} onClose={() => setManageModalOpen(false)} activities={activities} onDeleteActivity={handleDeleteActivity} onAddOption={handleAddOptionToActivity} onDeleteOption={handleDeleteOptionFromActivity} onSaveGoal={handleSaveGoal} />
+            <ManageActivitiesModal isOpen={isManageModalOpen} onClose={() => setManageModalOpen(false)} activities={activities} onDeleteActivity={handleDeleteActivity} onAddOption={handleAddOptionToActivity} onDeleteOption={handleDeleteOptionFromActivity} onSaveGoal={handleSaveGoal} onUpdatePoints={handleUpdatePoints} />
             <ExportModal isOpen={isExportModalOpen} onClose={() => setExportModalOpen(false)} onExport={handleExportEntries} />
         </div>
     );
@@ -682,25 +711,72 @@ const ArchiveView = ({ allEntries, onSelectEntry, user }) => {
 
 const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack }) => {
     const hasOptions = Array.isArray(activity.options) && activity.options.length > 0;
+    const selectedPoints = activity.points?.[selectedValue] || 0;
+    
     return (
         <div className="flex items-center gap-3 bg-gray-700 p-3 rounded-lg">
             <div className="flex-grow flex flex-col sm:flex-row items-center gap-3">
                 <span className="font-semibold text-white flex-shrink-0 w-full sm:w-1/3">{activity.name}</span>
                 <div className="flex-grow w-full">
-                    {hasOptions ? (<select value={selectedValue} onChange={(e) => onValueChange(e.target.value)} className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500">{activity.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>) : (<input type="text" placeholder="Añade un valor (ej: 30 mins)" value={selectedValue} onChange={(e) => onValueChange(e.target.value)} className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500" />)}
+                    {hasOptions ? (
+                        <select 
+                            value={selectedValue} 
+                            onChange={(e) => onValueChange(e.target.value)} 
+                            className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500"
+                        >
+                            {activity.options.map(opt => (
+                                <option key={opt} value={opt}>
+                                    {opt} {activity.points?.[opt] ? `(${activity.points[opt]} pts)` : ''}
+                                </option>
+                            ))}
+                        </select>
+                    ) : (
+                        <input 
+                            type="text" 
+                            placeholder="Añade un valor (ej: 30 mins)" 
+                            value={selectedValue} 
+                            onChange={(e) => onValueChange(e.target.value)} 
+                            className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500" 
+                        />
+                    )}
                 </div>
             </div>
-            <button onClick={() => onUntrack(activity.id)} className="p-1 bg-gray-600 hover:bg-red-800 rounded-full text-gray-300 hover:text-white transition-colors flex-shrink-0" aria-label={`Quitar ${activity.name} de este día`}><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            {selectedPoints > 0 && (
+                <div className="flex-shrink-0 bg-green-600 text-white px-2 py-1 rounded text-sm font-semibold">
+                    {selectedPoints} pts
+                </div>
+            )}
+            <button 
+                onClick={() => onUntrack(activity.id)} 
+                className="p-1 bg-gray-600 hover:bg-red-800 rounded-full text-gray-300 hover:text-white transition-colors flex-shrink-0" 
+                aria-label={`Quitar ${activity.name} de este día`}
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
     );
 };
 
-const ManageActivitiesModal = ({ isOpen, onClose, activities, onDeleteActivity, onAddOption, onDeleteOption }) => {
+const ManageActivitiesModal = ({ isOpen, onClose, activities, onDeleteActivity, onAddOption, onDeleteOption, onSaveGoal, onUpdatePoints }) => {
     if (!isOpen) return null;
     const [newOptionValues, setNewOptionValues] = useState({});
+    const [newPointValues, setNewPointValues] = useState({});
+    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+    const [selectedActivityForGoal, setSelectedActivityForGoal] = useState(null);
+    
     const handleNewOptionChange = (activityId, value) => {
         setNewOptionValues(prev => ({ ...prev, [activityId]: value }));
     };
+    
+    const handleNewPointChange = (activityId, option, value) => {
+        setNewPointValues(prev => ({ 
+            ...prev, 
+            [`${activityId}-${option}`]: value 
+        }));
+    };
+    
     const handleAddNewOption = (activityId) => {
         const newOption = newOptionValues[activityId];
         if (newOption && newOption.trim()) {
@@ -708,31 +784,283 @@ const ManageActivitiesModal = ({ isOpen, onClose, activities, onDeleteActivity, 
             handleNewOptionChange(activityId, '');
         }
     };
+    
+    const handleUpdatePoints = (activityId, option, points) => {
+        if (points && !isNaN(points) && points >= 0) {
+            onUpdatePoints(activityId, option, parseInt(points));
+        }
+    };
+    
+    const handleOpenGoalModal = (activity) => {
+        setSelectedActivityForGoal(activity);
+        setIsGoalModalOpen(true);
+    };
+    
     const sortedActivities = Object.values(activities).sort((a, b) => a.name.localeCompare(b.name));
+    
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold text-white">Gestionar Actividades</h2>
-                    <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-700"><svg className="w-6 h-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
-                </div>
-                <div className="overflow-y-auto space-y-4 pr-2">
-                    {sortedActivities.map(activity => (
-                        <div key={activity.id} className="bg-gray-700 p-4 rounded-lg">
-                            <div className="flex items-center justify-between">
-                                <span className="font-bold text-lg text-white">{activity.name}</span>
-                                <button onClick={() => onDeleteActivity(activity.id)} className="p-2 bg-red-800 hover:bg-red-700 rounded-full text-white" aria-label={`Eliminar permanentemente ${activity.name}`}><svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg></button>
-                            </div>
-                            <div className="mt-3 pt-3 border-t border-gray-600">
-                                <h4 className="text-sm font-semibold text-gray-300 mb-2">Opciones:</h4>
-                                <div className="space-y-2">{(activity.options && activity.options.length > 0) ? activity.options.map(option => (<div key={option} className="flex justify-between items-center bg-gray-600 px-3 py-1 rounded"><span className="text-gray-200">{option}</span><button onClick={() => onDeleteOption(activity.id, option)} className="p-1 text-gray-400 hover:text-white"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button></div>)) : <p className="text-xs text-gray-400 italic">Sin opciones predefinidas.</p>}</div>
-                                <div className="mt-3 flex gap-2">
-                                    <input type="text" placeholder="Añadir nueva opción" value={newOptionValues[activity.id] || ''} onChange={(e) => handleNewOptionChange(activity.id, e.target.value)} className="flex-grow bg-gray-600 text-white rounded-md p-2 text-sm border border-gray-500" />
-                                    <button onClick={() => handleAddNewOption(activity.id)} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 rounded-lg text-sm">Añadir</button>
+        <>
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+                <div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-4xl max-h-[80vh] flex flex-col">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-bold text-white">Gestor de Actividades y Metas</h2>
+                        <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-700">
+                            <svg className="w-6 h-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div className="overflow-y-auto space-y-4 pr-2">
+                        {sortedActivities.map(activity => (
+                            <div key={activity.id} className="bg-gray-700 p-4 rounded-lg">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="font-bold text-lg text-white">{activity.name}</span>
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            onClick={() => handleOpenGoalModal(activity)}
+                                            className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-full text-white"
+                                            title="Configurar meta"
+                                        >
+                                            🎯
+                                        </button>
+                                        <button 
+                                            onClick={() => onDeleteActivity(activity.id)} 
+                                            className="p-2 bg-red-800 hover:bg-red-700 rounded-full text-white" 
+                                            aria-label={`Eliminar permanentemente ${activity.name}`}
+                                        >
+                                            <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                {/* Meta actual */}
+                                {activity.goal && (
+                                    <div className="mb-3 p-2 bg-yellow-900/30 border border-yellow-600/50 rounded-lg">
+                                        <div className="flex items-center gap-2 text-yellow-300 text-sm">
+                                            <span>🎯 Meta:</span>
+                                            <span className="font-semibold">
+                                                {activity.goal.target} puntos
+                                                {activity.goal.type === 'weekly' && ' (semanal)'}
+                                                {activity.goal.type === 'monthly' && ' (mensual)'}
+                                                {activity.goal.type === 'custom' && ` (${activity.goal.startDate} a ${activity.goal.endDate})`}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                <div className="border-t border-gray-600 pt-3">
+                                    <h4 className="text-sm font-semibold text-gray-300 mb-2">Subniveles y Puntos:</h4>
+                                    <div className="space-y-2">
+                                        {(activity.options && activity.options.length > 0) ? (
+                                            activity.options.map(option => (
+                                                <div key={option} className="flex items-center gap-2 bg-gray-600 px-3 py-2 rounded">
+                                                    <span className="text-gray-200 flex-grow">{option}</span>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        placeholder="Puntos"
+                                                        value={activity.points?.[option] || ''}
+                                                        onChange={(e) => handleUpdatePoints(activity.id, option, e.target.value)}
+                                                        className="w-16 bg-gray-700 text-white rounded px-2 py-1 text-sm border border-gray-500"
+                                                    />
+                                                    <button 
+                                                        onClick={() => onDeleteOption(activity.id, option)} 
+                                                        className="p-1 text-gray-400 hover:text-white"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-xs text-gray-400 italic">Sin subniveles predefinidos.</p>
+                                        )}
+                                    </div>
+                                    <div className="mt-3 flex gap-2">
+                                        <input 
+                                            type="text" 
+                                            placeholder="Añadir nuevo subnivel" 
+                                            value={newOptionValues[activity.id] || ''} 
+                                            onChange={(e) => handleNewOptionChange(activity.id, e.target.value)} 
+                                            className="flex-grow bg-gray-600 text-white rounded-md p-2 text-sm border border-gray-500" 
+                                        />
+                                        <button 
+                                            onClick={() => handleAddNewOption(activity.id)} 
+                                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 rounded-lg text-sm"
+                                        >
+                                            Añadir
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+            
+            {/* Modal de configuración de metas */}
+            {isGoalModalOpen && (
+                <GoalConfigModal 
+                    activity={selectedActivityForGoal}
+                    onClose={() => setIsGoalModalOpen(false)}
+                    onSaveGoal={onSaveGoal}
+                />
+            )}
+        </>
+    );
+};
+
+// --- Modal de configuración de metas ---
+const GoalConfigModal = ({ activity, onClose, onSaveGoal }) => {
+    const [goalType, setGoalType] = useState(activity?.goal?.type || 'weekly');
+    const [targetPoints, setTargetPoints] = useState(activity?.goal?.target || '');
+    const [startDate, setStartDate] = useState(activity?.goal?.startDate || new Date().toISOString().split('T')[0]);
+    const [endDate, setEndDate] = useState(activity?.goal?.endDate || new Date().toISOString().split('T')[0]);
+
+    const handleSave = () => {
+        if (!targetPoints || isNaN(targetPoints) || targetPoints <= 0) {
+            alert('Por favor ingresa un número válido de puntos objetivo.');
+            return;
+        }
+
+        if (goalType === 'custom' && startDate > endDate) {
+            alert('La fecha de inicio no puede ser posterior a la fecha de fin.');
+            return;
+        }
+
+        const goalData = {
+            type: goalType,
+            target: parseInt(targetPoints)
+        };
+
+        if (goalType === 'custom') {
+            goalData.startDate = startDate;
+            goalData.endDate = endDate;
+        }
+
+        onSaveGoal(activity.id, goalData);
+        onClose();
+    };
+
+    const handleDeleteGoal = () => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar la meta de esta actividad?')) {
+            onSaveGoal(activity.id, null);
+            onClose();
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold text-white">Configurar Meta: {activity?.name}</h2>
+                    <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-700">
+                        <svg className="w-6 h-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Tipo de Meta:</label>
+                        <div className="space-y-2">
+                            <label className="flex items-center">
+                                <input
+                                    type="radio"
+                                    name="goalType"
+                                    value="weekly"
+                                    checked={goalType === 'weekly'}
+                                    onChange={(e) => setGoalType(e.target.value)}
+                                    className="mr-2"
+                                />
+                                <span className="text-white">Semanal</span>
+                            </label>
+                            <label className="flex items-center">
+                                <input
+                                    type="radio"
+                                    name="goalType"
+                                    value="monthly"
+                                    checked={goalType === 'monthly'}
+                                    onChange={(e) => setGoalType(e.target.value)}
+                                    className="mr-2"
+                                />
+                                <span className="text-white">Mensual</span>
+                            </label>
+                            <label className="flex items-center">
+                                <input
+                                    type="radio"
+                                    name="goalType"
+                                    value="custom"
+                                    checked={goalType === 'custom'}
+                                    onChange={(e) => setGoalType(e.target.value)}
+                                    className="mr-2"
+                                />
+                                <span className="text-white">Rango personalizado</span>
+                            </label>
                         </div>
-                    ))}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Puntos Objetivo:</label>
+                        <input
+                            type="number"
+                            min="1"
+                            value={targetPoints}
+                            onChange={(e) => setTargetPoints(e.target.value)}
+                            placeholder="Ej: 50"
+                            className="w-full bg-gray-700 text-white rounded-md p-2 border border-gray-600"
+                        />
+                    </div>
+
+                    {goalType === 'custom' && (
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">Desde:</label>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="w-full bg-gray-700 text-white rounded-md p-2 border border-gray-600"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">Hasta:</label>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="w-full bg-gray-700 text-white rounded-md p-2 border border-gray-600"
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex justify-between mt-6 pt-4 border-t border-gray-700">
+                    <button
+                        onClick={handleDeleteGoal}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg"
+                    >
+                        Eliminar Meta
+                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg"
+                        >
+                            Guardar Meta
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1027,4 +1355,4 @@ const ActivityDetailView = ({ activity, entries, onBack }) => {
     );
 };
 
-const APP_VERSION = 'V 1.02'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.03'; // Cambia este valor en cada iteración
