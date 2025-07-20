@@ -2196,4 +2196,4 @@ const ActivityPeriodDetail = ({ period, activity, onBack }) => {
     );
 };
 
-const APP_VERSION = 'V 1.07'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.08'; // Cambia este valor en cada iteración
