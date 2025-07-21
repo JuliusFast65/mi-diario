@@ -11,6 +11,7 @@ import CreateActivityModal from './components/CreateActivityModal';
 import DefineActivitiesModal from './components/DefineActivitiesModal';
 import ExportModal from './components/ExportModal';
 import useActivities from './hooks/useActivities';
+import useDiary from './hooks/useDiary';
 
 // --- Configuración de Firebase ---
 const firebaseConfig = {
@@ -50,7 +51,7 @@ const LoginScreen = ({ onGoogleSignIn }) => (
 const DiaryApp = ({ user }) => {
     const [db, setDb] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    const [currentEntry, setCurrentEntry] = useState({ text: '', tracked: {} });
+    const { currentEntry, setCurrentEntry, isLoadingEntry } = useDiary(db, user, appId, selectedDate);
     const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints } = useActivities(db, user, appId);
     const [view, setView] = useState('diary');
     const [userPrefs, setUserPrefs] = useState({ font: 'patrick-hand', fontSize: 'text-3xl' });
@@ -67,8 +68,6 @@ const DiaryApp = ({ user }) => {
     const [isAILoading, setAILoading] = useState(false);
     const [aiModalTitle, setAIModalTitle] = useState('');
     const [writingAssistantSuggestion, setWritingAssistantSuggestion] = useState('');
-    const [isLoadingEntry, setIsLoadingEntry] = useState(false);
-    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const textareaRef = useRef();
 
     useEffect(() => {
@@ -112,8 +111,6 @@ const DiaryApp = ({ user }) => {
 
     useEffect(() => {
         if (!db || !user?.uid || !selectedDate) return;
-        setIsLoadingEntry(true);
-        setCurrentEntry({ text: '', tracked: {} });
         let isMounted = true;
         const fetchEntry = async () => {
             const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate);
@@ -131,44 +128,14 @@ const DiaryApp = ({ user }) => {
                     } else {
                         setCurrentEntry({ text: '', tracked: {} });
                     }
-                    setIsLoadingEntry(false);
                 }
             } catch (error) {
-                if (isMounted) setIsLoadingEntry(false);
-                console.error("Error fetching entry:", error);
+                if (isMounted) console.error("Error fetching entry:", error);
             }
         };
         fetchEntry();
         return () => { isMounted = false; };
-    }, [db, user, selectedDate]);
-
-    // Guardado automático de datos
-    const saveData = useCallback(async (entryData) => {
-        if (!db || !user?.uid || !selectedDate) return;
-        const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate);
-        
-        const [titleLine, ...bodyLines] = (entryData.text || '').split('\n');
-        const bodyText = bodyLines.join('\n');
-
-        const [encryptedTitle, encryptedText] = await Promise.all([
-            encryptText(titleLine, user.uid),
-            encryptText(bodyText, user.uid)
-        ]);
-
-        const { text, ...restOfEntry } = entryData;
-        const dataToSave = { ...restOfEntry, title: encryptedTitle, text: encryptedText };
-        
-        await setDoc(entryDocRef, dataToSave, { merge: true });
-    }, [db, user, selectedDate]);
-
-    
-    useEffect(() => {
-        if (isLoadingEntry) return;
-        const handler = setTimeout(() => {
-            if (currentEntry) saveData(currentEntry);
-        }, 1500);
-        return () => clearTimeout(handler);
-    }, [currentEntry, saveData, isLoadingEntry]);
+    }, [db, user, selectedDate, setCurrentEntry]);
 
     // Manejadores de eventos y lógica de la aplicación
     const handleUpdateUserPrefs = async (newPrefs) => {
@@ -286,12 +253,10 @@ const DiaryApp = ({ user }) => {
     };
 
     const handleLogout = async () => {
-        setIsLoggingOut(true);
-        const textarea = textareaRef.current;
-        let text = textarea ? textarea.value : (currentEntry?.text || '');
+        let text = currentEntry?.text || '';
         const entry = { ...currentEntry, text };
         try {
-            await saveData(entry);
+            await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate), entry, { merge: true });
             await signOut(auth);
         } catch (error) {
             console.error("Error en logout o guardado:", error);
@@ -326,9 +291,9 @@ const DiaryApp = ({ user }) => {
                         <button 
                             onClick={handleLogout}
                             className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                            disabled={isLoggingOut}
+                            disabled={isLoadingEntry}
                         >
-                            {isLoggingOut ? 'Guardando...' : 'Salir'}
+                            {isLoadingEntry ? 'Guardando...' : 'Salir'}
                         </button>
                     </div>
                 </header>
