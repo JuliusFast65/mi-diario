@@ -79,13 +79,13 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                 <input type="date" value={selectedDate} onChange={(e) => onDateChange(e.target.value)} className="bg-gray-700 border-gray-600 text-white rounded-lg p-2 focus:ring-2 focus:ring-indigo-500" />
             </div>
             {activeTab === 'entrada' && (
-                <div className="bg-gray-800 rounded-b-lg p-4 flex flex-col flex-grow mx-4 md:mx-6 mb-4 md:mb-6">
+                <div className="bg-gray-800 rounded-b-lg p-2 flex flex-col flex-grow mb-4 md:mb-6">
                     <textarea 
                         ref={textareaRef}
                         value={currentEntry?.text || ''} 
                         onChange={onTextChange} 
                         placeholder="Escribe un título en la primera línea..." 
-                        className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook journal-editor leading-[0.5] ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} 
+                        className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook journal-editor leading-[1.5] ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} 
                     />
                     <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-700 flex-wrap gap-4 flex-shrink-0">
                         <div className="flex items-center gap-2 flex-wrap text-xs">
