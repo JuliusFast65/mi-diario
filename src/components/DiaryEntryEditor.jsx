@@ -70,10 +70,21 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
     const tabActiveStyle = "bg-gray-800 text-white";
     const tabInactiveStyle = "bg-gray-700 text-gray-400 hover:bg-gray-600";
 
+    // Funciones para manejar los clicks de las pestañas y fecha
+    const handleTabClick = (tab) => {
+        setActiveTab(tab);
+        setFocusMode(false);
+    };
+
+    const handleDateChange = (e) => {
+        onDateChange(e.target.value);
+        setFocusMode(false);
+    };
+
     return (
         <div className={`flex flex-col flex-grow relative ${focusMode ? 'z-50 fixed inset-0 bg-gray-900' : ''}`}>
-            {/* Botón de modo enfoque solo en móvil y solo si no está activo */}
-            {!focusMode && (
+            {/* Botón de modo enfoque solo en móvil, solo si no está activo y solo en pestaña Entrada */}
+            {!focusMode && activeTab === 'entrada' && (
                 <button
                     className="md:hidden absolute top-2 right-2 z-20 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-2 shadow-lg"
                     title="Modo enfoque"
@@ -86,10 +97,10 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
             {!focusMode && (
                 <div className="flex justify-between items-center flex-shrink-0 px-4 md:px-6 pt-4">
                     <div className="flex border-b border-gray-700">
-                        <button onClick={() => setActiveTab('entrada')} className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}>Entrada</button>
-                        <button onClick={() => setActiveTab('actividades')} className={`${tabBaseStyle} ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>Actividades</button>
+                        <button onClick={() => handleTabClick('entrada')} className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}>Entrada</button>
+                        <button onClick={() => handleTabClick('actividades')} className={`${tabBaseStyle} ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>Actividades</button>
                     </div>
-                    <input type="date" value={selectedDate} onChange={(e) => onDateChange(e.target.value)} className="bg-gray-700 border-gray-600 text-white rounded-lg p-2 focus:ring-2 focus:ring-indigo-500" />
+                    <input type="date" value={selectedDate} onChange={handleDateChange} className="bg-gray-700 border-gray-600 text-white rounded-lg p-2 focus:ring-2 focus:ring-indigo-500" />
                 </div>
             )}
             {/* Área de escritura en modo enfoque ocupa toda la pantalla */}

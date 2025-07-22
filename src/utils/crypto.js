@@ -7,7 +7,7 @@ export const getCryptoKey = async (uid) => {
 };
 
 export const encryptText = async (text, uid) => {
-    if (!text) return '';
+    if (!text || !uid) return text || '';
     try {
         const key = await getCryptoKey(uid);
         const encoder = new TextEncoder();
@@ -26,6 +26,14 @@ export const encryptText = async (text, uid) => {
 
 export const decryptText = async (encryptedBase64, uid) => {
     if (!encryptedBase64) return '';
+    
+    // Verificar si el texto parece estar encriptado (base64 válido)
+    const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+    if (!base64Regex.test(encryptedBase64)) {
+        // Si no es base64 válido, probablemente es texto plano
+        return encryptedBase64;
+    }
+    
     try {
         const key = await getCryptoKey(uid);
         const buffer = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
@@ -36,6 +44,7 @@ export const decryptText = async (encryptedBase64, uid) => {
         return decoder.decode(decryptedData);
     } catch (error) {
         console.error("Decryption failed:", error);
+        // Si falla la desencriptación, devolver el texto original
         return encryptedBase64;
     }
 }; 
