@@ -5,6 +5,7 @@ import ActivityTrackerItem from './ActivityTrackerItem';
 
 const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenDefineActivitiesModal, onConsultAI, onWritingAssistant, onUntrackActivity, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef }) => {
     const [activeTab, setActiveTab] = useState('entrada');
+    const [focusMode, setFocusMode] = useState(false);
 
     const fontOptions = [
         { id: 'patrick-hand', name: 'Patrick Hand' },
@@ -70,66 +71,95 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
     const tabInactiveStyle = "bg-gray-700 text-gray-400 hover:bg-gray-600";
 
     return (
-        <div className="flex flex-col flex-grow">
-            <div className="flex justify-between items-center flex-shrink-0 px-4 md:px-6 pt-4">
-                <div className="flex border-b border-gray-700">
-                    <button onClick={() => setActiveTab('entrada')} className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}>Entrada</button>
-                    <button onClick={() => setActiveTab('actividades')} className={`${tabBaseStyle} ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>Actividades</button>
-                </div>
-                <input type="date" value={selectedDate} onChange={(e) => onDateChange(e.target.value)} className="bg-gray-700 border-gray-600 text-white rounded-lg p-2 focus:ring-2 focus:ring-indigo-500" />
-            </div>
-            {activeTab === 'entrada' && (
-                <div className="bg-gray-800 rounded-b-lg p-2 flex flex-col flex-grow mb-4 md:mb-6">
-                    <textarea 
-                        ref={textareaRef}
-                        value={currentEntry?.text || ''} 
-                        onChange={onTextChange} 
-                        placeholder="Escribe un título en la primera línea..." 
-                        className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook journal-editor leading-[1.5] ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]}`} 
-                    />
-                    <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-700 flex-wrap gap-4 flex-shrink-0">
-                        <div className="flex items-center gap-2 flex-wrap text-xs">
-                            <div className="flex items-center gap-1 min-w-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M10.755 2.168A.75.75 0 009.245 2.168L3.32 13.5h2.978l1.035-2.5h4.334l1.035 2.5h2.978L10.755 2.168zm-2.034 7.5L10 4.17l1.279 5.5H8.721z" /></svg>
-                                <select 
-                                    id="font-select"
-                                    value={userPrefs.font}
-                                    onChange={(e) => onUpdateUserPrefs({ font: e.target.value })}
-                                    className="bg-gray-700 text-white rounded p-0.5 border border-gray-600 text-xs min-w-0"
-                                    style={{maxWidth:'90px'}}
-                                >
-                                    {fontOptions.map(font => (
-                                        <option key={font.id} value={font.id}>{font.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="flex items-center gap-1 min-w-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M8.25 3.75a.75.75 0 01.75.75v10.5a.75.75 0 01-1.5 0V4.5a.75.75 0 01.75-.75zM13.25 5.75a.75.75 0 01.75.75v8.5a.75.75 0 01-1.5 0V6.5a.75.75 0 01.75-.75zM4.25 8.75a.75.75 0 01.75.75v2.5a.75.75 0 01-1.5 0v-2.5a.75.75 0 01.75-.75z" /></svg>
-                                <select 
-                                    id="fontsize-select"
-                                    value={userPrefs.fontSize}
-                                    onChange={(e) => onUpdateUserPrefs({ fontSize: e.target.value })}
-                                    className="bg-gray-700 text-white rounded p-0.5 border border-gray-600 text-xs min-w-0"
-                                    style={{maxWidth:'70px'}}
-                                >
-                                    {fontSizeOptions.map(size => (
-                                        <option key={size.id} value={size.id}>{size.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <button title="Recibe sugerencias para mejorar tu escritura" onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
-                            </button>
-                            <button title="Recibe una reflexión sobre tu entrada y actividades" onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>
-                            </button>
-                        </div>
+        <div className={`flex flex-col flex-grow relative ${focusMode ? 'z-50 fixed inset-0 bg-gray-900' : ''}`}>
+            {/* Botón de modo enfoque solo en móvil y solo si no está activo */}
+            {!focusMode && (
+                <button
+                    className="md:hidden absolute top-2 right-2 z-20 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-2 shadow-lg"
+                    title="Modo enfoque"
+                    onClick={() => setFocusMode(true)}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V6a2 2 0 012-2h2m8 0h2a2 2 0 012 2v2m0 8v2a2 2 0 01-2 2h-2m-8 0H6a2 2 0 01-2-2v-2" /></svg>
+                </button>
+            )}
+            {/* Elementos normales ocultos en modo enfoque */}
+            {!focusMode && (
+                <div className="flex justify-between items-center flex-shrink-0 px-4 md:px-6 pt-4">
+                    <div className="flex border-b border-gray-700">
+                        <button onClick={() => setActiveTab('entrada')} className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}>Entrada</button>
+                        <button onClick={() => setActiveTab('actividades')} className={`${tabBaseStyle} ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>Actividades</button>
                     </div>
+                    <input type="date" value={selectedDate} onChange={(e) => onDateChange(e.target.value)} className="bg-gray-700 border-gray-600 text-white rounded-lg p-2 focus:ring-2 focus:ring-indigo-500" />
                 </div>
             )}
-            {activeTab === 'actividades' && (
+            {/* Área de escritura en modo enfoque ocupa toda la pantalla */}
+            {activeTab === 'entrada' && (
+                <div className={`bg-gray-800 rounded-b-lg ${focusMode ? 'fixed inset-0 z-50 flex flex-col justify-center items-center p-2' : 'p-2 flex flex-col flex-grow mb-4 md:mb-6'}`}>
+                    <textarea
+                        ref={textareaRef}
+                        value={currentEntry?.text || ''}
+                        onChange={onTextChange}
+                        placeholder="Escribe un título en la primera línea..."
+                        className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook journal-editor leading-[1.5] ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]} ${focusMode ? 'h-[80vh] text-lg' : ''}`}
+                        style={focusMode ? {minHeight: '60vh'} : {}}
+                    />
+                    {/* Botón para salir del modo enfoque */}
+                    {focusMode && (
+                        <button
+                            className="fixed top-4 right-4 z-50 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg"
+                            title="Salir de modo enfoque"
+                            onClick={() => setFocusMode(false)}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    )}
+                    {/* El resto de controles solo si no está en modo enfoque */}
+                    {!focusMode && (
+                        <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-700 flex-wrap gap-4 flex-shrink-0">
+                            <div className="flex items-center gap-2 flex-wrap text-xs">
+                                <div className="flex items-center gap-1 min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M10.755 2.168A.75.75 0 009.245 2.168L3.32 13.5h2.978l1.035-2.5h4.334l1.035 2.5h2.978L10.755 2.168zm-2.034 7.5L10 4.17l1.279 5.5H8.721z" /></svg>
+                                    <select
+                                        id="font-select"
+                                        value={userPrefs.font}
+                                        onChange={(e) => onUpdateUserPrefs({ font: e.target.value })}
+                                        className="bg-gray-700 text-white rounded p-0.5 border border-gray-600 text-xs min-w-0"
+                                        style={{maxWidth:'90px'}}
+                                    >
+                                        {fontOptions.map(font => (
+                                            <option key={font.id} value={font.id}>{font.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="flex items-center gap-1 min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M8.25 3.75a.75.75 0 01.75.75v10.5a.75.75 0 01-1.5 0V4.5a.75.75 0 01.75-.75zM13.25 5.75a.75.75 0 01.75.75v8.5a.75.75 0 01-1.5 0V6.5a.75.75 0 01.75-.75zM4.25 8.75a.75.75 0 01.75.75v2.5a.75.75 0 01-1.5 0v-2.5a.75.75 0 01.75-.75z" /></svg>
+                                    <select
+                                        id="fontsize-select"
+                                        value={userPrefs.fontSize}
+                                        onChange={(e) => onUpdateUserPrefs({ fontSize: e.target.value })}
+                                        className="bg-gray-700 text-white rounded p-0.5 border border-gray-600 text-xs min-w-0"
+                                        style={{maxWidth:'70px'}}
+                                    >
+                                        {fontSizeOptions.map(size => (
+                                            <option key={size.id} value={size.id}>{size.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <button title="Recibe sugerencias para mejorar tu escritura" onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
+                                </button>
+                                <button title="Recibe una reflexión sobre tu entrada y actividades" onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+            {/* Tab de actividades solo si no está en modo enfoque */}
+            {activeTab === 'actividades' && !focusMode && (
                 <div className="bg-gray-800 rounded-b-lg p-4 mx-4 md:mx-6 mb-4 md:mb-6">
                     <div className="space-y-4 min-h-[50px]">
                         {trackedActivityIds.length > 0 ? (
