@@ -3,7 +3,9 @@ import React from 'react';
 export default function ActivityLimitWarning({ activityLimits, onUpgradeClick }) {
     const { currentCount, maxActivities, canAddMore, isFreePlan } = activityLimits;
 
-    if (!isFreePlan) return null;
+    // No mostrar advertencia - no hay límite para definir actividades
+    // El límite se aplica solo al registro diario de actividades
+    return null;
 
     return (
         <div className="bg-yellow-900 border border-yellow-700 rounded-lg p-3 mb-4">

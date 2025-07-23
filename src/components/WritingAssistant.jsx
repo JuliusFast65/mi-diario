@@ -6,10 +6,10 @@ export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpda
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('suggestions');
     
-    // Simulación de verificación de suscripción (temporal)
+    // Verificación de suscripción
     const hasFeature = (feature) => {
-        // TEMPORAL: Activar todas las características para pruebas
-        return true; // Cambiar a false para simular acceso restringido
+        // Bloquear acceso para usuarios gratuitos
+        return false; // Cambiar a true solo para usuarios Premium/Pro
     };
 
     useEffect(() => {
@@ -20,41 +20,68 @@ export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpda
     }, [isOpen, currentEntry]);
 
     const generateSuggestions = async () => {
-        if (!currentEntry?.content) return;
+        if (!currentEntry?.text) {
+            setSuggestions([]);
+            return;
+        }
         
         setIsLoading(true);
         try {
-            // Simulación de sugerencias de IA
+            // Simulación de sugerencias de IA basadas en el texto actual
             await new Promise(resolve => setTimeout(resolve, 1500));
             
-            const mockSuggestions = [
-                {
+            const text = currentEntry.text;
+            const suggestions = [];
+            
+            // Sugerencia de estructura si el texto es largo
+            if (text.length > 200) {
+                suggestions.push({
                     id: 1,
-                    type: 'grammar',
-                    title: 'Mejorar gramática',
-                    suggestion: 'Considera usar "estaba" en lugar de "estuve" para describir una acción continua en el pasado.',
-                    original: 'estuve pensando',
-                    improved: 'estaba pensando'
-                },
-                {
-                    id: 2,
-                    type: 'clarity',
-                    title: 'Clarificar idea',
-                    suggestion: 'Esta frase podría ser más específica para transmitir mejor tus emociones.',
-                    original: 'me sentí mal',
-                    improved: 'me sentí frustrado y desanimado'
-                },
-                {
-                    id: 3,
                     type: 'structure',
                     title: 'Estructurar mejor',
-                    suggestion: 'Podrías dividir esta idea larga en dos párrafos para mejor legibilidad.',
-                    original: 'Hoy fue un día muy complicado porque...',
-                    improved: 'Hoy fue un día muy complicado.\n\nLa razón principal fue...'
-                }
-            ];
+                    suggestion: 'Tu texto es bastante largo. Considera dividirlo en párrafos para mejorar la legibilidad.',
+                    original: text.substring(0, 100) + '...',
+                    improved: 'Párrafo 1: ' + text.substring(0, Math.floor(text.length/2)) + '\n\nPárrafo 2: ' + text.substring(Math.floor(text.length/2))
+                });
+            }
             
-            setSuggestions(mockSuggestions);
+            // Sugerencia de claridad si hay frases cortas
+            if (text.includes('me siento mal') || text.includes('estoy mal')) {
+                suggestions.push({
+                    id: 2,
+                    type: 'clarity',
+                    title: 'Clarificar emociones',
+                    suggestion: 'Podrías ser más específico sobre tus emociones para una mejor reflexión.',
+                    original: 'me siento mal',
+                    improved: 'me siento frustrado y desanimado'
+                });
+            }
+            
+            // Sugerencia de gramática básica
+            if (text.includes('estuve') && text.includes('pensando')) {
+                suggestions.push({
+                    id: 3,
+                    type: 'grammar',
+                    title: 'Mejorar gramática',
+                    suggestion: 'Para acciones continuas en el pasado, considera usar "estaba" en lugar de "estuve".',
+                    original: 'estuve pensando',
+                    improved: 'estaba pensando'
+                });
+            }
+            
+            // Si no hay sugerencias específicas, mostrar una general
+            if (suggestions.length === 0) {
+                suggestions.push({
+                    id: 4,
+                    type: 'general',
+                    title: 'Mejorar escritura',
+                    suggestion: 'Tu texto se ve bien. Considera agregar más detalles específicos para enriquecer tu reflexión.',
+                    original: 'Tu entrada actual',
+                    improved: 'Agregar ejemplos específicos y detalles emocionales'
+                });
+            }
+            
+            setSuggestions(suggestions);
         } catch (error) {
             console.error('Error al generar sugerencias:', error);
         } finally {
@@ -116,26 +143,26 @@ export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpda
     };
 
     const applySuggestion = (suggestion) => {
-        if (!currentEntry?.content) return;
+        if (!currentEntry?.text) return;
         
-        const updatedContent = currentEntry.content.replace(
+        const updatedText = currentEntry.text.replace(
             suggestion.original,
             suggestion.improved
         );
         
         onUpdateEntry({
             ...currentEntry,
-            content: updatedContent
+            text: updatedText
         });
     };
 
     const usePrompt = (prompt) => {
-        if (!currentEntry?.content) return;
+        if (!currentEntry?.text) return;
         
-        const newContent = currentEntry.content + '\n\n' + prompt.prompt;
+        const newText = currentEntry.text + '\n\n' + prompt.prompt;
         onUpdateEntry({
             ...currentEntry,
-            content: newContent
+            text: newText
         });
     };
 

@@ -6,10 +6,10 @@ export default function TherapistChat({ isOpen, onClose, db, user, onUpgradeClic
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
     
-    // Simulación de verificación de suscripción (temporal)
+    // Verificación de suscripción
     const hasFeature = (feature) => {
-        // TEMPORAL: Activar todas las características para pruebas
-        return true; // Cambiar a false para simular acceso restringido
+        // Bloquear acceso para usuarios gratuitos
+        return false; // Cambiar a true solo para usuarios Premium/Pro
     };
 
     const scrollToBottom = () => {

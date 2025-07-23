@@ -232,6 +232,19 @@ const DiaryApp = ({ user }) => {
     };
     const handleTextChange = (e) => setCurrentEntry(prev => ({ ...prev, text: e.target.value }));
     const handleTrackActivity = (activityId, value) => {
+        // Verificar límite de actividades registradas para plan gratuito
+        const currentTrackedCount = Object.keys(currentEntry?.tracked || {}).length;
+        const isFreePlan = subscription?.plan === 'free';
+        const maxTrackedActivities = isFreePlan ? 3 : Infinity;
+        
+        // Si ya está trackeada esta actividad, permitir cambiar el valor
+        const isAlreadyTracked = currentEntry?.tracked?.[activityId];
+        
+        if (!isAlreadyTracked && currentTrackedCount >= maxTrackedActivities) {
+            alert(`Plan gratuito limitado a ${maxTrackedActivities} actividades registradas por día. Actualiza a Premium para registrar actividades ilimitadas.`);
+            return;
+        }
+        
         setCurrentEntry(prev => ({ ...prev, tracked: { ...prev.tracked, [activityId]: value } }));
     };
     const handleUntrackActivity = (activityId) => {
@@ -401,6 +414,12 @@ const DiaryApp = ({ user }) => {
                         <button onClick={() => setView('stats')} className={`px-4 py-2 text-sm font-medium rounded-md stats-tab ${view === 'stats' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Estadísticas</button>
                     </div>
                 </nav>
+
+                {/* Advertencia de límite de actividades */}
+                <ActivityLimitWarning 
+                    activityLimits={getActivityLimits()}
+                    onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
+                />
 
                 <main className="flex-grow flex flex-col">
                     {view === 'diary' ? (
@@ -824,7 +843,7 @@ const GoalConfigModal = ({ activity, onClose, onSaveGoal }) => {
 
 
 
-const APP_VERSION = 'V 1.40'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.41'; // Cambia este valor en cada iteración
 
 // --- Modal unificado para crear y editar actividades ---
 const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => {

@@ -9,10 +9,10 @@ export default function TwoFactorAuth({ isOpen, onClose, user, onUpgradeClick })
     const [step, setStep] = useState('setup'); // setup, verify, enabled
     const [backupCodes, setBackupCodes] = useState([]);
     
-    // Simulación de verificación de suscripción (temporal)
+    // Verificación de suscripción
     const hasFeature = (feature) => {
-        // TEMPORAL: Activar todas las características para pruebas
-        return true; // Cambiar a false para simular acceso restringido
+        // Bloquear acceso para usuarios gratuitos
+        return false; // Cambiar a true solo para usuarios Premium/Pro
     };
 
     useEffect(() => {

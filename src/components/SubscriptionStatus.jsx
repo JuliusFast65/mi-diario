@@ -1,8 +1,8 @@
 import React from 'react';
 
 const SubscriptionStatus = ({ subscription, isSubscriptionActive, onUpgradeClick }) => {
-    // TEMPORAL: Simular plan Pro para pruebas
-    const currentPlan = 'pro'; // Cambiar a 'free' para simular plan gratuito
+    // Usar el plan real de la suscripción
+    const currentPlan = subscription?.plan || 'free';
     
     const getPlanDisplayName = (plan) => {
         switch (plan) {

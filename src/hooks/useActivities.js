@@ -19,16 +19,8 @@ export default function useActivities(db, user, appId, subscription) {
     const handleSaveActivity = async (activityData) => {
         if (!db || !user?.uid) return;
         
-        // Verificar límite de actividades para plan gratuito
-        if (!activityData.id) { // Solo para nuevas actividades
-            const currentActivityCount = Object.keys(activities).length;
-            const isFreePlan = subscription?.plan === 'free';
-            const maxActivities = isFreePlan ? 3 : Infinity;
-            
-            if (currentActivityCount >= maxActivities) {
-                throw new Error(`Plan gratuito limitado a ${maxActivities} actividades. Actualiza a Premium para actividades ilimitadas.`);
-            }
-        }
+        // No hay límite para definir actividades - los usuarios pueden definir todas las que quieran
+        // El límite se aplica solo al registro diario de actividades
         
         if (activityData.id) {
             const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityData.id);
@@ -95,12 +87,14 @@ export default function useActivities(db, user, appId, subscription) {
     const getActivityLimits = () => {
         const currentCount = Object.keys(activities).length;
         const isFreePlan = subscription?.plan === 'free';
-        const maxActivities = isFreePlan ? 3 : Infinity;
-        const canAddMore = currentCount < maxActivities;
+        
+        // No hay límite para definir actividades - los usuarios pueden definir todas las que quieran
+        // El límite se aplica solo al registro diario de actividades
+        const canAddMore = true; // Siempre permitir definir nuevas actividades
         
         return {
             currentCount,
-            maxActivities,
+            maxActivities: Infinity, // Sin límite para definir actividades
             canAddMore,
             isFreePlan
         };
