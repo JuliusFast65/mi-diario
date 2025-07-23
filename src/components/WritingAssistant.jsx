@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpdateEntry, onUpgradeClick, hasFeature }) {
+export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpdateEntry, onUpgradeClick, hasFeature, textareaRef }) {
     const [suggestions, setSuggestions] = useState([]);
     const [prompts, setPrompts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -175,6 +175,16 @@ export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpda
         
         // Cerrar el modal para que el usuario vea el área de escritura con el prompt
         onClose();
+        
+        // Enfocar el textarea después de un pequeño delay para que el modal se cierre
+        setTimeout(() => {
+            if (textareaRef?.current) {
+                textareaRef.current.focus();
+                // Mover el cursor al final del texto
+                const length = textareaRef.current.value.length;
+                textareaRef.current.setSelectionRange(length, length);
+            }
+        }, 100);
     };
 
     if (!isOpen) return null;

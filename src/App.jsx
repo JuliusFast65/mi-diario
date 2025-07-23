@@ -473,6 +473,7 @@ const DiaryApp = ({ user }) => {
                 onUpdateEntry={setCurrentEntry}
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
                 hasFeature={hasFeature}
+                textareaRef={textareaRef}
             />
             <BehaviorAnalysis 
                 isOpen={isBehaviorAnalysisOpen} 
