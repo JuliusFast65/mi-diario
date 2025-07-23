@@ -1,16 +1,10 @@
 import { useState, useEffect } from 'react';
 
-export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpdateEntry, onUpgradeClick }) {
+export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpdateEntry, onUpgradeClick, hasFeature }) {
     const [suggestions, setSuggestions] = useState([]);
     const [prompts, setPrompts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('suggestions');
-    
-    // Verificación de suscripción
-    const hasFeature = (feature) => {
-        // Bloquear acceso para usuarios gratuitos
-        return false; // Cambiar a true solo para usuarios Premium/Pro
-    };
 
     useEffect(() => {
         if (isOpen) {
@@ -35,13 +29,15 @@ export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpda
             
             // Sugerencia de estructura si el texto es largo
             if (text.length > 200) {
+                const firstHalf = text.substring(0, Math.floor(text.length/2));
+                const secondHalf = text.substring(Math.floor(text.length/2));
                 suggestions.push({
                     id: 1,
                     type: 'structure',
                     title: 'Estructurar mejor',
                     suggestion: 'Tu texto es bastante largo. Considera dividirlo en párrafos para mejorar la legibilidad.',
-                    original: text.substring(0, 100) + '...',
-                    improved: 'Párrafo 1: ' + text.substring(0, Math.floor(text.length/2)) + '\n\nPárrafo 2: ' + text.substring(Math.floor(text.length/2))
+                    original: text.substring(0, 150) + '...',
+                    improved: `Párrafo 1:\n${firstHalf}\n\nPárrafo 2:\n${secondHalf}`
                 });
             }
             
@@ -53,7 +49,7 @@ export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpda
                     title: 'Clarificar emociones',
                     suggestion: 'Podrías ser más específico sobre tus emociones para una mejor reflexión.',
                     original: 'me siento mal',
-                    improved: 'me siento frustrado y desanimado'
+                    improved: 'me siento frustrado y desanimado porque...'
                 });
             }
             
@@ -69,10 +65,22 @@ export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpda
                 });
             }
             
+            // Sugerencia para textos muy cortos
+            if (text.length < 50 && text.length > 10) {
+                suggestions.push({
+                    id: 4,
+                    type: 'expansion',
+                    title: 'Expandir reflexión',
+                    suggestion: 'Tu entrada es muy corta. Considera agregar más detalles sobre tus pensamientos y emociones.',
+                    original: text,
+                    improved: text + '\n\nPienso que esto me afecta porque...\n\nMe gustaría...'
+                });
+            }
+            
             // Si no hay sugerencias específicas, mostrar una general
             if (suggestions.length === 0) {
                 suggestions.push({
-                    id: 4,
+                    id: 5,
                     type: 'general',
                     title: 'Mejorar escritura',
                     suggestion: 'Tu texto se ve bien. Considera agregar más detalles específicos para enriquecer tu reflexión.',
@@ -164,6 +172,9 @@ export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpda
             ...currentEntry,
             text: newText
         });
+        
+        // Cerrar el modal para que el usuario vea el área de escritura con el prompt
+        onClose();
     };
 
     if (!isOpen) return null;

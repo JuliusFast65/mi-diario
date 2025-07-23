@@ -65,12 +65,13 @@ const LoginScreen = ({ onGoogleSignIn }) => (
 const DiaryApp = ({ user }) => {
     const [db, setDb] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    // TEMPORAL: Simular suscripción Gratuita para probar límites
+    // Configuración de suscripción - Cambiar aquí para probar diferentes planes
+    const plan = 'premium'; // Cambiar a 'free' o 'pro' para otros planes
     const subscription = {
-        isPremium: false,
-        plan: 'free',
+        isPremium: plan !== 'free',
+        plan: plan,
         expiresAt: null,
-        features: ['basic']
+        features: plan === 'free' ? ['basic'] : ['basic', 'therapy_chat', 'writing_assistant', 'behavior_analysis', 'two_factor_auth']
     };
     const { currentEntry, setCurrentEntry, isLoadingEntry } = useDiary(db, user, appId, selectedDate);
     const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints, getActivityLimits } = useActivities(db, user, appId, subscription);
@@ -463,6 +464,7 @@ const DiaryApp = ({ user }) => {
                 db={db} 
                 user={user} 
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
+                hasFeature={hasFeature}
             />
             <WritingAssistant 
                 isOpen={isWritingAssistantOpen} 
@@ -470,18 +472,21 @@ const DiaryApp = ({ user }) => {
                 currentEntry={currentEntry}
                 onUpdateEntry={setCurrentEntry}
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
+                hasFeature={hasFeature}
             />
             <BehaviorAnalysis 
                 isOpen={isBehaviorAnalysisOpen} 
                 onClose={() => setIsBehaviorAnalysisOpen(false)} 
                 entries={allEntries}
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
+                hasFeature={hasFeature}
             />
             <TwoFactorAuth 
                 isOpen={isTwoFactorAuthOpen} 
                 onClose={() => setIsTwoFactorAuthOpen(false)} 
                 user={user}
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
+                hasFeature={hasFeature}
             />
             <SubscriptionModal 
                 isOpen={isSubscriptionModalOpen} 

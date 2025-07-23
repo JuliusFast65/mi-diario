@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function TwoFactorAuth({ isOpen, onClose, user, onUpgradeClick }) {
+export default function TwoFactorAuth({ isOpen, onClose, user, onUpgradeClick, hasFeature }) {
     const [isEnabled, setIsEnabled] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [qrCode, setQrCode] = useState('');
@@ -9,11 +9,7 @@ export default function TwoFactorAuth({ isOpen, onClose, user, onUpgradeClick })
     const [step, setStep] = useState('setup'); // setup, verify, enabled
     const [backupCodes, setBackupCodes] = useState([]);
     
-    // Verificación de suscripción
-    const hasFeature = (feature) => {
-        // Bloquear acceso para usuarios gratuitos
-        return false; // Cambiar a true solo para usuarios Premium/Pro
-    };
+
 
     useEffect(() => {
         if (isOpen) {

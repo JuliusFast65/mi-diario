@@ -1,16 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 
-export default function TherapistChat({ isOpen, onClose, db, user, onUpgradeClick }) {
+export default function TherapistChat({ isOpen, onClose, db, user, onUpgradeClick, hasFeature }) {
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
-    
-    // Verificación de suscripción
-    const hasFeature = (feature) => {
-        // Bloquear acceso para usuarios gratuitos
-        return false; // Cambiar a true solo para usuarios Premium/Pro
-    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
