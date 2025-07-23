@@ -19,6 +19,7 @@ import BehaviorAnalysis from './components/BehaviorAnalysis';
 import TwoFactorAuth from './components/TwoFactorAuth';
 import SubscriptionModal from './components/SubscriptionModal';
 import HamburgerMenu from './components/HamburgerMenu';
+import ActivityLimitWarning from './components/ActivityLimitWarning';
 
 import Onboarding from './components/Onboarding';
 import useActivities from './hooks/useActivities';
@@ -65,13 +66,13 @@ const DiaryApp = ({ user }) => {
     const [db, setDb] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const { currentEntry, setCurrentEntry, isLoadingEntry } = useDiary(db, user, appId, selectedDate);
-    const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints } = useActivities(db, user, appId);
-    // TEMPORAL: Simular suscripción Pro para pruebas
+    const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints, getActivityLimits } = useActivities(db, user, appId, subscription);
+    // TEMPORAL: Simular suscripción Gratuita para probar límites
     const subscription = {
-        isPremium: true,
-        plan: 'pro',
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
-        features: ['basic', 'unlimited_activities', 'advanced_export', 'custom_themes', 'therapy_chat', 'writing_assistant', 'behavior_analysis', 'two_factor']
+        isPremium: false,
+        plan: 'free',
+        expiresAt: null,
+        features: ['basic']
     };
     
     const hasFeature = (feature) => {
@@ -85,6 +86,21 @@ const DiaryApp = ({ user }) => {
     const updateSubscription = async (newSubscription) => {
         console.log('Actualizando suscripción:', newSubscription);
         // En una implementación real, esto se guardaría en Firebase
+    };
+
+    // Manejo de errores para límite de actividades
+    const handleSaveActivityWithLimit = async (activityData) => {
+        try {
+            await handleSaveActivity(activityData);
+        } catch (error) {
+            console.error('Error al guardar actividad:', error);
+            if (error.message.includes('Plan gratuito limitado')) {
+                alert(error.message);
+                setIsSubscriptionModalOpen(true);
+            } else {
+                alert('Error al guardar la actividad. Inténtalo de nuevo.');
+            }
+        }
     };
     
     // const { subscription, updateSubscription, hasFeature, isSubscriptionActive } = useSubscription(db, user, appId);
@@ -402,7 +418,7 @@ const DiaryApp = ({ user }) => {
                 <CreateActivityModal 
                     isOpen={isNewActivityModalOpen}
                     onClose={() => setNewActivityModalOpen(false)}
-                    onCreateActivity={handleSaveActivity}
+                    onCreateActivity={handleSaveActivityWithLimit}
                 />
             )}
             {isAIModalOpen && <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"><div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-lg flex flex-col"><h2 className="text-2xl font-bold text-purple-300 mb-4">{aiModalTitle}</h2><div className="overflow-y-auto max-h-[60vh] pr-2">{isAILoading ? <div className="text-center py-10"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div><p className="mt-4 text-gray-300">Analizando...</p></div> : <div className="text-gray-200 whitespace-pre-wrap prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: aiResponse.replace(/\n/g, '<br />') }} />}</div><div className="flex justify-end mt-6 pt-4 border-t border-gray-700 gap-3">{aiModalTitle === 'Sugerencias del Asistente' && !isAILoading && <button onClick={acceptWritingSuggestion} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition">Usar esta versión</button>}<button onClick={() => setAIModalOpen(false)} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg">Cerrar</button></div></div></div>}
@@ -410,12 +426,14 @@ const DiaryApp = ({ user }) => {
                 isOpen={isDefineActivitiesModalOpen} 
                 onClose={() => setDefineActivitiesModalOpen(false)} 
                 activities={activities} 
-                onCreateActivity={handleSaveActivity}
+                onCreateActivity={handleSaveActivityWithLimit}
                 onDeleteActivity={handleDeleteActivity} 
                 onAddOption={handleAddOptionToActivity} 
                 onDeleteOption={handleDeleteOptionFromActivity} 
                 onSaveGoal={handleSaveGoal} 
                 onUpdatePoints={handleUpdatePoints} 
+                activityLimits={getActivityLimits()}
+                onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
             />
             <ExportModal isOpen={isExportModalOpen} onClose={() => setExportModalOpen(false)} onExport={handleExportEntries} />
             
@@ -806,7 +824,7 @@ const GoalConfigModal = ({ activity, onClose, onSaveGoal }) => {
 
 
 
-const APP_VERSION = 'V 1.39'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.40'; // Cambia este valor en cada iteración
 
 // --- Modal unificado para crear y editar actividades ---
 const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, onDeleteActivity, onAddOption, onDeleteOption, onSaveGoal, onUpdatePoints }) => {
+const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, onDeleteActivity, onAddOption, onDeleteOption, onSaveGoal, onUpdatePoints, activityLimits, onUpgradeClick }) => {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingActivity, setEditingActivity] = useState(null);
 
@@ -38,7 +38,12 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
                         <div className="mb-4">
                             <button
                                 onClick={handleCreate}
-                                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                                disabled={activityLimits && !activityLimits.canAddMore}
+                                className={`w-full font-bold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 ${
+                                    activityLimits && !activityLimits.canAddMore
+                                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                                        : 'bg-green-600 hover:bg-green-700 text-white'
+                                }`}
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -46,6 +51,41 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
                                 Crear Nueva Actividad
                             </button>
                         </div>
+                        
+                        {/* Advertencia de límite de actividades */}
+                        {activityLimits && activityLimits.isFreePlan && (
+                            <div className="bg-yellow-900 border border-yellow-700 rounded-lg p-3 mb-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-yellow-300">⚠️</span>
+                                        <div>
+                                            <p className="text-yellow-200 text-sm font-medium">
+                                                Límite de Actividades
+                                            </p>
+                                            <p className="text-yellow-300 text-xs">
+                                                {activityLimits.currentCount} de {activityLimits.maxActivities} actividades utilizadas
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    {!activityLimits.canAddMore && (
+                                        <button
+                                            onClick={onUpgradeClick}
+                                            className="px-3 py-1 bg-yellow-600 hover:bg-yellow-500 text-white text-xs rounded-lg transition-colors"
+                                        >
+                                            Actualizar a Premium
+                                        </button>
+                                    )}
+                                </div>
+                                
+                                {!activityLimits.canAddMore && (
+                                    <p className="text-yellow-200 text-xs mt-2">
+                                        Has alcanzado el límite de actividades del plan gratuito. 
+                                        Actualiza a Premium para crear actividades ilimitadas.
+                                    </p>
+                                )}
+                            </div>
+                        )}
                         {sortedActivities.length > 0 ? (
                             <div className="space-y-3">
                                 {sortedActivities.map(activity => (

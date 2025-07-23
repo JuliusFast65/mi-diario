@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, setDoc, addDoc, doc, deleteDoc } from 'firebase/firestore';
 
-export default function useActivities(db, user, appId) {
+export default function useActivities(db, user, appId, subscription) {
     const [activities, setActivities] = useState({});
 
     useEffect(() => {
@@ -18,6 +18,18 @@ export default function useActivities(db, user, appId) {
     // Crear o editar actividad
     const handleSaveActivity = async (activityData) => {
         if (!db || !user?.uid) return;
+        
+        // Verificar límite de actividades para plan gratuito
+        if (!activityData.id) { // Solo para nuevas actividades
+            const currentActivityCount = Object.keys(activities).length;
+            const isFreePlan = subscription?.plan === 'free';
+            const maxActivities = isFreePlan ? 5 : Infinity;
+            
+            if (currentActivityCount >= maxActivities) {
+                throw new Error(`Plan gratuito limitado a ${maxActivities} actividades. Actualiza a Premium para actividades ilimitadas.`);
+            }
+        }
+        
         if (activityData.id) {
             const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityData.id);
             const { id, ...dataToSave } = activityData;
@@ -79,6 +91,21 @@ export default function useActivities(db, user, appId) {
         await setDoc(activityRef, { points: updatedPoints }, { merge: true });
     };
 
+    // Obtener información sobre límites de actividades
+    const getActivityLimits = () => {
+        const currentCount = Object.keys(activities).length;
+        const isFreePlan = subscription?.plan === 'free';
+        const maxActivities = isFreePlan ? 5 : Infinity;
+        const canAddMore = currentCount < maxActivities;
+        
+        return {
+            currentCount,
+            maxActivities,
+            canAddMore,
+            isFreePlan
+        };
+    };
+
     return {
         activities,
         handleSaveActivity,
@@ -86,6 +113,7 @@ export default function useActivities(db, user, appId) {
         handleAddOptionToActivity,
         handleDeleteOptionFromActivity,
         handleSaveGoal,
-        handleUpdatePoints
+        handleUpdatePoints,
+        getActivityLimits
     };
 } 
