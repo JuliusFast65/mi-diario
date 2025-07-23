@@ -130,19 +130,19 @@ export default function TherapistChat({ isOpen, onClose, db, user, onUpgradeClic
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg w-full max-w-2xl h-[80vh] mx-4 flex flex-col">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b">
+                <div className="flex items-center justify-between p-4 border-b border-gray-300">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                             <span className="text-green-600 font-semibold">👩‍⚕️</span>
                         </div>
                         <div>
-                            <h2 className="font-semibold">Terapeuta Virtual</h2>
-                            <p className="text-sm text-gray-500">Disponible 24/7</p>
+                            <h2 className="text-xl font-bold text-gray-900">Terapeuta Virtual</h2>
+                            <p className="text-sm text-gray-700 font-medium">Disponible 24/7</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -161,11 +161,11 @@ export default function TherapistChat({ isOpen, onClose, db, user, onUpgradeClic
                                 className={`max-w-[70%] rounded-lg px-4 py-2 ${
                                     message.type === 'user'
                                         ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 text-gray-800'
+                                        : 'bg-gray-200 text-gray-900'
                                 }`}
                             >
-                                <p className="text-sm">{message.content}</p>
-                                <p className="text-xs opacity-70 mt-1">
+                                <p className="text-sm font-medium leading-relaxed">{message.content}</p>
+                                <p className="text-xs text-gray-600 mt-1 font-medium">
                                     {message.timestamp.toLocaleTimeString()}
                                 </p>
                             </div>
@@ -174,11 +174,11 @@ export default function TherapistChat({ isOpen, onClose, db, user, onUpgradeClic
                     
                     {isLoading && (
                         <div className="flex justify-start">
-                            <div className="bg-gray-100 rounded-lg px-4 py-2">
+                            <div className="bg-gray-200 rounded-lg px-4 py-2">
                                 <div className="flex space-x-1">
-                                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"></div>
+                                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                                 </div>
                             </div>
                         </div>
@@ -188,14 +188,14 @@ export default function TherapistChat({ isOpen, onClose, db, user, onUpgradeClic
                 </div>
 
                 {/* Input */}
-                <div className="p-4 border-t">
+                <div className="p-4 border-t border-gray-300">
                     <div className="flex gap-2">
                         <textarea
                             value={inputMessage}
                             onChange={(e) => setInputMessage(e.target.value)}
                             onKeyPress={handleKeyPress}
                             placeholder="Escribe tu mensaje..."
-                            className="flex-1 border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 border border-gray-400 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600 font-medium"
                             rows="2"
                             disabled={isLoading}
                         />
