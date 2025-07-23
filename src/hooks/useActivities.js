@@ -23,7 +23,7 @@ export default function useActivities(db, user, appId, subscription) {
         if (!activityData.id) { // Solo para nuevas actividades
             const currentActivityCount = Object.keys(activities).length;
             const isFreePlan = subscription?.plan === 'free';
-            const maxActivities = isFreePlan ? 5 : Infinity;
+            const maxActivities = isFreePlan ? 3 : Infinity;
             
             if (currentActivityCount >= maxActivities) {
                 throw new Error(`Plan gratuito limitado a ${maxActivities} actividades. Actualiza a Premium para actividades ilimitadas.`);
@@ -95,7 +95,7 @@ export default function useActivities(db, user, appId, subscription) {
     const getActivityLimits = () => {
         const currentCount = Object.keys(activities).length;
         const isFreePlan = subscription?.plan === 'free';
-        const maxActivities = isFreePlan ? 5 : Infinity;
+        const maxActivities = isFreePlan ? 3 : Infinity;
         const canAddMore = currentCount < maxActivities;
         
         return {
