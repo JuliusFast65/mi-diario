@@ -86,7 +86,7 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
             {/* Botón de modo enfoque solo en móvil, solo si no está activo y solo en pestaña Entrada */}
             {!focusMode && activeTab === 'entrada' && (
                 <button
-                    className="md:hidden absolute top-2 right-2 z-20 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-2 shadow-lg"
+                    className="md:hidden absolute top-2 right-2 z-20 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-2 shadow-lg focus-mode-btn"
                     title="Modo enfoque"
                     onClick={() => setFocusMode(true)}
                 >
@@ -98,7 +98,7 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                 <div className="flex justify-between items-center flex-shrink-0 px-4 md:px-6 pt-4">
                     <div className="flex border-b border-gray-700">
                         <button onClick={() => handleTabClick('entrada')} className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}>Entrada</button>
-                        <button onClick={() => handleTabClick('actividades')} className={`${tabBaseStyle} ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>Actividades</button>
+                        <button onClick={() => handleTabClick('actividades')} className={`${tabBaseStyle} activities-tab ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>Actividades</button>
                     </div>
                     <input type="date" value={selectedDate} onChange={handleDateChange} className="bg-gray-700 border-gray-600 text-white rounded-lg p-2 focus:ring-2 focus:ring-indigo-500" />
                 </div>
@@ -111,7 +111,7 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                         value={currentEntry?.text || ''}
                         onChange={onTextChange}
                         placeholder="Escribe un título en la primera línea..."
-                        className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook journal-editor leading-[1.5] ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]} ${focusMode ? 'h-[80vh] text-lg' : ''}`}
+                        className={`w-full flex-grow rounded-md p-3 border-none focus:ring-0 transition resize-none notebook journal-editor leading-[1.5] ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]} ${focusMode ? 'h-[80vh] text-lg' : ''} writing-area`}
                         style={focusMode ? {minHeight: '60vh'} : {}}
                     />
                     {/* Botón para salir del modo enfoque */}
@@ -156,12 +156,22 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                                         ))}
                                     </select>
                                 </div>
+                                <div className="flex-grow"></div>
+                                <button 
+                                    onClick={() => window.dispatchEvent(new CustomEvent('openOnboarding'))} 
+                                    title="Ayuda / Tutorial" 
+                                    className="text-gray-400 hover:text-blue-300 transition-colors p-1"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </button>
                             </div>
                             <div className="flex gap-2">
-                                <button title="Recibe sugerencias para mejorar tu escritura" onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2">
+                                <button title="Recibe sugerencias para mejorar tu escritura" onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2 writing-assistant-btn">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
                                 </button>
-                                <button title="Recibe una reflexión sobre tu entrada y actividades" onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2">
+                                <button title="Recibe una reflexión sobre tu entrada y actividades" onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2 ai-consult-btn">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>
                                 </button>
                             </div>

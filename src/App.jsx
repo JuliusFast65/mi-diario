@@ -12,6 +12,7 @@ import DefineActivitiesModal from './components/DefineActivitiesModal';
 import ExportModal from './components/ExportModal';
 import UpdateNotification from './components/UpdateNotification';
 import ActivityTrackerItem from './components/ActivityTrackerItem';
+import Onboarding from './components/Onboarding';
 import useActivities from './hooks/useActivities';
 import useDiary from './hooks/useDiary';
 
@@ -64,6 +65,7 @@ const DiaryApp = ({ user }) => {
     const [isManageModalOpen, setManageModalOpen] = useState(false);
     const [isDefineActivitiesModalOpen, setDefineActivitiesModalOpen] = useState(false);
     const [isExportModalOpen, setExportModalOpen] = useState(false);
+    const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
     const [isAIModalOpen, setAIModalOpen] = useState(false);
     const [aiResponse, setAiResponse] = useState('');
@@ -98,6 +100,27 @@ const DiaryApp = ({ user }) => {
         return () => unsubscribe();
     }, [db, user]);
 
+    // Onboarding automático en primera vez
+    useEffect(() => {
+        if (user && !localStorage.getItem('onboarding-completed')) {
+            // Pequeño delay para que la app se cargue completamente
+            const timer = setTimeout(() => {
+                setIsOnboardingOpen(true);
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [user]);
+
+    // Listener para abrir onboarding manualmente
+    useEffect(() => {
+        const handleOpenOnboarding = () => {
+            setIsOnboardingOpen(true);
+        };
+
+        window.addEventListener('openOnboarding', handleOpenOnboarding);
+        return () => window.removeEventListener('openOnboarding', handleOpenOnboarding);
+    }, []);
+
     useEffect(() => {
         if (!db || !user?.uid) return;
         const entriesRef = collection(db, 'artifacts', appId, 'users', user.uid, 'entries');
@@ -125,7 +148,11 @@ const DiaryApp = ({ user }) => {
                             decryptText(data.title || '', user.uid),
                             decryptText(data.text || '', user.uid)
                         ]);
-                        const combinedText = decryptedTitle + (decryptedText ? '\n' + decryptedText : '');
+                        // Combinar título y texto solo si el texto no empieza con el título
+                        let combinedText = decryptedText;
+                        if (decryptedTitle && !decryptedText.startsWith(decryptedTitle)) {
+                            combinedText = decryptedTitle + (decryptedText ? '\n' + decryptedText : '');
+                        }
                         setCurrentEntry({ text: combinedText, tracked: data.tracked || {} });
                     } else {
                         setCurrentEntry({ text: '', tracked: {} });
@@ -282,13 +309,13 @@ const DiaryApp = ({ user }) => {
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <button onClick={handleInspirationalMessage} title="Mensaje Inspirador" className="text-gray-300 hover:text-yellow-300 transition-colors">
+                        <button onClick={handleInspirationalMessage} title="Mensaje Inspirador" className="text-gray-300 hover:text-yellow-300 transition-colors inspirational-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 100 2h.01a1 1 0 100-2H11zM10 16a1 1 0 102 0 1 1 0 00-2 0zM5.414 5.414a1 1 0 00-1.414 1.414L5.414 8.243a1 1 0 001.414-1.414L5.414 5.414zM13.757 14.586a1 1 0 00-1.414 1.414l1.414 1.414a1 1 0 001.414-1.414l-1.414-1.414zM4 11a1 1 0 102 0 1 1 0 00-2 0zM15 11a1 1 0 102 0 1 1 0 00-2 0zM8.243 5.414a1 1 0 00-1.414-1.414L5.414 5.414a1 1 0 001.414 1.414L8.243 5.414zM14.586 13.757a1 1 0 00-1.414-1.414l-1.414 1.414a1 1 0 001.414 1.414l1.414-1.414zM10 4a6 6 0 100 12 6 6 0 000-12zM3 10a7 7 0 1114 0 7 7 0 01-14 0z" /></svg>
                         </button>
                         <a href="mailto:tu-email-aqui@example.com?subject=Feedback sobre la App de Diario" title="Enviar Feedback" className="text-gray-300 hover:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.874 8.874 0 01-4.083-.98L2 17l1.02-3.06A8.008 8.008 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM4.416 14.242l.03-.028a6.002 6.002 0 008.487-7.854l.028-.03A6.002 6.002 0 004.416 14.242z" clipRule="evenodd" /></svg>
                         </a>
-                        <button onClick={() => setExportModalOpen(true)} title="Exportar Entradas" className="text-gray-300 hover:text-white transition-colors">
+                        <button onClick={() => setExportModalOpen(true)} title="Exportar Entradas" className="text-gray-300 hover:text-white transition-colors export-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                         </button>
                         <button 
@@ -303,9 +330,9 @@ const DiaryApp = ({ user }) => {
                 
                 <nav className="flex flex-wrap justify-between items-center p-2 bg-gray-800 gap-2 flex-shrink-0">
                     <div className="flex items-center gap-2">
-                        <button onClick={() => setView('diary')} className={`px-4 py-2 text-sm font-medium rounded-md ${view === 'diary' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Diario</button>
-                        <button onClick={() => setView('archive')} className={`px-4 py-2 text-sm font-medium rounded-md ${view === 'archive' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Archivo</button>
-                        <button onClick={() => setView('stats')} className={`px-4 py-2 text-sm font-medium rounded-md ${view === 'stats' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Estadísticas</button>
+                        <button onClick={() => setView('diary')} className={`px-4 py-2 text-sm font-medium rounded-md diary-tab ${view === 'diary' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Diario</button>
+                        <button onClick={() => setView('archive')} className={`px-4 py-2 text-sm font-medium rounded-md archive-tab ${view === 'archive' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Archivo</button>
+                        <button onClick={() => setView('stats')} className={`px-4 py-2 text-sm font-medium rounded-md stats-tab ${view === 'stats' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Estadísticas</button>
                     </div>
                 </nav>
 
@@ -341,6 +368,11 @@ const DiaryApp = ({ user }) => {
                 onUpdatePoints={handleUpdatePoints} 
             />
             <ExportModal isOpen={isExportModalOpen} onClose={() => setExportModalOpen(false)} onExport={handleExportEntries} />
+            <Onboarding 
+                isOpen={isOnboardingOpen} 
+                onClose={() => setIsOnboardingOpen(false)} 
+                mode={localStorage.getItem('onboarding-completed') ? 'manual' : 'auto'}
+            />
         </div>
     );
 };
@@ -689,7 +721,7 @@ const GoalConfigModal = ({ activity, onClose, onSaveGoal }) => {
 
 
 
-const APP_VERSION = 'V 1.18'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.30'; // Cambia este valor en cada iteración
 
 // --- Modal unificado para crear y editar actividades ---
 const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => {
