@@ -112,14 +112,14 @@ export default function SubscriptionModal({ isOpen, onClose, db, user }) {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b">
+                <div className="flex items-center justify-between p-6 border-b border-gray-300">
                     <div>
-                        <h2 className="text-2xl font-bold">Planes de Suscripción</h2>
-                        <p className="text-gray-600">Elige el plan que mejor se adapte a tus necesidades</p>
+                        <h2 className="text-2xl font-bold text-gray-900">Planes de Suscripción</h2>
+                        <p className="text-gray-700 font-medium">Elige el plan que mejor se adapte a tus necesidades</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -168,12 +168,12 @@ export default function SubscriptionModal({ isOpen, onClose, db, user }) {
                                 )}
                                 
                                 <div className="text-center mb-6">
-                                    <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                                    <h3 className="text-2xl font-bold mb-2 text-gray-900">{plan.name}</h3>
                                     <div className="mb-4">
-                                        <span className="text-3xl font-bold">
+                                        <span className="text-3xl font-bold text-gray-900">
                                             ${plan.price}
                                         </span>
-                                        <span className="text-gray-500">/{plan.period}</span>
+                                        <span className="text-gray-700 font-medium">/{plan.period}</span>
                                     </div>
                                     
                                     {subscription.plan === plan.id ? (
@@ -200,10 +200,10 @@ export default function SubscriptionModal({ isOpen, onClose, db, user }) {
                                 <ul className="space-y-3">
                                     {plan.features.map((feature, index) => (
                                         <li key={index} className="flex items-start">
-                                            <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-5 h-5 text-green-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                             </svg>
-                                            <span className="text-sm text-gray-600">{feature}</span>
+                                            <span className="text-sm text-gray-800 font-medium">{feature}</span>
                                         </li>
                                     ))}
                                 </ul>
