@@ -15,6 +15,8 @@ import UpdateNotification from './components/UpdateNotification';
 import Onboarding from './components/Onboarding';
 import useActivities from './hooks/useActivities';
 import useDiary from './hooks/useDiary';
+import useSubscription from './hooks/useSubscription';
+import SubscriptionStatus from './components/SubscriptionStatus';
 
 // --- Configuración de Firebase ---
 const firebaseConfig = {
@@ -56,8 +58,12 @@ const DiaryApp = ({ user }) => {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const { currentEntry, setCurrentEntry, isLoadingEntry } = useDiary(db, user, appId, selectedDate);
     const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints } = useActivities(db, user, appId);
+    const { subscription, updateSubscription, hasFeature, isSubscriptionActive } = useSubscription(db, user, appId);
     const [view, setView] = useState('diary');
-    const [userPrefs, setUserPrefs] = useState({ font: 'patrick-hand', fontSize: 'text-3xl' });
+    const [userPrefs, setUserPrefs] = useState({ 
+        font: 'patrick-hand', 
+        fontSize: 'text-3xl'
+    });
     const [allEntries, setAllEntries] = useState([]);
     
     // State de Modales
@@ -302,10 +308,16 @@ const DiaryApp = ({ user }) => {
                         <img src={user.photoURL} alt="Foto de perfil" className="w-10 h-10 rounded-full" />
                         <div>
                             <h1 className="text-xl md:text-2xl font-bold text-white">Mi Diario</h1>
-                            <p className="text-xs text-gray-400 flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
-                                100% Encrip
-                            </p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-xs text-gray-400 flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
+                                    100% Encrip
+                                </p>
+                                <SubscriptionStatus 
+                                    subscription={subscription} 
+                                    isSubscriptionActive={isSubscriptionActive} 
+                                />
+                            </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
