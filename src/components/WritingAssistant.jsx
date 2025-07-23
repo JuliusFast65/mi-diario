@@ -8,7 +8,8 @@ export default function WritingAssistant({ isOpen, onClose, currentEntry, onUpda
     
     // Simulación de verificación de suscripción (temporal)
     const hasFeature = (feature) => {
-        return feature === 'writing_assistant' ? false : true; // Por ahora, simular que no tiene acceso
+        // TEMPORAL: Activar todas las características para pruebas
+        return true; // Cambiar a false para simular acceso restringido
     };
 
     useEffect(() => {

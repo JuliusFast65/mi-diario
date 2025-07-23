@@ -11,7 +11,8 @@ export default function TwoFactorAuth({ isOpen, onClose, user, onUpgradeClick })
     
     // Simulación de verificación de suscripción (temporal)
     const hasFeature = (feature) => {
-        return feature === 'two_factor' ? false : true; // Por ahora, simular que no tiene acceso
+        // TEMPORAL: Activar todas las características para pruebas
+        return true; // Cambiar a false para simular acceso restringido
     };
 
     useEffect(() => {

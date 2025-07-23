@@ -7,7 +7,8 @@ export default function BehaviorAnalysis({ isOpen, onClose, entries, onUpgradeCl
     
     // Simulación de verificación de suscripción (temporal)
     const hasFeature = (feature) => {
-        return feature === 'behavior_analysis' ? false : true; // Por ahora, simular que no tiene acceso
+        // TEMPORAL: Activar todas las características para pruebas
+        return true; // Cambiar a false para simular acceso restringido
     };
 
     useEffect(() => {

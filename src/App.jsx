@@ -65,7 +65,28 @@ const DiaryApp = ({ user }) => {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const { currentEntry, setCurrentEntry, isLoadingEntry } = useDiary(db, user, appId, selectedDate);
     const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints } = useActivities(db, user, appId);
-    const { subscription, updateSubscription, hasFeature, isSubscriptionActive } = useSubscription(db, user, appId);
+    // TEMPORAL: Simular suscripción Pro para pruebas
+    const subscription = {
+        isPremium: true,
+        plan: 'pro',
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
+        features: ['basic', 'unlimited_activities', 'advanced_export', 'custom_themes', 'therapy_chat', 'writing_assistant', 'behavior_analysis', 'two_factor']
+    };
+    
+    const hasFeature = (feature) => {
+        return subscription.features.includes(feature);
+    };
+    
+    const isSubscriptionActive = () => {
+        return subscription.isPremium && (!subscription.expiresAt || new Date() < subscription.expiresAt);
+    };
+    
+    const updateSubscription = async (newSubscription) => {
+        console.log('Actualizando suscripción:', newSubscription);
+        // En una implementación real, esto se guardaría en Firebase
+    };
+    
+    // const { subscription, updateSubscription, hasFeature, isSubscriptionActive } = useSubscription(db, user, appId);
     const [view, setView] = useState('diary');
     const [userPrefs, setUserPrefs] = useState({ 
         font: 'patrick-hand', 
@@ -822,7 +843,7 @@ const GoalConfigModal = ({ activity, onClose, onSaveGoal }) => {
 
 
 
-const APP_VERSION = 'V 1.37'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.38'; // Cambia este valor en cada iteración
 
 // --- Modal unificado para crear y editar actividades ---
 const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => {

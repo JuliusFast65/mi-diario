@@ -1,6 +1,9 @@
 import React from 'react';
 
 const SubscriptionStatus = ({ subscription, isSubscriptionActive, onUpgradeClick }) => {
+    // TEMPORAL: Simular plan Pro para pruebas
+    const currentPlan = 'pro'; // Cambiar a 'free' para simular plan gratuito
+    
     const getPlanDisplayName = (plan) => {
         switch (plan) {
             case 'free': return 'Gratuito';
@@ -32,11 +35,11 @@ const SubscriptionStatus = ({ subscription, isSubscriptionActive, onUpgradeClick
         <div className="flex items-center gap-2 text-xs">
             <button 
                 onClick={onUpgradeClick}
-                className={`${getPlanColor(subscription.plan)} hover:underline cursor-pointer flex items-center gap-1`}
+                className={`${getPlanColor(currentPlan)} hover:underline cursor-pointer flex items-center gap-1`}
                 title="Ver planes de suscripción"
             >
-                <span>{getPlanIcon(subscription.plan)}</span>
-                <span>{getPlanDisplayName(subscription.plan)}</span>
+                <span>{getPlanIcon(currentPlan)}</span>
+                <span>{getPlanDisplayName(currentPlan)}</span>
             </button>
             {subscription.expiresAt && isSubscriptionActive() && (
                 <span className="text-gray-500">
