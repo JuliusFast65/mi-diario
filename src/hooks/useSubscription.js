@@ -12,7 +12,7 @@ export default function useSubscription(db, user, appId) {
     useEffect(() => {
         if (!db || !user?.uid) return;
         
-        const subscriptionDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'subscription', 'status');
+        const subscriptionDocRef = doc(db, 'subscriptions', user.uid);
         const unsubscribe = onSnapshot(subscriptionDocRef, (doc) => {
             if (doc.exists()) {
                 const data = doc.data();
@@ -40,7 +40,7 @@ export default function useSubscription(db, user, appId) {
     const updateSubscription = async (newSubscription) => {
         if (!db || !user?.uid) return;
         
-        const subscriptionDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'subscription', 'status');
+        const subscriptionDocRef = doc(db, 'subscriptions', user.uid);
         await setDoc(subscriptionDocRef, {
             ...newSubscription,
             updatedAt: new Date()
