@@ -18,6 +18,7 @@ import WritingAssistant from './components/WritingAssistant';
 import BehaviorAnalysis from './components/BehaviorAnalysis';
 import TwoFactorAuth from './components/TwoFactorAuth';
 import SubscriptionModal from './components/SubscriptionModal';
+import HamburgerMenu from './components/HamburgerMenu';
 
 import Onboarding from './components/Onboarding';
 import useActivities from './hooks/useActivities';
@@ -357,54 +358,16 @@ const DiaryApp = ({ user }) => {
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        {/* Premium Features */}
-                        <button 
-                            onClick={() => setIsTherapistChatOpen(true)} 
-                            title="Chat con Terapeuta" 
-                            className="text-gray-300 hover:text-green-400 transition-colors therapist-btn"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                        </button>
-                        <button 
-                            onClick={() => setIsWritingAssistantOpen(true)} 
-                            title="Asistente de Escritura" 
-                            className="text-gray-300 hover:text-purple-400 transition-colors writing-assistant-btn"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                        </button>
-                        <button 
-                            onClick={() => setIsBehaviorAnalysisOpen(true)} 
-                            title="Análisis de Comportamiento" 
-                            className="text-gray-300 hover:text-indigo-400 transition-colors behavior-analysis-btn"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                        </button>
-                        <button 
-                            onClick={() => setIsTwoFactorAuthOpen(true)} 
-                            title="Autenticación de Dos Factores" 
-                            className="text-gray-300 hover:text-red-400 transition-colors two-factor-btn"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                        </button>
-                        
-                        {/* Existing Buttons */}
-                        <button onClick={handleInspirationalMessage} title="Mensaje Inspirador" className="text-gray-300 hover:text-yellow-300 transition-colors inspirational-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 100 2h.01a1 1 0 100-2H11zM10 16a1 1 0 102 0 1 1 0 00-2 0zM5.414 5.414a1 1 0 00-1.414 1.414L5.414 8.243a1 1 0 001.414-1.414L5.414 5.414zM13.757 14.586a1 1 0 00-1.414 1.414l1.414 1.414a1 1 0 001.414-1.414l-1.414-1.414zM4 11a1 1 0 102 0 1 1 0 00-2 0zM15 11a1 1 0 102 0 1 1 0 00-2 0zM8.243 5.414a1 1 0 00-1.414-1.414L5.414 5.414a1 1 0 001.414 1.414L8.243 5.414zM14.586 13.757a1 1 0 00-1.414-1.414l-1.414 1.414a1 1 0 001.414 1.414l1.414-1.414zM10 4a6 6 0 100 12 6 6 0 000-12zM3 10a7 7 0 1114 0 7 7 0 01-14 0z" /></svg>
-                        </button>
-                        <a href="mailto:tu-email-aqui@example.com?subject=Feedback sobre la App de Diario" title="Enviar Feedback" className="text-gray-300 hover:text-white transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.874 8.874 0 01-4.083-.98L2 17l1.02-3.06A8.008 8.008 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM4.416 14.242l.03-.028a6.002 6.002 0 008.487-7.854l.028-.03A6.002 6.002 0 004.416 14.242z" clipRule="evenodd" /></svg>
-                        </a>
-                        <button onClick={() => setExportModalOpen(true)} title="Exportar Entradas" className="text-gray-300 hover:text-white transition-colors export-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-                        </button>
+                        <HamburgerMenu 
+                            onTherapistChat={() => setIsTherapistChatOpen(true)}
+                            onWritingAssistant={() => setIsWritingAssistantOpen(true)}
+                            onBehaviorAnalysis={() => setIsBehaviorAnalysisOpen(true)}
+                            onTwoFactorAuth={() => setIsTwoFactorAuthOpen(true)}
+                            onExport={() => setExportModalOpen(true)}
+                            onInspirationalMessage={handleInspirationalMessage}
+                            onSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
+                            subscription={subscription}
+                        />
                         <button 
                             onClick={handleLogout}
                             className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
@@ -843,7 +806,7 @@ const GoalConfigModal = ({ activity, onClose, onSaveGoal }) => {
 
 
 
-const APP_VERSION = 'V 1.38'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.39'; // Cambia este valor en cada iteración
 
 // --- Modal unificado para crear y editar actividades ---
 const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => {
