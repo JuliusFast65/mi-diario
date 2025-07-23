@@ -16,7 +16,7 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
         {
             target: 'textarea.writing-area',
             content: 'Escribe aquí las reflexiones y experiencias de tu día',
-            title: 'Área de Escritura'
+            title: 'Entrada'
         },
         {
             target: '.writing-assistant-btn',
@@ -59,11 +59,6 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
             target: '.export-btn',
             content: 'Guarda y comparte tus entradas en diferentes formatos',
             title: 'Exportar'
-        },
-        {
-            target: '.inspirational-btn',
-            content: 'Lee un pensamiento inspirador para motivarte',
-            title: 'Pensamiento Inspirador'
         },
         {
             type: 'goodbye',
