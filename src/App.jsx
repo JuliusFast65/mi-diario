@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { getFirestore, doc, onSnapshot, setDoc, collection, addDoc, getDocs, getDoc, deleteDoc, query, where, documentId } from 'firebase/firestore';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, LineChart, Line } from 'recharts';
+import { getFirestore, doc, onSnapshot, setDoc, collection, getDocs, getDoc, query, where, documentId } from 'firebase/firestore';
+
 import { auth, db } from './firebase';
 import DiaryEntryEditor from './components/DiaryEntryEditor';
 import ArchiveView from './components/ArchiveView';
 import StatisticsPanel from './components/StatisticsPanel';
-import { getCryptoKey, encryptText, decryptText } from './utils/crypto';
+import { decryptText } from './utils/crypto';
 import CreateActivityModal from './components/CreateActivityModal';
 import DefineActivitiesModal from './components/DefineActivitiesModal';
 import ExportModal from './components/ExportModal';
 import UpdateNotification from './components/UpdateNotification';
-import ActivityTrackerItem from './components/ActivityTrackerItem';
+
 import Onboarding from './components/Onboarding';
 import useActivities from './hooks/useActivities';
 import useDiary from './hooks/useDiary';
