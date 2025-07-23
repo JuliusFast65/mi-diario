@@ -494,6 +494,7 @@ const DiaryApp = ({ user }) => {
                 onClose={() => setIsSubscriptionModalOpen(false)} 
                 db={db} 
                 user={user}
+                subscription={subscription}
             />
             
             <Onboarding 

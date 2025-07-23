@@ -1,16 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function SubscriptionModal({ isOpen, onClose, db, user }) {
-    const [selectedPlan, setSelectedPlan] = useState('premium');
+export default function SubscriptionModal({ isOpen, onClose, db, user, subscription }) {
+    const [selectedPlan, setSelectedPlan] = useState(subscription?.plan || 'premium');
     const [isProcessing, setIsProcessing] = useState(false);
     
-    // Simulación de suscripción (temporal)
-    const subscription = {
-        isPremium: false,
-        plan: 'free',
-        expiresAt: null,
-        features: ['basic']
-    };
+    // Actualizar selectedPlan cuando cambie la suscripción
+    useEffect(() => {
+        if (subscription?.plan) {
+            setSelectedPlan(subscription.plan);
+        }
+    }, [subscription?.plan]);
     
     const updateSubscription = async (newSubscription) => {
         console.log('Actualizando suscripción:', newSubscription);
