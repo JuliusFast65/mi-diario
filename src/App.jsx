@@ -65,8 +65,6 @@ const LoginScreen = ({ onGoogleSignIn }) => (
 const DiaryApp = ({ user }) => {
     const [db, setDb] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    const { currentEntry, setCurrentEntry, isLoadingEntry } = useDiary(db, user, appId, selectedDate);
-    const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints, getActivityLimits } = useActivities(db, user, appId, subscription);
     // TEMPORAL: Simular suscripción Gratuita para probar límites
     const subscription = {
         isPremium: false,
@@ -74,6 +72,8 @@ const DiaryApp = ({ user }) => {
         expiresAt: null,
         features: ['basic']
     };
+    const { currentEntry, setCurrentEntry, isLoadingEntry } = useDiary(db, user, appId, selectedDate);
+    const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints, getActivityLimits } = useActivities(db, user, appId, subscription);
     
     const hasFeature = (feature) => {
         return subscription.features.includes(feature);
