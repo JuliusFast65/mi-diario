@@ -25,7 +25,7 @@ export default function SubscriptionModal({ isOpen, onClose, db, user }) {
             period: 'para siempre',
             features: [
                 'Entradas de diario ilimitadas',
-                'Actividades básicas (5 máximo)',
+                'Actividades básicas (3 máximo por día)',
                 'Exportación básica',
                 'Temas básicos',
                 'Sincronización entre dispositivos'
