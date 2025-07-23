@@ -10,6 +10,7 @@ import { getCryptoKey, encryptText, decryptText } from './utils/crypto';
 import CreateActivityModal from './components/CreateActivityModal';
 import DefineActivitiesModal from './components/DefineActivitiesModal';
 import ExportModal from './components/ExportModal';
+import UpdateNotification from './components/UpdateNotification';
 import useActivities from './hooks/useActivities';
 import useDiary from './hooks/useDiary';
 
@@ -266,6 +267,7 @@ const DiaryApp = ({ user }) => {
 
     return (
         <div className="bg-gray-900 text-gray-100 min-h-screen font-sans flex flex-col">
+            <UpdateNotification />
             <div className="max-w-5xl mx-auto w-full flex flex-col flex-grow">
                 <header className="p-4 border-b border-gray-700 flex justify-between items-center flex-shrink-0">
                     <div className="flex items-center gap-4">
@@ -413,20 +415,22 @@ const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack
                     )}
                 </div>
             </div>
-            {selectedPoints > 0 && (
-                <div className="flex-shrink-0 bg-green-600 text-white px-2 py-1 rounded text-sm font-semibold">
-                    {selectedPoints} pts
-                </div>
-            )}
-            <button 
-                onClick={() => onUntrack(activity.id)} 
-                className="p-1 bg-gray-600 hover:bg-red-800 rounded-full text-gray-300 hover:text-white transition-colors flex-shrink-0" 
-                aria-label={`Quitar ${activity.name} de este día`}
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+            <div className="flex items-center gap-2">
+                {selectedPoints > 0 && (
+                    <div className="flex-shrink-0 bg-green-600 text-white px-2 py-1 rounded text-sm font-semibold">
+                        {selectedPoints} pts
+                    </div>
+                )}
+                <button 
+                    onClick={() => onUntrack(activity.id)} 
+                    className="p-1 bg-gray-600 hover:bg-red-800 rounded-full text-gray-300 hover:text-white transition-colors flex-shrink-0" 
+                    aria-label={`Quitar ${activity.name} de este día`}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
         </div>
     );
 };
@@ -742,7 +746,7 @@ const GoalConfigModal = ({ activity, onClose, onSaveGoal }) => {
 
 
 
-const APP_VERSION = 'V 1.14'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.15'; // Cambia este valor en cada iteración
 
 // --- Modal unificado para crear y editar actividades ---
 const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => {
