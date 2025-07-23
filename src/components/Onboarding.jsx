@@ -21,12 +21,23 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
         {
             target: '.writing-assistant-btn',
             content: 'Mejora tu redacción con sugerencias inteligentes',
-            title: 'Asistente de Escritura'
+            title: 'Asistente de Escritura',
+            icon: (
+                <svg className="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                    <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" />
+                </svg>
+            )
         },
         {
             target: '.ai-consult-btn',
             content: 'Deja que la IA te ayude a reflexionar más profundamente',
-            title: 'Terapeuta IA'
+            title: 'Terapeuta IA',
+            icon: (
+                <svg className="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" />
+                </svg>
+            )
         },
         {
             target: '.activities-tab',
@@ -58,7 +69,12 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
         {
             target: '.export-btn',
             content: 'Guarda y comparte tus entradas en diferentes formatos',
-            title: 'Exportar'
+            title: 'Exportar',
+            icon: (
+                <svg className="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+            )
         },
         {
             type: 'goodbye',
@@ -109,32 +125,18 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
             }, 100);
         }
 
-        // Esperar un poco más si hay acción para que se complete el cambio de pestaña
-        const delay = currentStepData.action ? 800 : 300;
-        
-        setTimeout(() => {
-            const element = document.querySelector(currentStepData.target);
-            
-            if (element) {
-                setHighlightedElement(element);
-                
-                // Scroll suave al elemento
-                element.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'center',
-                    inline: 'center'
-                });
-            } else {
-                console.warn(`Elemento no encontrado: ${currentStepData.target}`);
-                setHighlightedElement(null);
-                // Si no se encuentra el elemento, continuar al siguiente paso
-                if (currentStep < steps.length - 1) {
-                    setTimeout(() => {
-                        setCurrentStep(currentStep + 1);
-                    }, 1000);
+        // Para el área de escritura, hacer scroll suave
+        if (currentStepData.target === 'textarea.writing-area') {
+            setTimeout(() => {
+                const textarea = document.querySelector('textarea.writing-area');
+                if (textarea) {
+                    textarea.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center'
+                    });
                 }
-            }
-        }, delay);
+            }, 300);
+        }
     };
 
     const nextStep = () => {
@@ -160,6 +162,18 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
         if (diaryTab) {
             setTimeout(() => {
                 diaryTab.click();
+                
+                // Después de cambiar a la pestaña de entrada, enfocar el área de escritura
+                setTimeout(() => {
+                    const textarea = document.querySelector('textarea.writing-area');
+                    if (textarea) {
+                        textarea.focus();
+                        textarea.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center'
+                        });
+                    }
+                }, 300);
             }, 100);
         }
         
@@ -195,12 +209,23 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
                     zIndex: 60
                 }}
             >
-                {/* Header con logo si es necesario */}
+                {/* Header con logo o icono */}
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                         {currentStepData.showLogo && (
                             <div className="w-8 h-8 flex items-center justify-center">
                                 <img src="/favicon.svg" alt="Introspect" className="w-6 h-6" />
+                            </div>
+                        )}
+                        {currentStepData.icon && !currentStepData.showLogo && (
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                currentStepData.title === 'Asistente de Escritura' ? 'bg-cyan-600' :
+                                currentStepData.title === 'Terapeuta IA' ? 'bg-purple-600' :
+                                'bg-gray-600'
+                            }`}>
+                                <div className="text-white">
+                                    {currentStepData.icon}
+                                </div>
                             </div>
                         )}
                         <h3 className="font-semibold text-lg">{currentStepData.title}</h3>
