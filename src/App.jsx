@@ -11,6 +11,7 @@ import CreateActivityModal from './components/CreateActivityModal';
 import DefineActivitiesModal from './components/DefineActivitiesModal';
 import ExportModal from './components/ExportModal';
 import ImportModal from './components/ImportModal';
+import UserProfileModal from './components/UserProfileModal';
 import UpdateNotification from './components/UpdateNotification';
 
 // Premium Components
@@ -102,6 +103,7 @@ const DiaryApp = ({ user }) => {
     const [isDefineActivitiesModalOpen, setDefineActivitiesModalOpen] = useState(false);
     const [isExportModalOpen, setExportModalOpen] = useState(false);
     const [isImportModalOpen, setImportModalOpen] = useState(false);
+    const [isUserProfileModalOpen, setUserProfileModalOpen] = useState(false);
     const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
     // Premium Modals State
@@ -426,6 +428,7 @@ const DiaryApp = ({ user }) => {
                             onExport={() => setExportModalOpen(true)}
                             onImport={() => setImportModalOpen(true)}
                             onInspirationalMessage={handleInspirationalMessage}
+                            onUserProfile={() => setUserProfileModalOpen(true)}
                             onSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
                             subscription={subscription}
                         />
@@ -541,6 +544,15 @@ const DiaryApp = ({ user }) => {
                 isOpen={isOnboardingOpen} 
                 onClose={() => setIsOnboardingOpen(false)} 
                 mode={localStorage.getItem('onboarding-completed') ? 'manual' : 'auto'}
+            />
+            <UserProfileModal 
+                isOpen={isUserProfileModalOpen} 
+                onClose={() => setUserProfileModalOpen(false)} 
+                user={user}
+                userPrefs={userPrefs}
+                onUpdateUserPrefs={handleUpdateUserPrefs}
+                subscription={subscription}
+                onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
             />
         </div>
     );
