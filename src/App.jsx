@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { getFirestore, doc, onSnapshot, setDoc, collection, getDocs, getDoc, query, where, documentId } from 'firebase/firestore';
+import { getFirestore, doc, onSnapshot, setDoc, collection, getDocs, getDoc, query, where, documentId, deleteDoc } from 'firebase/firestore';
 
 import { auth, db } from './firebase';
 import DiaryEntryEditor from './components/DiaryEntryEditor';
@@ -286,6 +286,19 @@ const DiaryApp = ({ user }) => {
         return await importEntry(date, title, content, activities, conflictMode);
     };
 
+    const handleDeleteEntry = async (date) => {
+        if (!db || !user?.uid) return false;
+        
+        try {
+            const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', date);
+            await deleteDoc(entryDocRef);
+            return true;
+        } catch (error) {
+            console.error('Error deleting entry:', error);
+            return false;
+        }
+    };
+
     const handleExportEntries = async (startDate, endDate) => {
         if (!db || !user?.uid) return;
         let entriesQuery;
@@ -416,7 +429,7 @@ const DiaryApp = ({ user }) => {
                     {view === 'diary' ? (
                         <DiaryEntryEditor currentEntry={currentEntry} onTextChange={handleTextChange} activities={activities} onTrackActivity={handleTrackActivity} onAddOption={handleAddOptionToActivity} onOpenDefineActivitiesModal={() => setDefineActivitiesModalOpen(true)} onConsultAI={handleConsultAI} onWritingAssistant={handleWritingAssistant} onUntrackActivity={handleUntrackActivity} userPrefs={userPrefs} onUpdateUserPrefs={handleUpdateUserPrefs} selectedDate={selectedDate} onDateChange={setSelectedDate} textareaRef={textareaRef} />
                     ) : view === 'archive' ? (
-                        <ArchiveView allEntries={allEntries} onSelectEntry={(date) => { setSelectedDate(date); setView('diary'); }} user={user} />
+                        <ArchiveView allEntries={allEntries} onSelectEntry={(date) => { setSelectedDate(date); setView('diary'); }} onDeleteEntry={handleDeleteEntry} user={user} />
                     ) : (
                        <StatisticsPanel db={db} userId={user.uid} appId={appId} activities={activities} />
                     )}

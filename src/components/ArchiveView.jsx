@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { decryptText } from '../utils/crypto';
 
-const ArchiveView = ({ allEntries, onSelectEntry, user }) => {
+const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user }) => {
     const [decryptedEntries, setDecryptedEntries] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -38,13 +38,26 @@ const ArchiveView = ({ allEntries, onSelectEntry, user }) => {
                     <ul className="space-y-2">
                         {decryptedEntries.map(entry => (
                             <li key={entry.id}>
-                                <button
-                                    onClick={() => onSelectEntry(entry.id)}
-                                    className="w-full text-left p-3 bg-gray-700 hover:bg-indigo-900 rounded-lg transition-colors"
-                                >
-                                    <span className="font-bold text-indigo-300">{entry.id}</span>
-                                    <p className="text-gray-200">{entry.title}</p>
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => onSelectEntry(entry.id)}
+                                        className="flex-1 text-left p-3 bg-gray-700 hover:bg-indigo-900 rounded-lg transition-colors"
+                                    >
+                                        <span className="font-bold text-indigo-300">{entry.id}</span>
+                                        <p className="text-gray-200">{entry.title}</p>
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm(`¿Eliminar la entrada del ${entry.id}?\n\n"${entry.title}"\n\nEsta acción no se puede deshacer.`)) {
+                                                onDeleteEntry(entry.id);
+                                            }
+                                        }}
+                                        className="p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                                        title="Eliminar entrada"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
                             </li>
                         ))}
                     </ul>
