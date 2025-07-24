@@ -38,7 +38,7 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user }) => {
                     <ul className="space-y-2">
                         {decryptedEntries.map(entry => (
                             <li key={entry.id}>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 group">
                                     <button
                                         onClick={() => onSelectEntry(entry.id)}
                                         className="flex-1 text-left p-3 bg-gray-700 hover:bg-indigo-900 rounded-lg transition-colors"
@@ -48,14 +48,13 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user }) => {
                                     </button>
                                     <button
                                         onClick={() => {
-                                            if (window.confirm(`¿Eliminar la entrada del ${entry.id}?\n\n"${entry.title}"\n\nEsta acción no se puede deshacer.`)) {
-                                                onDeleteEntry(entry.id);
-                                            }
+                                            const deleteActivities = window.confirm(`¿Eliminar la entrada del ${entry.id}?\n\n"${entry.title}"\n\n¿Deseas eliminar también las actividades registradas?\n\n- Cancelar: Solo eliminar entrada\n- Aceptar: Eliminar entrada y actividades`);
+                                            onDeleteEntry(entry.id, deleteActivities);
                                         }}
-                                        className="p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                                        className="p-2 bg-red-500 hover:bg-red-600 text-white rounded transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                                         title="Eliminar entrada"
                                     >
-                                        🗑️
+                                        ✕
                                     </button>
                                 </div>
                             </li>

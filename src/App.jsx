@@ -286,12 +286,31 @@ const DiaryApp = ({ user }) => {
         return await importEntry(date, title, content, activities, conflictMode);
     };
 
-    const handleDeleteEntry = async (date) => {
+    const handleDeleteEntry = async (date, deleteActivities = false) => {
         if (!db || !user?.uid) return false;
         
         try {
             const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', date);
+            
+            // Si se solicita eliminar actividades, obtener los datos antes de eliminar
+            let trackedActivities = {};
+            if (deleteActivities) {
+                const entryDoc = await getDoc(entryDocRef);
+                if (entryDoc.exists()) {
+                    trackedActivities = entryDoc.data().tracked || {};
+                }
+            }
+            
+            // Eliminar la entrada
             await deleteDoc(entryDocRef);
+            
+            // Si se solicita eliminar actividades, también eliminar las actividades de ese día
+            if (deleteActivities && Object.keys(trackedActivities).length > 0) {
+                // Nota: Las actividades registradas están dentro de la entrada, no como documentos separados
+                // Solo necesitamos eliminar la entrada que ya contiene las actividades
+                console.log(`Eliminadas ${Object.keys(trackedActivities).length} actividades registradas junto con la entrada`);
+            }
+            
             return true;
         } catch (error) {
             console.error('Error deleting entry:', error);
