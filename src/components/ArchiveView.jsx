@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { decryptText } from '../utils/crypto';
+import DeleteConfirmModal from './DeleteConfirmModal';
 
 const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user }) => {
+    const [deleteModalEntry, setDeleteModalEntry] = useState(null);
     const [decryptedEntries, setDecryptedEntries] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -47,10 +49,7 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user }) => {
                                         <p className="text-gray-200">{entry.title}</p>
                                     </button>
                                     <button
-                                        onClick={() => {
-                                            const deleteActivities = window.confirm(`¿Eliminar la entrada del ${entry.id}?\n\n"${entry.title}"\n\n¿Deseas eliminar también las actividades registradas?\n\n- Cancelar: Solo eliminar entrada\n- Aceptar: Eliminar entrada y actividades`);
-                                            onDeleteEntry(entry.id, deleteActivities);
-                                        }}
+                                        onClick={() => setDeleteModalEntry(entry)}
                                         className="p-2 bg-red-500 hover:bg-red-600 text-white rounded transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                                         title="Eliminar entrada"
                                     >
@@ -64,6 +63,17 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user }) => {
                     <p className="text-center text-gray-400 italic">Aún no has escrito ninguna entrada.</p>
                 )}
             </div>
+            
+            <DeleteConfirmModal
+                isOpen={!!deleteModalEntry}
+                onClose={() => setDeleteModalEntry(null)}
+                onConfirm={(deleteActivities) => {
+                    if (deleteModalEntry) {
+                        onDeleteEntry(deleteModalEntry.id, deleteActivities);
+                    }
+                }}
+                entry={deleteModalEntry}
+            />
         </div>
     );
 };
