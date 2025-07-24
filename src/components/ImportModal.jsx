@@ -5,6 +5,11 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
     const [dragActive, setDragActive] = useState(false);
     const [fileInfo, setFileInfo] = useState(null);
     const [detectionResult, setDetectionResult] = useState(null);
+    const [previewData, setPreviewData] = useState(null);
+    const [conflictMode, setConflictMode] = useState('overwrite'); // 'overwrite', 'skip', 'create_new'
+    const [selectedEntries, setSelectedEntries] = useState([]);
+    const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
+    const [showPreview, setShowPreview] = useState(false);
     const fileInputRef = useRef(null);
 
     // Detección de formatos de fecha
@@ -203,11 +208,76 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
         };
     };
 
+    // Validar fecha
+    const isValidDate = (dateString) => {
+        const date = new Date(dateString);
+        return !isNaN(date.getTime()) && dateString.length === 10;
+    };
+
+    // Generar datos de previsualización
+    const generatePreviewData = async (structure) => {
+        if (!structure) return null;
+
+        let entries = [];
+        
+        if (structure.type === 'csv') {
+            // Procesar CSV para previsualización
+            const content = await fileInputRef.current.files[0].text();
+            const lines = content.split('\n').filter(line => line.trim());
+            
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
+                const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                
+                const date = values[structure.columnMapping.date];
+                const title = values[structure.columnMapping.title] || '';
+                const content = values[structure.columnMapping.content] || '';
+                const activities = values[structure.columnMapping.activities] || '';
+
+                const parsedDate = parseDate(date, structure.dateFormat);
+                if (parsedDate) {
+                    entries.push({
+                        id: i,
+                        date: parsedDate,
+                        title: title || 'Sin título',
+                        content: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
+                        fullContent: content,
+                        activities: activities,
+                        isValid: isValidDate(parsedDate),
+                        hasConflict: false // Se verificará después
+                    });
+                }
+            }
+        } else {
+            // Procesar TXT para previsualización
+            entries = structure.entries.map((entry, index) => ({
+                id: index,
+                date: entry.date,
+                title: entry.title || 'Sin título',
+                content: entry.content.substring(0, 100) + (entry.content.length > 100 ? '...' : ''),
+                fullContent: entry.content,
+                activities: '',
+                isValid: isValidDate(entry.date),
+                hasConflict: false // Se verificará después
+            }));
+        }
+
+        return {
+            entries: entries,
+            total: entries.length,
+            valid: entries.filter(e => e.isValid).length,
+            invalid: entries.filter(e => !e.isValid).length
+        };
+    };
+
     // Procesar archivo
     const processFile = async (file) => {
         setIsProcessing(true);
         setFileInfo(null);
         setDetectionResult(null);
+        setPreviewData(null);
+        setShowPreview(false);
+        setSelectedEntries([]);
 
         try {
             const content = await file.text();
@@ -225,6 +295,10 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
 
             setDetectionResult(structure);
 
+            // Generar datos de previsualización
+            const preview = await generatePreviewData(structure);
+            setPreviewData(preview);
+
         } catch (error) {
             console.error('Error procesando archivo:', error);
             alert('Error al procesar el archivo: ' + error.message);
@@ -233,7 +307,113 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
         }
     };
 
-    // Importar entradas
+    // Manejar selección de entradas
+    const handleSelectEntry = (entryId) => {
+        setSelectedEntries(prev => 
+            prev.includes(entryId) 
+                ? prev.filter(id => id !== entryId)
+                : [...prev, entryId]
+        );
+    };
+
+    const handleSelectAll = () => {
+        if (previewData) {
+            const validEntries = previewData.entries.filter(e => e.isValid);
+            setSelectedEntries(validEntries.map(e => e.id));
+        }
+    };
+
+    const handleSelectNone = () => {
+        setSelectedEntries([]);
+    };
+
+    const handleSelectAllVisible = () => {
+        const filteredEntries = getFilteredEntries();
+        const validFilteredEntries = filteredEntries.filter(e => e.isValid);
+        setSelectedEntries(validFilteredEntries.map(e => e.id));
+    };
+
+    const handleSelectNoneVisible = () => {
+        const filteredEntries = getFilteredEntries();
+        const filteredIds = filteredEntries.map(e => e.id);
+        setSelectedEntries(prev => prev.filter(id => !filteredIds.includes(id)));
+    };
+
+    const isAllVisibleSelected = () => {
+        const filteredEntries = getFilteredEntries();
+        const validFilteredEntries = filteredEntries.filter(e => e.isValid);
+        return validFilteredEntries.length > 0 && 
+               validFilteredEntries.every(entry => selectedEntries.includes(entry.id));
+    };
+
+    const isSomeVisibleSelected = () => {
+        const filteredEntries = getFilteredEntries();
+        const validFilteredEntries = filteredEntries.filter(e => e.isValid);
+        return validFilteredEntries.some(entry => selectedEntries.includes(entry.id));
+    };
+
+    // Filtrar entradas por fecha
+    const getFilteredEntries = () => {
+        if (!previewData) return [];
+        
+        return previewData.entries.filter(entry => {
+            if (!entry.isValid) return false;
+            
+            if (dateFilter.start && entry.date < dateFilter.start) return false;
+            if (dateFilter.end && entry.date > dateFilter.end) return false;
+            
+            return true;
+        });
+    };
+
+    // Importar entradas seleccionadas
+    const importSelectedEntries = async () => {
+        if (!previewData || selectedEntries.length === 0) return;
+
+        setIsProcessing(true);
+
+        try {
+            const content = await fileInputRef.current.files[0].text();
+            const lines = content.split('\n').filter(line => line.trim());
+            
+            let importedCount = 0;
+            let skippedCount = 0;
+
+            // Obtener entradas seleccionadas
+            const entriesToImport = previewData.entries.filter(entry => 
+                selectedEntries.includes(entry.id) && entry.isValid
+            );
+
+            for (const entry of entriesToImport) {
+                let success = false;
+                
+                if (detectionResult.type === 'csv') {
+                    // Para CSV, usar los datos de previsualización
+                    success = await onImportEntries(entry.date, entry.title, entry.fullContent, entry.activities, conflictMode);
+                } else {
+                    // Para TXT, usar los datos de previsualización
+                    success = await onImportEntries(entry.date, entry.title, entry.fullContent, '', conflictMode);
+                }
+
+                if (success) {
+                    importedCount++;
+                } else {
+                    skippedCount++;
+                }
+            }
+
+            alert(`Importación completada:\n✅ ${importedCount} entradas importadas\n⏭️ ${skippedCount} entradas omitidas`);
+            onClose();
+
+        } catch (error) {
+            console.error('Error importando entradas:', error);
+            alert('Error durante la importación: ' + error.message);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    // Importar entradas (función original para compatibilidad)
     const importEntries = async () => {
         if (!detectionResult || !fileInfo) return;
 
@@ -259,7 +439,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
 
                     const parsedDate = parseDate(date, detectionResult.dateFormat);
                     if (parsedDate) {
-                        const success = await onImportEntries(parsedDate, title, content, activities);
+                        const success = await onImportEntries(parsedDate, title, content, activities, conflictMode);
                         if (success) {
                             importedCount++;
                         } else {
@@ -270,7 +450,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
             } else {
                 // Procesar TXT
                 for (const entry of detectionResult.entries) {
-                    const success = await onImportEntries(entry.date, entry.title, entry.content, '');
+                    const success = await onImportEntries(entry.date, entry.title, entry.content, '', conflictMode);
                     if (success) {
                         importedCount++;
                     } else {
@@ -428,6 +608,200 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                 </div>
                             )}
                         </div>
+                        
+                        {/* Botón para mostrar previsualización */}
+                        {previewData && (
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                                <button
+                                    onClick={() => setShowPreview(!showPreview)}
+                                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                    {showPreview ? 'Ocultar' : 'Mostrar'} Previsualización ({previewData.total} entradas)
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Previsualización de entradas */}
+                {showPreview && previewData && (
+                    <div className="mt-6 p-4 bg-white border border-gray-200 rounded-lg">
+                        <h3 className="font-semibold text-gray-900 mb-4">📋 Previsualización de Entradas</h3>
+                        
+                        {/* Estadísticas */}
+                        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                            <div className="grid grid-cols-3 gap-4 text-sm">
+                                <div className="text-center">
+                                    <div className="font-bold text-blue-600">{previewData.total}</div>
+                                    <div className="text-gray-600">Total</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="font-bold text-green-600">{previewData.valid}</div>
+                                    <div className="text-gray-600">Válidas</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="font-bold text-red-600">{previewData.invalid}</div>
+                                    <div className="text-gray-600">Inválidas</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Filtros */}
+                        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                            <h4 className="font-medium text-gray-900 mb-2">Filtros</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-800 mb-1">Desde:</label>
+                                    <input
+                                        type="date"
+                                        value={dateFilter.start}
+                                        onChange={(e) => setDateFilter(prev => ({ ...prev, start: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 bg-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-800 mb-1">Hasta:</label>
+                                    <input
+                                        type="date"
+                                        value={dateFilter.end}
+                                        onChange={(e) => setDateFilter(prev => ({ ...prev, end: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 bg-white"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Opciones de conflicto */}
+                        <div className="mb-4 p-3 bg-yellow-50 rounded-lg">
+                            <h4 className="font-medium text-gray-900 mb-2">Modo de Conflicto</h4>
+                            <div className="space-y-2">
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        value="overwrite"
+                                        checked={conflictMode === 'overwrite'}
+                                        onChange={(e) => setConflictMode(e.target.value)}
+                                        className="mr-2"
+                                    />
+                                    <span className="text-sm text-gray-800 font-medium">Sobrescribir entradas existentes</span>
+                                </label>
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        value="skip"
+                                        checked={conflictMode === 'skip'}
+                                        onChange={(e) => setConflictMode(e.target.value)}
+                                        className="mr-2"
+                                    />
+                                    <span className="text-sm text-gray-800 font-medium">Saltar entradas existentes</span>
+                                </label>
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        value="create_new"
+                                        checked={conflictMode === 'create_new'}
+                                        onChange={(e) => setConflictMode(e.target.value)}
+                                        className="mr-2"
+                                    />
+                                    <span className="text-sm text-gray-800 font-medium">Crear nueva versión (agregar sufijo)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Controles de selección */}
+                        <div className="mb-4 flex gap-2">
+                            <button
+                                onClick={handleSelectAll}
+                                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                                title="Seleccionar todas las entradas del archivo"
+                            >
+                                Seleccionar Todo el Archivo
+                            </button>
+                            <button
+                                onClick={handleSelectAllVisible}
+                                className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                                title="Seleccionar todas las entradas visibles (según filtros)"
+                            >
+                                Seleccionar Visibles
+                            </button>
+                            <button
+                                onClick={handleSelectNone}
+                                className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors"
+                                title="Deseleccionar todas las entradas"
+                            >
+                                Deseleccionar Todo
+                            </button>
+                            <span className="ml-auto text-sm text-gray-800 font-medium">
+                                {selectedEntries.length} de {getFilteredEntries().length} seleccionadas
+                            </span>
+                        </div>
+
+                        {/* Tabla de entradas */}
+                        <div className="max-h-96 overflow-y-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-gray-50 sticky top-0">
+                                    <tr>
+                                        <th className="px-2 py-2 text-left font-semibold text-gray-900">
+                                            <input
+                                                type="checkbox"
+                                                checked={isAllVisibleSelected()}
+                                                ref={(input) => {
+                                                    if (input) {
+                                                        input.indeterminate = isSomeVisibleSelected() && !isAllVisibleSelected();
+                                                    }
+                                                }}
+                                                onChange={() => {
+                                                    if (isAllVisibleSelected()) {
+                                                        handleSelectNoneVisible();
+                                                    } else {
+                                                        handleSelectAllVisible();
+                                                    }
+                                                }}
+                                                className="mr-2"
+                                                title="Seleccionar todas las entradas visibles"
+                                            />
+                                        </th>
+                                        <th className="px-2 py-2 text-left font-semibold text-gray-900">Fecha</th>
+                                        <th className="px-2 py-2 text-left font-semibold text-gray-900">Título</th>
+                                        <th className="px-2 py-2 text-left font-semibold text-gray-900">Contenido</th>
+                                        <th className="px-2 py-2 text-left font-semibold text-gray-900">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {getFilteredEntries().map((entry) => (
+                                        <tr key={entry.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                            <td className="px-2 py-2">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedEntries.includes(entry.id)}
+                                                    onChange={() => handleSelectEntry(entry.id)}
+                                                    disabled={!entry.isValid}
+                                                    className="mr-2"
+                                                />
+                                            </td>
+                                            <td className="px-2 py-2 font-mono text-xs text-gray-900 font-semibold">
+                                                {entry.date}
+                                            </td>
+                                            <td className="px-2 py-2 max-w-32 truncate text-gray-900 font-medium" title={entry.title}>
+                                                {entry.title}
+                                            </td>
+                                            <td className="px-2 py-2 max-w-48 truncate text-gray-800" title={entry.content}>
+                                                {entry.content}
+                                            </td>
+                                            <td className="px-2 py-2">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                                    entry.isValid 
+                                                        ? 'bg-green-100 text-green-800' 
+                                                        : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                    {entry.isValid ? 'Válida' : 'Inválida'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
 
@@ -440,23 +814,44 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                     >
                         Cancelar
                     </button>
-                    <button
-                        onClick={importEntries}
-                        disabled={!detectionResult || isProcessing}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isProcessing ? (
-                            <span className="flex items-center">
-                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Importando...
-                            </span>
-                        ) : (
-                            'Importar Entradas'
-                        )}
-                    </button>
+                    
+                    {showPreview && previewData ? (
+                        <button
+                            onClick={importSelectedEntries}
+                            disabled={selectedEntries.length === 0 || isProcessing}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isProcessing ? (
+                                <span className="flex items-center">
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Importando...
+                                </span>
+                            ) : (
+                                `Importar ${selectedEntries.length} Seleccionadas`
+                            )}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={importEntries}
+                            disabled={!detectionResult || isProcessing}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isProcessing ? (
+                                <span className="flex items-center">
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Importando...
+                                </span>
+                            ) : (
+                                'Importar Todas las Entradas'
+                            )}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

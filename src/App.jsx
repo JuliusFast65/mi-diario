@@ -282,8 +282,8 @@ const DiaryApp = ({ user }) => {
         callAI(prompt, "Mensaje del Día");
     };
     
-    const handleImportEntries = async (date, title, content, activities) => {
-        return await importEntry(date, title, content, activities);
+    const handleImportEntries = async (date, title, content, activities, conflictMode = 'overwrite') => {
+        return await importEntry(date, title, content, activities, conflictMode);
     };
 
     const handleExportEntries = async (startDate, endDate) => {

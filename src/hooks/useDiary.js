@@ -62,11 +62,44 @@ export default function useDiary(db, user, appId, selectedDate) {
     }, [currentEntry, saveData, isLoadingEntry]);
 
     // Función para importar entradas
-    const importEntry = useCallback(async (date, title, content, activities) => {
+    const importEntry = useCallback(async (date, title, content, activities, conflictMode = 'overwrite') => {
         if (!db || !user?.uid) return false;
         
         try {
-            const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', date);
+            let finalDate = date;
+            
+            // Manejar modo de conflicto
+            if (conflictMode === 'create_new') {
+                // Verificar si existe la entrada
+                const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', date);
+                const docSnap = await getDoc(entryDocRef);
+                
+                if (docSnap.exists()) {
+                    // Crear nueva versión con sufijo
+                    let counter = 1;
+                    while (true) {
+                        const newDate = `${date}_v${counter}`;
+                        const newEntryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', newDate);
+                        const newDocSnap = await getDoc(newEntryDocRef);
+                        
+                        if (!newDocSnap.exists()) {
+                            finalDate = newDate;
+                            break;
+                        }
+                        counter++;
+                    }
+                }
+            } else if (conflictMode === 'skip') {
+                // Verificar si existe la entrada
+                const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', date);
+                const docSnap = await getDoc(entryDocRef);
+                
+                if (docSnap.exists()) {
+                    return false; // Saltar esta entrada
+                }
+            }
+            
+            const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', finalDate);
             
             // Combinar título y contenido
             const fullText = title ? `${title}\n${content}` : content;
