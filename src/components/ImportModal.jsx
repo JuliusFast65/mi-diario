@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function ImportModal({ isOpen, onClose, onImportEntries, user, db, appId }) {
     const [isProcessing, setIsProcessing] = useState(false);
@@ -352,6 +352,27 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
         return validFilteredEntries.some(entry => selectedEntries.includes(entry.id));
     };
 
+    // Resetear estado del modal
+    const resetModal = () => {
+        setFileInfo(null);
+        setDetectionResult(null);
+        setPreviewData(null);
+        setShowPreview(false);
+        setSelectedEntries([]);
+        setDateFilter({ start: '', end: '' });
+        setConflictMode('overwrite');
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    // Resetear modal cuando se abre
+    useEffect(() => {
+        if (isOpen) {
+            resetModal();
+        }
+    }, [isOpen]);
+
     // Filtrar entradas por fecha
     const getFilteredEntries = () => {
         if (!previewData) return [];
@@ -403,7 +424,8 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
             }
 
             alert(`Importación completada:\n✅ ${importedCount} entradas importadas\n⏭️ ${skippedCount} entradas omitidas`);
-            onClose();
+            // No cerrar el modal, solo resetear la selección
+            setSelectedEntries([]);
 
         } catch (error) {
             console.error('Error importando entradas:', error);
@@ -460,7 +482,8 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
             }
 
             alert(`Importación completada:\n✅ ${importedCount} entradas importadas\n⏭️ ${skippedCount} entradas omitidas`);
-            onClose();
+            // No cerrar el modal, solo resetear la selección
+            setSelectedEntries([]);
 
         } catch (error) {
             console.error('Error importando entradas:', error);
@@ -587,37 +610,38 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
 
                 {/* Resultados de detección */}
                 {detectionResult && (
-                    <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                        <h3 className="font-semibold text-gray-900 mb-3">🔍 Análisis del Archivo:</h3>
-                        <div className="space-y-2 text-sm">
-                            <p><strong>Tipo:</strong> {detectionResult.type.toUpperCase()}</p>
-                            <p><strong>Formato de fecha:</strong> {detectionResult.dateFormat || 'No detectado'}</p>
-                            <p><strong>Entradas encontradas:</strong> {detectionResult.totalLines}</p>
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-semibold text-gray-900 text-sm">🔍 Análisis del Archivo</h3>
+                            {previewData && (
+                                <button
+                                    onClick={() => setShowPreview(!showPreview)}
+                                    className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                                >
+                                    {showPreview ? 'Ocultar' : 'Mostrar'} Previsualización
+                                </button>
+                            )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div><strong>Tipo:</strong> {detectionResult.type.toUpperCase()}</div>
+                            <div><strong>Formato:</strong> {detectionResult.dateFormat || 'No detectado'}</div>
+                            <div><strong>Entradas:</strong> {detectionResult.totalLines}</div>
                             
                             {detectionResult.type === 'csv' && (
-                                <div>
-                                    <p><strong>Separador:</strong> {detectionResult.separator}</p>
-                                    <p><strong>Columnas detectadas:</strong></p>
-                                    <ul className="ml-4 space-y-1">
-                                        {Object.entries(detectionResult.columnMapping).map(([key, index]) => (
-                                            <li key={key}>
-                                                • {key}: {index !== null ? detectionResult.headers[index] : 'No detectado'}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
+                                <div><strong>Separador:</strong> {detectionResult.separator}</div>
                             )}
                         </div>
                         
-                        {/* Botón para mostrar previsualización */}
-                        {previewData && (
-                            <div className="mt-4 pt-4 border-t border-gray-200">
-                                <button
-                                    onClick={() => setShowPreview(!showPreview)}
-                                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                >
-                                    {showPreview ? 'Ocultar' : 'Mostrar'} Previsualización ({previewData.total} entradas)
-                                </button>
+                        {detectionResult.type === 'csv' && (
+                            <div className="mt-2 pt-2 border-t border-gray-200">
+                                <div className="text-xs"><strong>Columnas:</strong></div>
+                                <div className="grid grid-cols-2 gap-1 text-xs text-gray-600">
+                                    {Object.entries(detectionResult.columnMapping).map(([key, index]) => (
+                                        <div key={key}>
+                                            • {key}: {index !== null ? detectionResult.headers[index] : 'No detectado'}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -708,30 +732,9 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                             </div>
                         </div>
 
-                        {/* Controles de selección */}
-                        <div className="mb-4 flex gap-2">
-                            <button
-                                onClick={handleSelectAll}
-                                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-                                title="Seleccionar todas las entradas del archivo"
-                            >
-                                Seleccionar Todo el Archivo
-                            </button>
-                            <button
-                                onClick={handleSelectAllVisible}
-                                className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
-                                title="Seleccionar todas las entradas visibles (según filtros)"
-                            >
-                                Seleccionar Visibles
-                            </button>
-                            <button
-                                onClick={handleSelectNone}
-                                className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors"
-                                title="Deseleccionar todas las entradas"
-                            >
-                                Deseleccionar Todo
-                            </button>
-                            <span className="ml-auto text-sm text-gray-800 font-medium">
+                        {/* Contador de selección */}
+                        <div className="mb-4 flex justify-end">
+                            <span className="text-sm text-gray-800 font-medium">
                                 {selectedEntries.length} de {getFilteredEntries().length} seleccionadas
                             </span>
                         </div>
@@ -807,6 +810,16 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
 
                 {/* Botones de acción */}
                 <div className="flex justify-end space-x-3 mt-6">
+                    {fileInfo && (
+                        <button
+                            onClick={resetModal}
+                            className="px-4 py-2 text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
+                            disabled={isProcessing}
+                            title="Cargar un archivo diferente"
+                        >
+                            Nuevo Archivo
+                        </button>
+                    )}
                     <button
                         onClick={onClose}
                         className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
