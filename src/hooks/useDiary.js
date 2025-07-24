@@ -61,5 +61,54 @@ export default function useDiary(db, user, appId, selectedDate) {
         return () => clearTimeout(handler);
     }, [currentEntry, saveData, isLoadingEntry]);
 
-    return { currentEntry, setCurrentEntry, isLoadingEntry, saveData };
+    // Función para importar entradas
+    const importEntry = useCallback(async (date, title, content, activities) => {
+        if (!db || !user?.uid) return false;
+        
+        try {
+            const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', date);
+            
+            // Combinar título y contenido
+            const fullText = title ? `${title}\n${content}` : content;
+            
+            // Encriptar datos
+            const [titleLine, ...bodyLines] = fullText.split('\n');
+            const bodyText = bodyLines.join('\n');
+            const [encryptedTitle, encryptedText] = await Promise.all([
+                encryptText(titleLine, user.uid),
+                encryptText(bodyText, user.uid)
+            ]);
+            
+            // Procesar actividades si existen
+            let trackedActivities = {};
+            if (activities) {
+                try {
+                    // Intentar parsear como JSON primero
+                    trackedActivities = JSON.parse(activities);
+                } catch {
+                    // Si no es JSON, procesar como string simple
+                    const activityList = activities.split(',').map(a => a.trim());
+                    activityList.forEach(activity => {
+                        if (activity) {
+                            trackedActivities[activity] = true;
+                        }
+                    });
+                }
+            }
+            
+            // Guardar entrada
+            await setDoc(entryDocRef, {
+                title: encryptedTitle,
+                text: encryptedText,
+                tracked: trackedActivities
+            }, { merge: true });
+            
+            return true;
+        } catch (error) {
+            console.error('Error importing entry:', error);
+            return false;
+        }
+    }, [db, user, appId]);
+
+    return { currentEntry, setCurrentEntry, isLoadingEntry, saveData, importEntry };
 } 

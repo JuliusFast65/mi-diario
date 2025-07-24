@@ -6,6 +6,7 @@ export default function HamburgerMenu({
     onBehaviorAnalysis, 
     onTwoFactorAuth, 
     onExport, 
+    onImport,
     onInspirationalMessage,
     onFeedback,
     onSubscriptionModal,
@@ -110,7 +111,6 @@ export default function HamburgerMenu({
                             <span className="text-green-400">💬</span>
                             <div>
                                 <div className="font-medium">Chat con Terapeuta</div>
-                                <div className="text-xs text-gray-500">Terapia virtual 24/7</div>
                             </div>
                         </button>
 
@@ -121,7 +121,6 @@ export default function HamburgerMenu({
                             <span className="text-purple-400">✍️</span>
                             <div>
                                 <div className="font-medium">Asistente de Escritura</div>
-                                <div className="text-xs text-gray-500">Mejora tu escritura con IA</div>
                             </div>
                         </button>
 
@@ -132,7 +131,6 @@ export default function HamburgerMenu({
                             <span className="text-indigo-400">📊</span>
                             <div>
                                 <div className="font-medium">Análisis de Comportamiento</div>
-                                <div className="text-xs text-gray-500">Patrones e insights</div>
                             </div>
                         </button>
 
@@ -143,7 +141,6 @@ export default function HamburgerMenu({
                             <span className="text-red-400">🔒</span>
                             <div>
                                 <div className="font-medium">Autenticación 2FA</div>
-                                <div className="text-xs text-gray-500">Seguridad adicional</div>
                             </div>
                         </button>
                     </div>
@@ -161,7 +158,16 @@ export default function HamburgerMenu({
                             <span className="text-blue-400">📤</span>
                             <div>
                                 <div className="font-medium">Exportar Entradas</div>
-                                <div className="text-xs text-gray-500">Descargar tu diario</div>
+                            </div>
+                        </button>
+
+                        <button
+                            onClick={() => handleMenuItemClick(onImport)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+                        >
+                            <span className="text-green-400">📥</span>
+                            <div>
+                                <div className="font-medium">Importar Entradas</div>
                             </div>
                         </button>
 
@@ -172,7 +178,6 @@ export default function HamburgerMenu({
                             <span className="text-yellow-400">✨</span>
                             <div>
                                 <div className="font-medium">Mensaje Inspirador</div>
-                                <div className="text-xs text-gray-500">Motivación diaria</div>
                             </div>
                         </button>
                     </div>
@@ -190,7 +195,6 @@ export default function HamburgerMenu({
                             <span className="text-gray-400">📧</span>
                             <div>
                                 <div className="font-medium">Enviar Feedback</div>
-                                <div className="text-xs text-gray-500">Comparte tu opinión</div>
                             </div>
                         </a>
 
@@ -204,7 +208,6 @@ export default function HamburgerMenu({
                             <span className="text-gray-400">❓</span>
                             <div>
                                 <div className="font-medium">Tutorial</div>
-                                <div className="text-xs text-gray-500">Aprende a usar la app</div>
                             </div>
                         </button>
                     </div>

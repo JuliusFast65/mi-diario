@@ -10,6 +10,7 @@ import { decryptText } from './utils/crypto';
 import CreateActivityModal from './components/CreateActivityModal';
 import DefineActivitiesModal from './components/DefineActivitiesModal';
 import ExportModal from './components/ExportModal';
+import ImportModal from './components/ImportModal';
 import UpdateNotification from './components/UpdateNotification';
 
 // Premium Components
@@ -69,7 +70,7 @@ const DiaryApp = ({ user }) => {
     // Usar hook de suscripción real
     const { subscription, updateSubscription, hasFeature, isSubscriptionActive, isLoading: isLoadingSubscription } = useSubscription(db, user, appId);
     
-    const { currentEntry, setCurrentEntry, isLoadingEntry } = useDiary(db, user, appId, selectedDate);
+    const { currentEntry, setCurrentEntry, isLoadingEntry, importEntry } = useDiary(db, user, appId, selectedDate);
     const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints, getActivityLimits } = useActivities(db, user, appId, subscription);
 
     // Manejo de errores para límite de actividades
@@ -100,6 +101,7 @@ const DiaryApp = ({ user }) => {
     const [isManageModalOpen, setManageModalOpen] = useState(false);
     const [isDefineActivitiesModalOpen, setDefineActivitiesModalOpen] = useState(false);
     const [isExportModalOpen, setExportModalOpen] = useState(false);
+    const [isImportModalOpen, setImportModalOpen] = useState(false);
     const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
     // Premium Modals State
@@ -280,6 +282,10 @@ const DiaryApp = ({ user }) => {
         callAI(prompt, "Mensaje del Día");
     };
     
+    const handleImportEntries = async (date, title, content, activities) => {
+        return await importEntry(date, title, content, activities);
+    };
+
     const handleExportEntries = async (startDate, endDate) => {
         if (!db || !user?.uid) return;
         let entriesQuery;
@@ -377,6 +383,7 @@ const DiaryApp = ({ user }) => {
                             onBehaviorAnalysis={() => setIsBehaviorAnalysisOpen(true)}
                             onTwoFactorAuth={() => setIsTwoFactorAuthOpen(true)}
                             onExport={() => setExportModalOpen(true)}
+                            onImport={() => setImportModalOpen(true)}
                             onInspirationalMessage={handleInspirationalMessage}
                             onSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
                             subscription={subscription}
@@ -439,6 +446,14 @@ const DiaryApp = ({ user }) => {
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
             />
             <ExportModal isOpen={isExportModalOpen} onClose={() => setExportModalOpen(false)} onExport={handleExportEntries} />
+            <ImportModal 
+                isOpen={isImportModalOpen} 
+                onClose={() => setImportModalOpen(false)} 
+                onImportEntries={handleImportEntries}
+                user={user}
+                db={db}
+                appId={appId}
+            />
             
             {/* Premium Modals */}
             <TherapistChat 

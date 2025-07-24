@@ -25,8 +25,11 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
             features: [
                 'Entradas de diario ilimitadas',
                 'Actividades básicas (3 máximo por día)',
+                'Asistente de escritura IA',
+                'Consejo del Terapeuta IA',
+                'Estadísticas básicas',
+                'Importación desde txt o css',
                 'Exportación básica',
-                'Temas básicos',
                 'Sincronización entre dispositivos'
             ],
             color: 'gray',
@@ -40,14 +43,13 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
             features: [
                 'Todo del plan Gratis',
                 'Actividades ilimitadas',
-                'Exportación avanzada (PDF, Word)',
-                'Temas personalizados',
                 'Estadísticas detalladas',
-                'Respaldo automático',
                 'Chat con terapeuta virtual',
-                'Asistente de escritura con IA',
+                'Asistente avanzado de escritura con IA',
                 'Análisis de patrones de comportamiento',
                 'Autenticación de dos factores',
+                'Exportación avanzada (PDF, Word)',
+                'Temas personalizados',
                 'Soporte prioritario',
                 'Acceso anticipado a nuevas funciones'
             ],
@@ -135,7 +137,6 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                 <div className="flex items-center justify-between p-6 border-b border-gray-300">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900">Planes de Suscripción</h2>
-                        <p className="text-gray-700 font-medium">Elige el plan que mejor se adapte a tus necesidades</p>
                     </div>
                     <button
                         onClick={onClose}
