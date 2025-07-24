@@ -1,5 +1,5 @@
 // Versión del Service Worker - incrementar cuando hay cambios importantes
-const SW_VERSION = '2.0.62';
+const SW_VERSION = '2.0.63';
 const CACHE_NAME = `mi-diario-cache-v${SW_VERSION}`;
 
 // Archivos críticos para cachear
