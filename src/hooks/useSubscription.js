@@ -8,12 +8,17 @@ export default function useSubscription(db, user, appId) {
         expiresAt: null,
         features: ['basic']
     });
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (!db || !user?.uid) return;
+        if (!db || !user?.uid) {
+            setIsLoading(false);
+            return;
+        }
+
+        const subscriptionRef = doc(db, 'artifacts', appId, 'users', user.uid, 'subscription', 'current');
         
-        const subscriptionDocRef = doc(db, 'subscriptions', user.uid);
-        const unsubscribe = onSnapshot(subscriptionDocRef, (doc) => {
+        const unsubscribe = onSnapshot(subscriptionRef, (doc) => {
             if (doc.exists()) {
                 const data = doc.data();
                 setSubscription({
@@ -23,28 +28,39 @@ export default function useSubscription(db, user, appId) {
                     features: data.features || ['basic']
                 });
             } else {
-                // Crear documento de suscripción por defecto
-                setDoc(subscriptionDocRef, {
+                // Si no existe suscripción, crear una por defecto
+                const defaultSubscription = {
                     isPremium: false,
                     plan: 'free',
                     expiresAt: null,
                     features: ['basic'],
-                    createdAt: new Date()
-                });
+                    updatedAt: new Date()
+                };
+                setDoc(subscriptionRef, defaultSubscription, { merge: true });
+                setSubscription(defaultSubscription);
             }
+            setIsLoading(false);
+        }, (error) => {
+            console.error('Error al cargar suscripción:', error);
+            setIsLoading(false);
         });
-        
+
         return () => unsubscribe();
     }, [db, user, appId]);
 
     const updateSubscription = async (newSubscription) => {
-        if (!db || !user?.uid) return;
+        if (!db || !user?.uid) {
+            throw new Error('No se puede actualizar la suscripción: faltan credenciales');
+        }
         
-        const subscriptionDocRef = doc(db, 'subscriptions', user.uid);
-        await setDoc(subscriptionDocRef, {
-            ...newSubscription,
-            updatedAt: new Date()
-        }, { merge: true });
+        try {
+            const subscriptionRef = doc(db, 'artifacts', appId, 'users', user.uid, 'subscription', 'current');
+            await setDoc(subscriptionRef, newSubscription, { merge: true });
+            console.log('Suscripción actualizada en Firebase:', newSubscription);
+        } catch (error) {
+            console.error('Error al actualizar suscripción en Firebase:', error);
+            throw error;
+        }
     };
 
     const hasFeature = (feature) => {
@@ -52,23 +68,7 @@ export default function useSubscription(db, user, appId) {
     };
 
     const isSubscriptionActive = () => {
-        if (!subscription.isPremium) return false;
-        if (!subscription.expiresAt) return true; // Sin fecha de expiración = permanente
-        return new Date() < subscription.expiresAt;
-    };
-
-    const getAvailableFeatures = () => {
-        const baseFeatures = ['basic'];
-        const premiumFeatures = ['unlimited_activities', 'advanced_export', 'custom_themes'];
-        const proFeatures = ['therapy_chat', 'writing_assistant', 'behavior_analysis', 'two_factor'];
-        
-        if (subscription.plan === 'pro') {
-            return [...baseFeatures, ...premiumFeatures, ...proFeatures];
-        } else if (subscription.plan === 'premium') {
-            return [...baseFeatures, ...premiumFeatures];
-        } else {
-            return baseFeatures;
-        }
+        return subscription.isPremium && (!subscription.expiresAt || new Date() < subscription.expiresAt);
     };
 
     return {
@@ -76,6 +76,6 @@ export default function useSubscription(db, user, appId) {
         updateSubscription,
         hasFeature,
         isSubscriptionActive,
-        getAvailableFeatures
+        isLoading
     };
 } 

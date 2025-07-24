@@ -65,29 +65,12 @@ const LoginScreen = ({ onGoogleSignIn }) => (
 const DiaryApp = ({ user }) => {
     const [db, setDb] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    // Configuración de suscripción - Cambiar aquí para probar diferentes planes
-    const plan = 'premium'; // Cambiar a 'free' o 'pro' para otros planes
-    const subscription = {
-        isPremium: plan !== 'free',
-        plan: plan,
-        expiresAt: null,
-        features: plan === 'free' ? ['basic'] : ['basic', 'therapy_chat', 'writing_assistant', 'behavior_analysis', 'two_factor_auth']
-    };
+    
+    // Usar hook de suscripción real
+    const { subscription, updateSubscription, hasFeature, isSubscriptionActive, isLoading: isLoadingSubscription } = useSubscription(db, user, appId);
+    
     const { currentEntry, setCurrentEntry, isLoadingEntry } = useDiary(db, user, appId, selectedDate);
     const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints, getActivityLimits } = useActivities(db, user, appId, subscription);
-    
-    const hasFeature = (feature) => {
-        return subscription.features.includes(feature);
-    };
-    
-    const isSubscriptionActive = () => {
-        return subscription.isPremium && (!subscription.expiresAt || new Date() < subscription.expiresAt);
-    };
-    
-    const updateSubscription = async (newSubscription) => {
-        console.log('Actualizando suscripción:', newSubscription);
-        // En una implementación real, esto se guardaría en Firebase
-    };
 
     // Manejo de errores para límite de actividades
     const handleSaveActivityWithLimit = async (activityData) => {
@@ -495,6 +478,7 @@ const DiaryApp = ({ user }) => {
                 db={db} 
                 user={user}
                 subscription={subscription}
+                updateSubscription={updateSubscription}
             />
             
             <Onboarding 

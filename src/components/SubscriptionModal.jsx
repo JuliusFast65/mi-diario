@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
+import { doc, setDoc } from 'firebase/firestore';
+import PaymentGateway from './PaymentGateway';
 
-export default function SubscriptionModal({ isOpen, onClose, db, user, subscription }) {
+export default function SubscriptionModal({ isOpen, onClose, db, user, subscription, updateSubscription }) {
     const [selectedPlan, setSelectedPlan] = useState(subscription?.plan || 'premium');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     
     // Actualizar selectedPlan cuando cambie la suscripción
     useEffect(() => {
@@ -11,10 +14,7 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
         }
     }, [subscription?.plan]);
     
-    const updateSubscription = async (newSubscription) => {
-        console.log('Actualizando suscripción:', newSubscription);
-        // En una implementación real, esto se guardaría en Firebase
-    };
+
 
     const plans = [
         {
@@ -68,15 +68,43 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
     ];
 
     const handleUpgrade = async () => {
-        if (selectedPlan === subscription.plan) return;
+        if (selectedPlan === subscription.plan) {
+            alert('Ya tienes este plan activo');
+            return;
+        }
         
+        if (selectedPlan === 'free') {
+            // Downgrade a plan gratuito
+            setIsProcessing(true);
+            try {
+                const newSubscription = {
+                    isPremium: false,
+                    plan: 'free',
+                    expiresAt: null,
+                    features: ['basic'],
+                    updatedAt: new Date()
+                };
+                
+                await updateSubscription(newSubscription);
+                onClose();
+                alert('Plan gratuito activado exitosamente');
+            } catch (error) {
+                console.error('Error al actualizar suscripción:', error);
+                alert('Error al actualizar la suscripción. Inténtalo de nuevo.');
+            } finally {
+                setIsProcessing(false);
+            }
+        } else {
+            // Abrir modal de pago para planes de pago
+            setIsPaymentModalOpen(true);
+        }
+    };
+
+    const handlePaymentSuccess = async () => {
         setIsProcessing(true);
         try {
-            // Simulación de proceso de actualización
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
             const newSubscription = {
-                isPremium: selectedPlan !== 'free',
+                isPremium: true,
                 plan: selectedPlan,
                 expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
                 features: getPlanFeatures(selectedPlan),
@@ -84,16 +112,20 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
             };
             
             await updateSubscription(newSubscription);
+            setIsPaymentModalOpen(false);
             onClose();
-            
-            // En una implementación real, aquí se integraría con un sistema de pagos
             alert(`¡Plan ${selectedPlan} activado exitosamente!`);
         } catch (error) {
-            console.error('Error al actualizar suscripción:', error);
-            alert('Error al actualizar la suscripción. Inténtalo de nuevo.');
+            console.error('Error al actualizar suscripción después del pago:', error);
+            alert('Error al activar el plan. El pago fue exitoso pero hubo un problema al actualizar tu suscripción.');
         } finally {
             setIsProcessing(false);
         }
+    };
+
+    const handlePaymentError = (error) => {
+        console.error('Error en el pago:', error);
+        setIsPaymentModalOpen(false);
     };
 
     const getPlanFeatures = (planId) => {
@@ -175,25 +207,23 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                                         <span className="text-gray-700 font-medium">/{plan.period}</span>
                                     </div>
                                     
-                                    {subscription.plan === plan.id ? (
-                                        <button
-                                            disabled
-                                            className="w-full px-4 py-2 bg-gray-200 text-gray-500 rounded-lg cursor-not-allowed"
-                                        >
-                                            Plan Actual
-                                        </button>
-                                    ) : (
-                                        <button
-                                            onClick={() => setSelectedPlan(plan.id)}
-                                            className={`w-full px-4 py-2 rounded-lg font-medium ${
-                                                selectedPlan === plan.id
-                                                    ? `bg-${plan.color}-600 text-white`
-                                                    : `bg-${plan.color}-100 text-${plan.color}-700 hover:bg-${plan.color}-200`
-                                            }`}
-                                        >
-                                            {subscription.plan === 'free' && plan.id !== 'free' ? 'Actualizar' : 'Seleccionar'}
-                                        </button>
-                                    )}
+                                    <button
+                                        onClick={() => setSelectedPlan(plan.id)}
+                                        className={`w-full px-4 py-2 rounded-lg font-medium ${
+                                            selectedPlan === plan.id
+                                                ? `bg-${plan.color}-600 text-white`
+                                                : subscription.plan === plan.id
+                                                ? `bg-gray-200 text-gray-600`
+                                                : `bg-${plan.color}-100 text-${plan.color}-700 hover:bg-${plan.color}-200`
+                                        }`}
+                                    >
+                                        {selectedPlan === plan.id 
+                                            ? (subscription.plan === plan.id ? 'Plan Actual' : 'Seleccionado')
+                                            : subscription.plan === plan.id 
+                                            ? 'Plan Actual' 
+                                            : (subscription.plan === 'free' && plan.id !== 'free' ? 'Actualizar' : 'Seleccionar')
+                                        }
+                                    </button>
                                 </div>
                                 
                                 <ul className="space-y-3">
@@ -233,9 +263,9 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                             </button>
                             <button
                                 onClick={handleUpgrade}
-                                disabled={isProcessing || selectedPlan === subscription.plan}
+                                disabled={isProcessing}
                                 className={`px-6 py-2 rounded-lg font-medium ${
-                                    selectedPlan === subscription.plan
+                                    isProcessing
                                         ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                                         : 'bg-blue-600 text-white hover:bg-blue-700'
                                 }`}
@@ -253,6 +283,16 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                     </div>
                 </div>
             </div>
+            
+            {/* Payment Gateway Modal */}
+            <PaymentGateway
+                isOpen={isPaymentModalOpen}
+                onClose={() => setIsPaymentModalOpen(false)}
+                selectedPlan={selectedPlan}
+                onPaymentSuccess={handlePaymentSuccess}
+                onPaymentError={handlePaymentError}
+                user={user}
+            />
         </div>
     );
 } 
