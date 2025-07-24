@@ -609,19 +609,17 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                 </div>
 
                 {/* Resultados de detección */}
-                {detectionResult && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold text-gray-900 text-sm">🔍 Análisis del Archivo</h3>
-                            {previewData && (
-                                <button
-                                    onClick={() => setShowPreview(!showPreview)}
-                                    className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
-                                >
-                                    {showPreview ? 'Ocultar' : 'Mostrar'} Previsualización
-                                </button>
-                            )}
-                        </div>
+                                            {detectionResult && (
+                                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                                    <h3 className="font-semibold text-gray-900 text-sm mb-3">🔍 Análisis del Archivo</h3>
+                                    {previewData && (
+                                        <button
+                                            onClick={() => setShowPreview(!showPreview)}
+                                            className="w-full mb-3 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                                        >
+                                            {showPreview ? 'Ocultar' : 'Mostrar'} Previsualización
+                                        </button>
+                                    )}
                         <div className="grid grid-cols-2 gap-2 text-xs">
                             <div><strong>Tipo:</strong> {detectionResult.type.toUpperCase()}</div>
                             <div><strong>Formato:</strong> {detectionResult.dateFormat || 'No detectado'}</div>
