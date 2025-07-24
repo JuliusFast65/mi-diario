@@ -364,11 +364,17 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                     <ul className="text-sm text-gray-400 space-y-1 mb-4">
                                         <li>• Recordatorios de actividades pendientes</li>
                                         <li>• Resúmenes semanales del diario</li>
-                                        <li>• Personalización avanzada de IA</li>
-                                        <li>• Configuración de seguridad</li>
+                                        <li>• Personalización avanzada de IA (terapeuta, asistente, frases)</li>
+                                        <li>• Configuración de seguridad (2FA, respaldo, sincronización)</li>
+                                        <li>• Metas personales y objetivos de escritura</li>
+                                        <li>• Análisis de patrones de comportamiento</li>
+                                        <li>• Chat con terapeuta IA y asistente de escritura</li>
                                     </ul>
                                     <button
-                                        onClick={onUpgradeClick}
+                                        onClick={() => {
+                                            onClose(); // Cerrar el modal de perfil
+                                            onUpgradeClick(); // Abrir el modal de suscripción
+                                        }}
                                         className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all"
                                     >
                                         Actualizar a Premium

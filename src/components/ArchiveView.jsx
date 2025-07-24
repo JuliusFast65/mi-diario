@@ -33,32 +33,34 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user }) => {
     }
 
     return (
-        <div className="p-4 md:p-6">
-            <div className="bg-gray-800 rounded-lg p-6">
+        <div className="p-2 md:p-6">
+            <div className="bg-gray-800 rounded-lg p-4 md:p-6">
                 <h3 className="text-xl font-semibold text-white mb-6">Archivo de Entradas</h3>
                 {decryptedEntries.length > 0 ? (
-                    <ul className="space-y-2">
+                    <ul className="space-y-3">
                         {decryptedEntries.map(entry => (
                             <li key={entry.id}>
                                 <div className="relative group">
                                     <button
                                         onClick={() => onSelectEntry(entry.id)}
-                                        className="w-full text-left p-3 bg-gray-700 hover:bg-indigo-900 rounded-lg transition-colors"
+                                        className="w-full text-left p-4 bg-gray-700 hover:bg-indigo-900 rounded-lg transition-colors"
                                     >
-                                        <div className="flex justify-between items-center">
-                                            <span className="font-bold text-indigo-300">{entry.id}</span>
+                                        <div className="flex justify-between items-start gap-3">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-bold text-indigo-300 text-sm md:text-base">{entry.id}</div>
+                                                <p className="text-gray-200 text-sm md:text-base mt-1 truncate">{entry.title}</p>
+                                            </div>
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setDeleteModalEntry(entry);
                                                 }}
-                                                className="p-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 text-xs"
+                                                className="flex-shrink-0 p-2 bg-gray-600 hover:bg-red-500 text-gray-300 hover:text-white rounded transition-colors text-sm"
                                                 title="Eliminar entrada"
                                             >
                                                 ✕
                                             </button>
                                         </div>
-                                        <p className="text-gray-200">{entry.title}</p>
                                     </button>
                                 </div>
                             </li>
