@@ -333,6 +333,13 @@ const DiaryApp = ({ user }) => {
                 setCurrentEntry({ text: '', tracked: {} });
             }
             
+            // Siempre limpiar selectedDate si coincide con la entrada eliminada
+            // para evitar problemas en la vista de archivo
+            if (selectedDate === date) {
+                console.log('Clearing selectedDate for deleted entry');
+                setSelectedDate(new Date().toISOString().split('T')[0]);
+            }
+            
             return true;
         } catch (error) {
             console.error('Error deleting entry:', error);
@@ -534,7 +541,13 @@ const DiaryApp = ({ user }) => {
                             getActivityPoints={getActivityPoints}
                         />
                     ) : view === 'archive' ? (
-                        <ArchiveView allEntries={allEntries} onSelectEntry={(date) => { setSelectedDate(date); setView('diary'); }} onDeleteEntry={handleDeleteEntry} user={user} />
+                        <ArchiveView 
+                            allEntries={allEntries} 
+                            onSelectEntry={(date) => { setSelectedDate(date); setView('diary'); }} 
+                            onDeleteEntry={handleDeleteEntry} 
+                            user={user}
+                            selectedDate={selectedDate}
+                        />
                     ) : (
                        <StatisticsPanel 
                            db={db} 
@@ -999,7 +1012,7 @@ const GoalConfigModal = ({ activity, onClose, onSaveGoal }) => {
 
 
 
-const APP_VERSION = 'V 1.43'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.51'; // Cambia este valor en cada iteración
 
 // --- Modal unificado para crear y editar actividades ---
 const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => {
