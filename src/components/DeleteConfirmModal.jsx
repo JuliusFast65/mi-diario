@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
 
 const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, entry }) => {
-    const [deleteActivities, setDeleteActivities] = useState(false);
-
     if (!isOpen || !entry) return null;
 
     const handleConfirm = () => {
-        onConfirm(deleteActivities);
-        setDeleteActivities(false); // Reset checkbox
+        console.log('DeleteConfirmModal handleConfirm called');
+        onConfirm();
         onClose();
     };
 
     const handleCancel = () => {
-        setDeleteActivities(false); // Reset checkbox
         onClose();
     };
 
@@ -45,17 +42,11 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, entry }) => {
                 </div>
 
                 <div className="mb-6">
-                    <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            checked={deleteActivities}
-                            onChange={(e) => setDeleteActivities(e.target.checked)}
-                            className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">
-                            Eliminar también las actividades registradas para este día
-                        </span>
-                    </label>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <p className="text-sm text-yellow-800">
+                            <strong>⚠️ Atención:</strong> Esta acción eliminará la entrada y todas las actividades registradas para este día.
+                        </p>
+                    </div>
                 </div>
 
                 <div className="flex justify-end space-x-3">

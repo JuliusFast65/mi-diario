@@ -286,29 +286,38 @@ const DiaryApp = ({ user }) => {
         return await importEntry(date, title, content, activities, conflictMode);
     };
 
-    const handleDeleteEntry = async (date, deleteActivities = false) => {
-        if (!db || !user?.uid) return false;
+    const handleDeleteEntry = async (date) => {
+        console.log('handleDeleteEntry called with:', { date });
+        if (!db || !user?.uid) {
+            console.error('Missing db or user.uid');
+            return false;
+        }
         
         try {
             const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', date);
+            console.log('Entry doc ref:', entryDocRef.path);
             
-            // Si se solicita eliminar actividades, obtener los datos antes de eliminar
-            let trackedActivities = {};
-            if (deleteActivities) {
-                const entryDoc = await getDoc(entryDocRef);
-                if (entryDoc.exists()) {
-                    trackedActivities = entryDoc.data().tracked || {};
-                }
+            // Obtener los datos de la entrada antes de eliminar
+            const entryDoc = await getDoc(entryDocRef);
+            if (!entryDoc.exists()) {
+                console.log('Entry does not exist');
+                return false;
             }
             
-            // Eliminar la entrada
-            await deleteDoc(entryDocRef);
+            const entryData = entryDoc.data();
+            const trackedActivities = entryData.tracked || {};
+            console.log('Current entry data:', { trackedActivities });
             
-            // Si se solicita eliminar actividades, también eliminar las actividades de ese día
-            if (deleteActivities && Object.keys(trackedActivities).length > 0) {
-                // Nota: Las actividades registradas están dentro de la entrada, no como documentos separados
-                // Solo necesitamos eliminar la entrada que ya contiene las actividades
-                console.log(`Eliminadas ${Object.keys(trackedActivities).length} actividades registradas junto con la entrada`);
+            // Eliminar la entrada completa (incluye actividades)
+            console.log('Deleting entry with activities...');
+            await deleteDoc(entryDocRef);
+            console.log('Entry and activities deleted successfully');
+            console.log(`Eliminadas ${Object.keys(trackedActivities).length} actividades registradas junto con la entrada`);
+            
+            // Limpiar estado local si la entrada eliminada es la que se está editando actualmente
+            if (selectedDate === date) {
+                console.log('Clearing current entry state for deleted entry');
+                setCurrentEntry({ text: '', tracked: {} });
             }
             
             return true;
