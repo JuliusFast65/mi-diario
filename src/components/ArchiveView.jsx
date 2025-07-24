@@ -41,9 +41,9 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user }) => {
                         {decryptedEntries.map(entry => (
                             <li key={entry.id}>
                                 <div className="relative group">
-                                    <button
+                                    <div
                                         onClick={() => onSelectEntry(entry.id)}
-                                        className="w-full text-left p-4 bg-gray-700 hover:bg-indigo-900 rounded-lg transition-colors"
+                                        className="w-full text-left p-4 bg-gray-700 hover:bg-indigo-900 rounded-lg transition-colors cursor-pointer"
                                     >
                                         <div className="flex justify-between items-start gap-3">
                                             <div className="flex-1 min-w-0">
@@ -61,7 +61,7 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user }) => {
                                                 ✕
                                             </button>
                                         </div>
-                                    </button>
+                                    </div>
                                 </div>
                             </li>
                         ))}

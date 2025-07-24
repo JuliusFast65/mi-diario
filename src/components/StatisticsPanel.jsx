@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { collection, query, where, documentId, getDocs } from 'firebase/firestore';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 
-const StatisticsPanel = ({ db, userId, appId, activities }) => {
+const StatisticsPanel = ({ db, userId, appId, activities, subscription, onUpgradeClick }) => {
     const [rawEntries, setRawEntries] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -71,6 +71,15 @@ const StatisticsPanel = ({ db, userId, appId, activities }) => {
     }, [db, userId, appId, startDate, endDate]);
 
     const handleBarClick = (data) => {
+        // Verificar si el usuario es premium
+        if (subscription?.plan !== 'premium') {
+            // Mostrar modal de características premium
+            if (onUpgradeClick) {
+                onUpgradeClick();
+            }
+            return;
+        }
+        
         let activityId = null;
         if (data && data.activeLabel) {
             activityId = Object.keys(activities).find(id => activities[id]?.name === data.activeLabel);
@@ -89,11 +98,11 @@ const StatisticsPanel = ({ db, userId, appId, activities }) => {
         return <ActivityDetailView activity={activities[selectedActivityId]} entries={rawEntries} onBack={() => setSelectedActivityId(null)} />;
     }
 
-    return <StatisticsOverview rawEntries={rawEntries} activities={activities} onBarClick={handleBarClick} dateRanges={dateRanges} selectedRange={selectedRange} onRangeChange={setSelectedRange} />;
+    return <StatisticsOverview rawEntries={rawEntries} activities={activities} onBarClick={handleBarClick} dateRanges={dateRanges} selectedRange={selectedRange} onRangeChange={setSelectedRange} subscription={subscription} onUpgradeClick={onUpgradeClick} />;
 };
 
 // --- StatisticsOverview ---
-const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, selectedRange, onRangeChange }) => {
+const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, selectedRange, onRangeChange, subscription, onUpgradeClick }) => {
     const [chartType, setChartType] = useState('bars');
     const [showGoals, setShowGoals] = useState(true);
 
@@ -171,7 +180,15 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                             <div 
                                 key={activity.id} 
                                 className="bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors"
-                                onClick={() => onBarClick({ activePayload: [{ payload: activity }] })}
+                                onClick={() => {
+                                    if (subscription?.plan !== 'premium') {
+                                        if (onUpgradeClick) {
+                                            onUpgradeClick();
+                                        }
+                                    } else {
+                                        onBarClick({ activePayload: [{ payload: activity }] });
+                                    }
+                                }}
                             >
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="text-white font-medium text-lg">{activity.name}</span>
@@ -201,7 +218,9 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                                             </div>
                                         </>
                                     )}
-                                    <div className="text-xs text-gray-400 mt-2">Haz clic para ver detalles</div>
+                                    <div className="text-xs text-gray-400 mt-2">
+                                        {subscription?.plan === 'premium' ? 'Haz clic para ver detalles' : '💎 Haz clic para ver detalles (Premium)'}
+                                    </div>
                                 </div>
                             </div>
                         ))}

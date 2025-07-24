@@ -536,7 +536,21 @@ const DiaryApp = ({ user }) => {
                     ) : view === 'archive' ? (
                         <ArchiveView allEntries={allEntries} onSelectEntry={(date) => { setSelectedDate(date); setView('diary'); }} onDeleteEntry={handleDeleteEntry} user={user} />
                     ) : (
-                       <StatisticsPanel db={db} userId={user.uid} appId={appId} activities={activities} />
+                       <StatisticsPanel 
+                           db={db} 
+                           userId={user.uid} 
+                           appId={appId} 
+                           activities={activities} 
+                           subscription={subscription}
+                           onUpgradeClick={() => {
+                               setPremiumFeatureInfo({
+                                   name: 'Estadísticas Detalladas',
+                                   description: 'Explora estadísticas detalladas de cada actividad con análisis por períodos, tendencias y progreso hacia metas.',
+                                   icon: '📊'
+                               });
+                               setIsPremiumFeatureModalOpen(true);
+                           }}
+                       />
                     )}
                 </main>
             </div>
