@@ -2,10 +2,12 @@ import React, { useState, useMemo, useRef } from 'react';
 
 // Importar ActivityTrackerItem desde el mismo directorio temporalmente
 import ActivityTrackerItem from './ActivityTrackerItem';
+import DeleteConfirmModal from './DeleteConfirmModal';
 
-const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenDefineActivitiesModal, onConsultAI, onWritingAssistant, onUntrackActivity, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef }) => {
+const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenDefineActivitiesModal, onConsultAI, onWritingAssistant, onUntrackActivity, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef, onDeleteEntry }) => {
     const [activeTab, setActiveTab] = useState('entrada');
     const [focusMode, setFocusMode] = useState(false);
+    const [deleteModalEntry, setDeleteModalEntry] = useState(null);
 
     const fontOptions = [
         { id: 'patrick-hand', name: 'Patrick Hand' },
@@ -174,6 +176,15 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                                 <button title="Recibe una reflexión sobre tu entrada y actividades" onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2 ai-consult-btn">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>
                                 </button>
+                                <button 
+                                    title="Eliminar entrada" 
+                                    onClick={() => setDeleteModalEntry({ id: selectedDate, title: currentEntry?.text?.split('\n')[0] || 'Sin Título' })} 
+                                    className="bg-gray-600 hover:bg-red-500 text-gray-300 hover:text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2 transition-colors"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     )}
@@ -204,6 +215,17 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                     </div>
                 </div>
             )}
+            
+            <DeleteConfirmModal
+                isOpen={!!deleteModalEntry}
+                onClose={() => setDeleteModalEntry(null)}
+                onConfirm={async () => {
+                    if (deleteModalEntry) {
+                        await onDeleteEntry(deleteModalEntry.id);
+                    }
+                }}
+                entry={deleteModalEntry}
+            />
         </div>
     );
 };
