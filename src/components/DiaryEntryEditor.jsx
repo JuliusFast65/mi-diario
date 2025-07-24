@@ -4,7 +4,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import ActivityTrackerItem from './ActivityTrackerItem';
 import DeleteConfirmModal from './DeleteConfirmModal';
 
-const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenDefineActivitiesModal, onConsultAI, onWritingAssistant, onUntrackActivity, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef, onDeleteEntry }) => {
+const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenDefineActivitiesModal, onConsultAI, onWritingAssistant, onUntrackActivity, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef, onDeleteEntry, isSimpleActivity, getActivityPoints }) => {
     const [activeTab, setActiveTab] = useState('entrada');
     const [focusMode, setFocusMode] = useState(false);
     const [deleteModalEntry, setDeleteModalEntry] = useState(null);
@@ -56,8 +56,16 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
         const activityId = e.target.value;
         if (!activityId || !activities[activityId]) { e.target.value = ""; return; }
         const activity = activities[activityId];
-        const initialValue = activity.options?.[0] || '';
-        onTrackActivity(activityId, initialValue);
+        
+        // Para actividades simples, registrar automáticamente como "Completado"
+        if (isSimpleActivity && isSimpleActivity(activityId)) {
+            onTrackActivity(activityId, 'Completado');
+        } else {
+            // Para actividades premium, usar la primera opción o valor vacío
+            const initialValue = activity.options?.[0] || '';
+            onTrackActivity(activityId, initialValue);
+        }
+        
         setLastTrackedId(activityId);
         e.target.value = "";
     };
@@ -203,6 +211,8 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                                     onValueChange={(value) => onTrackActivity(activity.id, value)}
                                     onUntrack={onUntrackActivity}
                                     autoFocus={lastTrackedId === activity.id}
+                                    isSimpleActivity={isSimpleActivity}
+                                    getActivityPoints={getActivityPoints}
                                 />
                             ))
                         ) : (<div className="text-center py-4 text-gray-400 italic">No hay actividades registradas para este día.</div>)}

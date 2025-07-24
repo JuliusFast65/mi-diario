@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, onDeleteActivity, onAddOption, onDeleteOption, onSaveGoal, onUpdatePoints, activityLimits, onUpgradeClick }) => {
+const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, onDeleteActivity, onAddOption, onDeleteOption, onSaveGoal, onUpdatePoints, activityLimits, onUpgradeClick, subscription }) => {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingActivity, setEditingActivity] = useState(null);
 
@@ -91,13 +91,14 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
                 onClose={() => setModalOpen(false)}
                 onSave={handleSave}
                 initialData={editingActivity}
+                subscription={subscription}
             />
         </>
     );
 };
 
 // Subcomponentes internos:
-const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => {
+const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData, subscription }) => {
     const isEdit = !!initialData;
     const [activityName, setActivityName] = React.useState(initialData?.name || '');
     const [options, setOptions] = React.useState(
@@ -147,33 +148,50 @@ const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => 
             alert('Por favor ingresa un nombre para la actividad.');
             return;
         }
-        const finalOptions = options.map(o => o.desc.trim()).filter(o => o !== '');
-        const points = {};
-        options.forEach(o => {
-            if (o.desc.trim()) points[o.desc.trim()] = parseInt(o.pts) || 0;
-        });
-        const activityData = {
-            ...initialData,
-            name: activityName.trim(),
-            options: finalOptions,
-            points: points,
-        };
-        if (showGoalSection && goalTarget && !isNaN(goalTarget) && goalTarget > 0) {
-            const goalData = { type: goalType, target: parseInt(goalTarget) };
-            if (goalType === 'custom') {
-                if (goalStartDate > goalEndDate) {
-                    alert('La fecha de inicio no puede ser posterior a la fecha de fin.');
-                    return;
-                }
-                goalData.startDate = goalStartDate;
-                goalData.endDate = goalEndDate;
-            }
-            activityData.goal = goalData;
+        
+        const isFreePlan = subscription?.plan === 'free';
+        
+        if (isFreePlan) {
+            // Para usuarios gratuitos, crear actividad simple
+            const activityData = {
+                ...initialData,
+                name: activityName.trim(),
+                isSimple: true,
+                options: [],
+                points: {},
+            };
+            onSave(activityData);
+            onClose();
         } else {
-            delete activityData.goal;
+            // Para usuarios premium, mantener la funcionalidad completa
+            const finalOptions = options.map(o => o.desc.trim()).filter(o => o !== '');
+            const points = {};
+            options.forEach(o => {
+                if (o.desc.trim()) points[o.desc.trim()] = parseInt(o.pts) || 0;
+            });
+            const activityData = {
+                ...initialData,
+                name: activityName.trim(),
+                options: finalOptions,
+                points: points,
+            };
+            if (showGoalSection && goalTarget && !isNaN(goalTarget) && goalTarget > 0) {
+                const goalData = { type: goalType, target: parseInt(goalTarget) };
+                if (goalType === 'custom') {
+                    if (goalStartDate > goalEndDate) {
+                        alert('La fecha de inicio no puede ser posterior a la fecha de fin.');
+                        return;
+                    }
+                    goalData.startDate = goalStartDate;
+                    goalData.endDate = goalEndDate;
+                }
+                activityData.goal = goalData;
+            } else {
+                delete activityData.goal;
+            }
+            onSave(activityData);
+            onClose();
         }
-        onSave(activityData);
-        onClose();
     };
     const handleCancel = () => {
         onClose();
@@ -205,10 +223,11 @@ const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => 
                             required
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-3">
-                            Subniveles/Opciones
-                        </label>
+                    {subscription?.plan !== 'free' && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-3">
+                                Subniveles/Opciones
+                            </label>
                         <div className="space-y-3">
                             {options.map((option, index) => (
                                 <div key={index} className="flex items-center gap-2 w-full">
@@ -253,6 +272,22 @@ const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => 
                             </button>
                         </div>
                     </div>
+                    )}
+                    
+                    {subscription?.plan === 'free' && (
+                        <div className="bg-blue-900 border border-blue-700 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-blue-300">💡</span>
+                                <span className="text-blue-200 font-medium">Actividad Simple</span>
+                            </div>
+                            <p className="text-blue-300 text-sm">
+                                En el plan gratuito, las actividades se registran como completadas o no completadas, 
+                                ganando 1 punto por cada día que las completes.
+                            </p>
+                        </div>
+                    )}
+                    
+                    {subscription?.plan !== 'free' && (
                     <div className="border-t border-gray-700 pt-4">
                         <div className="flex items-center justify-between mb-3">
                             <label className="text-sm font-medium text-gray-300">
@@ -331,6 +366,8 @@ const CreateOrEditActivityModal = ({ isOpen, onClose, onSave, initialData }) => 
                             </div>
                         )}
                     </div>
+                    )}
+                    
                     <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
                         <button
                             type="button"

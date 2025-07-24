@@ -20,6 +20,7 @@ import WritingAssistant from './components/WritingAssistant';
 import BehaviorAnalysis from './components/BehaviorAnalysis';
 import TwoFactorAuth from './components/TwoFactorAuth';
 import SubscriptionModal from './components/SubscriptionModal';
+import PremiumFeatureModal from './components/PremiumFeatureModal';
 import HamburgerMenu from './components/HamburgerMenu';
 import ActivityLimitWarning from './components/ActivityLimitWarning';
 
@@ -73,7 +74,7 @@ const DiaryApp = ({ user }) => {
     const { subscription, updateSubscription, hasFeature, isSubscriptionActive, isLoading: isLoadingSubscription } = useSubscription(db, user, appId);
     
     const { currentEntry, setCurrentEntry, isLoadingEntry, importEntry } = useDiary(db, user, appId, selectedDate);
-    const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints, getActivityLimits } = useActivities(db, user, appId, subscription);
+    const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints, getActivityLimits, isSimpleActivity, getActivityPoints } = useActivities(db, user, appId, subscription);
 
     // Manejo de errores para límite de actividades
     const handleSaveActivityWithLimit = async (activityData) => {
@@ -113,6 +114,8 @@ const DiaryApp = ({ user }) => {
     const [isBehaviorAnalysisOpen, setIsBehaviorAnalysisOpen] = useState(false);
     const [isTwoFactorAuthOpen, setIsTwoFactorAuthOpen] = useState(false);
     const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
+    const [isPremiumFeatureModalOpen, setIsPremiumFeatureModalOpen] = useState(false);
+    const [premiumFeatureInfo, setPremiumFeatureInfo] = useState({ name: '', description: '', icon: '' });
 
     const [isAIModalOpen, setAIModalOpen] = useState(false);
     const [aiResponse, setAiResponse] = useState('');
@@ -222,15 +225,22 @@ const DiaryApp = ({ user }) => {
     const handleTextChange = (e) => setCurrentEntry(prev => ({ ...prev, text: e.target.value }));
     const handleTrackActivity = (activityId, value) => {
         // Verificar límite de actividades registradas para plan gratuito
-        const currentTrackedCount = Object.keys(currentEntry?.tracked || {}).length;
+        const currentTracked = currentEntry?.tracked || {};
+        const currentTrackedCount = Object.keys(currentTracked).length;
         const isFreePlan = subscription?.plan === 'free';
         const maxTrackedActivities = isFreePlan ? 3 : Infinity;
         
         // Si ya está trackeada esta actividad, permitir cambiar el valor
-        const isAlreadyTracked = currentEntry?.tracked?.[activityId];
+        const isAlreadyTracked = currentTracked[activityId];
         
+        // Si no está trackeada y ya alcanzamos el límite, mostrar modal de características premium
         if (!isAlreadyTracked && currentTrackedCount >= maxTrackedActivities) {
-            alert(`Plan gratuito limitado a ${maxTrackedActivities} actividades registradas por día. Actualiza a Premium para registrar actividades ilimitadas.`);
+            setPremiumFeatureInfo({
+                name: 'Actividades Ilimitadas',
+                description: 'Registra todas las actividades que quieras cada día sin límites. Desbloquea el seguimiento completo de tus hábitos.',
+                icon: '📊'
+            });
+            setIsPremiumFeatureModalOpen(true);
             return;
         }
         
@@ -422,10 +432,54 @@ const DiaryApp = ({ user }) => {
                     </div>
                     <div className="flex items-center gap-4">
                         <HamburgerMenu 
-                            onTherapistChat={() => setIsTherapistChatOpen(true)}
-                            onWritingAssistant={() => setIsWritingAssistantOpen(true)}
-                            onBehaviorAnalysis={() => setIsBehaviorAnalysisOpen(true)}
-                            onTwoFactorAuth={() => setIsTwoFactorAuthOpen(true)}
+                            onTherapistChat={() => {
+                                if (subscription?.plan === 'premium') {
+                                    setIsTherapistChatOpen(true);
+                                } else {
+                                    setPremiumFeatureInfo({
+                                        name: 'Chat con Terapeuta',
+                                        description: 'Conecta con un terapeuta virtual para recibir orientación personalizada y apoyo emocional.',
+                                        icon: '💬'
+                                    });
+                                    setIsPremiumFeatureModalOpen(true);
+                                }
+                            }}
+                            onWritingAssistant={() => {
+                                if (subscription?.plan === 'premium') {
+                                    setIsWritingAssistantOpen(true);
+                                } else {
+                                    setPremiumFeatureInfo({
+                                        name: 'Asistente de Escritura',
+                                        description: 'Mejora tu escritura con sugerencias inteligentes y correcciones automáticas.',
+                                        icon: '✍️'
+                                    });
+                                    setIsPremiumFeatureModalOpen(true);
+                                }
+                            }}
+                            onBehaviorAnalysis={() => {
+                                if (subscription?.plan === 'premium') {
+                                    setIsBehaviorAnalysisOpen(true);
+                                } else {
+                                    setPremiumFeatureInfo({
+                                        name: 'Análisis de Comportamiento',
+                                        description: 'Descubre patrones en tus hábitos y comportamientos para mejorar tu bienestar.',
+                                        icon: '📊'
+                                    });
+                                    setIsPremiumFeatureModalOpen(true);
+                                }
+                            }}
+                            onTwoFactorAuth={() => {
+                                if (subscription?.plan === 'premium') {
+                                    setIsTwoFactorAuthOpen(true);
+                                } else {
+                                    setPremiumFeatureInfo({
+                                        name: 'Autenticación 2FA',
+                                        description: 'Protege tu diario con autenticación de dos factores para mayor seguridad.',
+                                        icon: '🔒'
+                                    });
+                                    setIsPremiumFeatureModalOpen(true);
+                                }
+                            }}
                             onExport={() => setExportModalOpen(true)}
                             onImport={() => setImportModalOpen(true)}
                             onInspirationalMessage={handleInspirationalMessage}
@@ -460,7 +514,25 @@ const DiaryApp = ({ user }) => {
 
                 <main className="flex-grow flex flex-col">
                     {view === 'diary' ? (
-                        <DiaryEntryEditor currentEntry={currentEntry} onTextChange={handleTextChange} activities={activities} onTrackActivity={handleTrackActivity} onAddOption={handleAddOptionToActivity} onOpenDefineActivitiesModal={() => setDefineActivitiesModalOpen(true)} onConsultAI={handleConsultAI} onWritingAssistant={handleWritingAssistant} onUntrackActivity={handleUntrackActivity} userPrefs={userPrefs} onUpdateUserPrefs={handleUpdateUserPrefs} selectedDate={selectedDate} onDateChange={setSelectedDate} textareaRef={textareaRef} onDeleteEntry={handleDeleteEntry} />
+                        <DiaryEntryEditor 
+                            currentEntry={currentEntry} 
+                            onTextChange={handleTextChange} 
+                            activities={activities} 
+                            onTrackActivity={handleTrackActivity} 
+                            onAddOption={handleAddOptionToActivity} 
+                            onOpenDefineActivitiesModal={() => setDefineActivitiesModalOpen(true)} 
+                            onConsultAI={handleConsultAI} 
+                            onWritingAssistant={handleWritingAssistant} 
+                            onUntrackActivity={handleUntrackActivity} 
+                            userPrefs={userPrefs} 
+                            onUpdateUserPrefs={handleUpdateUserPrefs} 
+                            selectedDate={selectedDate} 
+                            onDateChange={setSelectedDate} 
+                            textareaRef={textareaRef} 
+                            onDeleteEntry={handleDeleteEntry}
+                            isSimpleActivity={isSimpleActivity}
+                            getActivityPoints={getActivityPoints}
+                        />
                     ) : view === 'archive' ? (
                         <ArchiveView allEntries={allEntries} onSelectEntry={(date) => { setSelectedDate(date); setView('diary'); }} onDeleteEntry={handleDeleteEntry} user={user} />
                     ) : (
@@ -489,6 +561,7 @@ const DiaryApp = ({ user }) => {
                 onSaveGoal={handleSaveGoal} 
                 onUpdatePoints={handleUpdatePoints} 
                 activityLimits={getActivityLimits()}
+                subscription={subscription}
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
             />
             <ExportModal isOpen={isExportModalOpen} onClose={() => setExportModalOpen(false)} onExport={handleExportEntries} />
@@ -540,6 +613,14 @@ const DiaryApp = ({ user }) => {
                 user={user}
                 subscription={subscription}
                 updateSubscription={updateSubscription}
+            />
+            <PremiumFeatureModal 
+                isOpen={isPremiumFeatureModalOpen} 
+                onClose={() => setIsPremiumFeatureModalOpen(false)} 
+                onUpgrade={() => setIsSubscriptionModalOpen(true)}
+                featureName={premiumFeatureInfo.name}
+                featureDescription={premiumFeatureInfo.description}
+                featureIcon={premiumFeatureInfo.icon}
             />
             
             <Onboarding 
