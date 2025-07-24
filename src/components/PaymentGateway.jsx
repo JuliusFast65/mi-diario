@@ -73,13 +73,18 @@ export default function PaymentGateway({
                 name: 'Premium',
                 price: 4.99,
                 period: 'mes',
-                features: ['Actividades ilimitadas', 'Exportación avanzada', 'Temas personalizados', 'Estadísticas detalladas']
-            },
-            pro: {
-                name: 'Pro',
-                price: 9.99,
-                period: 'mes',
-                features: ['Todo de Premium', 'Chat con terapeuta', 'Asistente de escritura', 'Análisis de comportamiento']
+                features: [
+                    'Actividades ilimitadas',
+                    'Exportación avanzada',
+                    'Temas personalizados',
+                    'Estadísticas detalladas',
+                    'Chat con terapeuta virtual',
+                    'Asistente de escritura con IA',
+                    'Análisis de patrones de comportamiento',
+                    'Autenticación de dos factores',
+                    'Soporte prioritario',
+                    'Acceso anticipado a nuevas funciones'
+                ]
             }
         };
         return plans[planId] || plans.premium;

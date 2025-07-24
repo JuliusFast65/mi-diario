@@ -9,12 +9,6 @@ export const PAYMENT_CONFIG = {
                 amount: 499, // En centavos
                 currency: 'usd',
                 interval: 'month'
-            },
-            pro: {
-                priceId: 'price_pro_monthly', // ID del precio en Stripe
-                amount: 999, // En centavos
-                currency: 'usd',
-                interval: 'month'
             }
         }
     },
@@ -61,8 +55,7 @@ export const handlePaymentSuccess = async (sessionId, user, planId) => {
 // Función para obtener características del plan
 export const getPlanFeatures = (planId) => {
     const features = {
-        premium: ['basic', 'unlimited_activities', 'advanced_export', 'custom_themes', 'detailed_stats', 'auto_backup'],
-        pro: ['basic', 'unlimited_activities', 'advanced_export', 'custom_themes', 'detailed_stats', 'auto_backup', 'therapy_chat', 'writing_assistant', 'behavior_analysis', 'two_factor_auth', 'priority_support', 'early_access']
+        premium: ['basic', 'unlimited_activities', 'advanced_export', 'custom_themes', 'detailed_stats', 'auto_backup', 'therapy_chat', 'writing_assistant', 'behavior_analysis', 'two_factor_auth', 'priority_support', 'early_access']
     };
     return features[planId] || features.premium;
 }; 

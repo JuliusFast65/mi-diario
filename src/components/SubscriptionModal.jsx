@@ -43,18 +43,7 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                 'Exportación avanzada (PDF, Word)',
                 'Temas personalizados',
                 'Estadísticas detalladas',
-                'Respaldo automático'
-            ],
-            color: 'blue',
-            popular: true
-        },
-        {
-            id: 'pro',
-            name: 'Pro',
-            price: 9.99,
-            period: 'por mes',
-            features: [
-                'Todo del plan Premium',
+                'Respaldo automático',
                 'Chat con terapeuta virtual',
                 'Asistente de escritura con IA',
                 'Análisis de patrones de comportamiento',
@@ -62,8 +51,8 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                 'Soporte prioritario',
                 'Acceso anticipado a nuevas funciones'
             ],
-            color: 'purple',
-            popular: false
+            color: 'blue',
+            popular: true
         }
     ];
 
@@ -180,7 +169,7 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
 
                 {/* Plans */}
                 <div className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
                         {plans.map((plan) => (
                             <div
                                 key={plan.id}
