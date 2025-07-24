@@ -8,7 +8,6 @@ const SubscriptionStatus = ({ subscription, isSubscriptionActive, onUpgradeClick
         switch (plan) {
             case 'free': return 'Gratuito';
             case 'premium': return 'Premium';
-            case 'pro': return 'Pro';
             default: return 'Gratuito';
         }
     };
@@ -17,7 +16,6 @@ const SubscriptionStatus = ({ subscription, isSubscriptionActive, onUpgradeClick
         switch (plan) {
             case 'free': return 'text-gray-400';
             case 'premium': return 'text-yellow-400';
-            case 'pro': return 'text-purple-400';
             default: return 'text-gray-400';
         }
     };
@@ -26,7 +24,6 @@ const SubscriptionStatus = ({ subscription, isSubscriptionActive, onUpgradeClick
         switch (plan) {
             case 'free': return '⭐';
             case 'premium': return '💎';
-            case 'pro': return '👑';
             default: return '⭐';
         }
     };

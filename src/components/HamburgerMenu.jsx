@@ -41,7 +41,6 @@ export default function HamburgerMenu({
         switch (plan) {
             case 'free': return 'text-gray-400';
             case 'premium': return 'text-yellow-400';
-            case 'pro': return 'text-purple-400';
             default: return 'text-gray-400';
         }
     };
@@ -50,7 +49,6 @@ export default function HamburgerMenu({
         switch (plan) {
             case 'free': return '⭐';
             case 'premium': return '💎';
-            case 'pro': return '👑';
             default: return '⭐';
         }
     };
@@ -88,7 +86,7 @@ export default function HamburgerMenu({
                         {/* Estado de suscripción */}
                         <div className="mt-2 flex items-center gap-2">
                             <span className={`text-sm ${getPlanColor(subscription.plan)}`}>
-                                {getPlanIcon(subscription.plan)} {subscription.plan === 'free' ? 'Gratuito' : subscription.plan === 'premium' ? 'Premium' : 'Pro'}
+                                {getPlanIcon(subscription.plan)} {subscription.plan === 'free' ? 'Gratuito' : 'Premium'}
                             </span>
                             <button
                                 onClick={() => handleMenuItemClick(onSubscriptionModal)}

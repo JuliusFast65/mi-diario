@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PremiumFeatureModal from './PremiumFeatureModal';
 
 export default function TwoFactorAuth({ isOpen, onClose, user, onUpgradeClick, hasFeature }) {
     const [isEnabled, setIsEnabled] = useState(false);
@@ -110,31 +111,14 @@ export default function TwoFactorAuth({ isOpen, onClose, user, onUpgradeClick, h
 
     if (!hasFeature('two_factor')) {
         return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 max-w-md mx-4">
-                    <h2 className="text-xl font-semibold mb-4">Característica Premium</h2>
-                    <p className="text-gray-600 mb-4">
-                        La autenticación de dos factores es una característica exclusiva para usuarios Pro.
-                    </p>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={onClose}
-                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-                        >
-                            Cerrar
-                        </button>
-                        <button
-                            onClick={() => {
-                                onClose();
-                                if (onUpgradeClick) onUpgradeClick();
-                            }}
-                            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                        >
-                            Actualizar a Pro
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <PremiumFeatureModal
+                isOpen={isOpen}
+                onClose={onClose}
+                onUpgrade={onUpgradeClick}
+                featureName="Autenticación de Dos Factores"
+                featureDescription="Protege tu cuenta con una capa adicional de seguridad usando códigos de verificación y respaldo."
+                featureIcon="🔒"
+            />
         );
     }
 

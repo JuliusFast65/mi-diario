@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import PremiumFeatureModal from './PremiumFeatureModal';
 
 export default function TherapistChat({ isOpen, onClose, db, user, onUpgradeClick, hasFeature }) {
     const [messages, setMessages] = useState([]);
@@ -98,31 +99,14 @@ export default function TherapistChat({ isOpen, onClose, db, user, onUpgradeClic
 
     if (!hasFeature('therapy_chat')) {
         return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 max-w-md mx-4">
-                    <h2 className="text-xl font-semibold mb-4">Característica Premium</h2>
-                    <p className="text-gray-600 mb-4">
-                        El chat con terapeuta es una característica exclusiva para usuarios Premium y Pro.
-                    </p>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={onClose}
-                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-                        >
-                            Cerrar
-                        </button>
-                        <button
-                            onClick={() => {
-                                onClose();
-                                if (onUpgradeClick) onUpgradeClick();
-                            }}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                        >
-                            Actualizar Plan
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <PremiumFeatureModal
+                isOpen={isOpen}
+                onClose={onClose}
+                onUpgrade={onUpgradeClick}
+                featureName="Chat con Terapeuta"
+                featureDescription="Conecta con un terapeuta virtual disponible 24/7 para recibir apoyo emocional y reflexiones profesionales sobre tus pensamientos."
+                featureIcon="👩‍⚕️"
+            />
         );
     }
 

@@ -55,7 +55,29 @@ export const handlePaymentSuccess = async (sessionId, user, planId) => {
 // Función para obtener características del plan
 export const getPlanFeatures = (planId) => {
     const features = {
-        premium: ['basic', 'unlimited_activities', 'advanced_export', 'custom_themes', 'detailed_stats', 'auto_backup', 'therapy_chat', 'writing_assistant', 'behavior_analysis', 'two_factor_auth', 'priority_support', 'early_access']
+        premium: ['basic', 'unlimited_activities', 'advanced_export', 'custom_themes', 'detailed_stats', 'auto_backup', 'therapy_chat', 'writing_assistant', 'behavior_analysis', 'two_factor', 'priority_support', 'early_access']
     };
     return features[planId] || features.premium;
+};
+
+// Función para actualizar manualmente la suscripción (para desarrollo/testing)
+export const updateSubscriptionManually = async (db, user, appId, plan = 'premium') => {
+    if (!db || !user?.uid) {
+        throw new Error('No se puede actualizar la suscripción: faltan credenciales');
+    }
+    
+    const { doc, setDoc } = await import('firebase/firestore');
+    const subscriptionRef = doc(db, 'artifacts', appId, 'users', user.uid, 'subscription', 'current');
+    
+    const newSubscription = {
+        isPremium: plan === 'premium',
+        plan: plan,
+        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 año
+        features: getPlanFeatures(plan),
+        updatedAt: new Date()
+    };
+    
+    await setDoc(subscriptionRef, newSubscription, { merge: true });
+    console.log('Suscripción actualizada manualmente:', newSubscription);
+    return newSubscription;
 }; 
