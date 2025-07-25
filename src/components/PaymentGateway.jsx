@@ -35,8 +35,8 @@ export default function PaymentGateway({
     };
 
     const handlePayment = async () => {
-        if (!stripe || !user) {
-            setError('Sistema de pagos no disponible');
+        if (!user) {
+            setError('Usuario no autenticado');
             return;
         }
 
@@ -44,17 +44,17 @@ export default function PaymentGateway({
         setError(null);
 
         try {
+            console.log('Iniciando simulación de pago para plan:', selectedPlan);
+            
             // En desarrollo, usamos una simulación
             const { sessionId, url } = await createMockCheckoutSession(selectedPlan, user);
             
             // Simular redirección a Stripe Checkout
-            console.log('Redirigiendo a:', url);
+            console.log('Simulando redirección a:', url);
             
-            // En producción, esto sería:
-            // const { error } = await stripe.redirectToCheckout({ sessionId });
-            
-            // Por ahora, simulamos el éxito del pago
+            // Simular el éxito del pago después de 2 segundos
             setTimeout(() => {
+                console.log('Pago simulado exitoso');
                 onPaymentSuccess?.();
             }, 2000);
 

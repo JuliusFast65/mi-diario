@@ -92,6 +92,7 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
     };
 
     const handlePaymentSuccess = async () => {
+        console.log('handlePaymentSuccess llamado para plan:', selectedPlan);
         setIsProcessing(true);
         try {
             const newSubscription = {
@@ -102,7 +103,10 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                 updatedAt: new Date()
             };
             
+            console.log('Actualizando suscripción con:', newSubscription);
             await updateSubscription(newSubscription);
+            console.log('Suscripción actualizada exitosamente');
+            
             setIsPaymentModalOpen(false);
             onClose();
             alert(`¡Plan ${selectedPlan} activado exitosamente!`);
@@ -269,6 +273,17 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                                     selectedPlan === subscription.plan ? 'Plan Actual' : 'Confirmar Actualización'
                                 )}
                             </button>
+                            {/* Botón de prueba para desarrollo */}
+                            {import.meta.env.DEV && selectedPlan === 'premium' && (
+                                <button
+                                    onClick={handlePaymentSuccess}
+                                    disabled={isProcessing}
+                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                                    title="Botón de prueba para desarrollo"
+                                >
+                                    🧪 Activar Premium
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
