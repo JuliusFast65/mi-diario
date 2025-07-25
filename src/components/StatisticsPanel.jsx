@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { collection, query, where, documentId, getDocs } from 'firebase/firestore';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 
-const StatisticsPanel = ({ db, userId, appId, activities, subscription, onUpgradeClick }) => {
+const StatisticsPanel = ({ db, userId, appId, activities, subscription, onUpgradeClick, currentTheme }) => {
     const [rawEntries, setRawEntries] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -91,18 +91,45 @@ const StatisticsPanel = ({ db, userId, appId, activities, subscription, onUpgrad
         }
     };
 
-    if (isLoading) return <div className="p-8 text-center text-gray-400">Cargando estadísticas...</div>;
-    if (error) return <div className="p-8 text-center text-red-400">{error}</div>;
+    if (isLoading) return (
+        <div className={`p-8 text-center ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+            Cargando estadísticas...
+        </div>
+    );
+    if (error) return (
+        <div className={`p-8 text-center ${currentTheme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
+            {error}
+        </div>
+    );
 
     if (selectedActivityId) {
-        return <ActivityDetailView activity={activities[selectedActivityId]} entries={rawEntries} onBack={() => setSelectedActivityId(null)} />;
+        return (
+            <ActivityDetailView 
+                activity={activities[selectedActivityId]} 
+                entries={rawEntries} 
+                onBack={() => setSelectedActivityId(null)}
+                currentTheme={currentTheme}
+            />
+        );
     }
 
-    return <StatisticsOverview rawEntries={rawEntries} activities={activities} onBarClick={handleBarClick} dateRanges={dateRanges} selectedRange={selectedRange} onRangeChange={setSelectedRange} subscription={subscription} onUpgradeClick={onUpgradeClick} />;
+    return (
+        <StatisticsOverview 
+            rawEntries={rawEntries} 
+            activities={activities} 
+            onBarClick={handleBarClick} 
+            dateRanges={dateRanges} 
+            selectedRange={selectedRange} 
+            onRangeChange={setSelectedRange} 
+            subscription={subscription} 
+            onUpgradeClick={onUpgradeClick}
+            currentTheme={currentTheme}
+        />
+    );
 };
 
 // --- StatisticsOverview ---
-const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, selectedRange, onRangeChange, subscription, onUpgradeClick }) => {
+const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, selectedRange, onRangeChange, subscription, onUpgradeClick, currentTheme }) => {
     const [chartType, setChartType] = useState('bars');
     const [showGoals, setShowGoals] = useState(true);
 
@@ -141,12 +168,12 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
         if (active && payload && payload.length) {
             const data = payload[0].payload;
             return (
-                <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg">
-                    <p className="text-white font-semibold">{data.name}</p>
-                    <p className="text-gray-300">Puntos totales: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
-                    <p className="text-gray-300">Días registrados: <span className="text-blue-400">{data.daysCount}</span></p>
+                <div className={`${currentTheme === 'dark' ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'} border rounded-lg p-3 shadow-lg`}>
+                    <p className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{data.name}</p>
+                    <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Puntos totales: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
+                    <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Días registrados: <span className="text-blue-400">{data.daysCount}</span></p>
                     {data.goal && (
-                        <div className="mt-2 pt-2 border-t border-gray-600">
+                        <div className={`mt-2 pt-2 border-t ${currentTheme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`}>
                             <p className="text-yellow-300">Meta: {data.goal.target} puntos</p>
                             <p className={`font-bold ${data.isGoalMet ? 'text-green-400' : 'text-red-400'}`}>{data.completionPercentage}% cumplido{data.isGoalMet ? ' ✅' : ' ❌'}</p>
                         </div>
@@ -159,14 +186,16 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
 
     return (
         <div className="p-4 md:p-6 space-y-6">
-            <div className="bg-gray-800 rounded-lg p-6">
+            <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                 <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-                    <h3 className="text-xl font-semibold text-white">Desempeño de Actividades</h3>
+                    <h3 className={`text-xl font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        Desempeño de Actividades
+                    </h3>
                     <div className="flex items-center gap-4">
                         <select
                             value={selectedRange}
                             onChange={(e) => onRangeChange(e.target.value)}
-                            className="bg-gray-700 text-white rounded-md p-2 border border-gray-600"
+                            className={`${currentTheme === 'dark' ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'} rounded-md p-2 border`}
                         >
                             {Object.entries(dateRanges).map(([key, value]) => (
                                 <option key={key} value={key}>{value.name}</option>
@@ -179,7 +208,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                         {overviewData.map(activity => (
                             <div 
                                 key={activity.id} 
-                                className="bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors"
+                                className={`${currentTheme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'} p-4 rounded-lg cursor-pointer transition-colors border ${currentTheme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}
                                 onClick={() => {
                                     if (subscription?.plan !== 'premium') {
                                         if (onUpgradeClick) {
@@ -191,12 +220,12 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                                 }}
                             >
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="text-white font-medium text-lg">{activity.name}</span>
+                                    <span className={`font-medium text-lg ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{activity.name}</span>
                                     {activity.goal && (
                                         <span className={`text-sm font-bold ${activity.isGoalMet ? 'text-green-400' : 'text-red-400'}`}>{activity.isGoalMet ? '✅' : '❌'}</span>
                                     )}
                                 </div>
-                                <div className="text-sm text-gray-300 space-y-2">
+                                <div className={`text-sm space-y-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                                     <div className="flex justify-between">
                                         <span>Puntos:</span>
                                         <span className="text-green-400 font-bold">{activity.totalPoints}</span>
@@ -208,7 +237,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                                                 <span className="text-yellow-400">{activity.goal.target}</span>
                                             </div>
                                             <div className="mt-2">
-                                                <div className="w-full bg-gray-600 rounded-full h-2">
+                                                <div className={`w-full rounded-full h-2 ${currentTheme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'}`}>
                                                     <div 
                                                         className={`h-2 rounded-full ${activity.isGoalMet ? 'bg-green-500' : 'bg-red-500'}`}
                                                         style={{ width: `${Math.min(activity.completionPercentage, 100)}%` }}
@@ -218,7 +247,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                                             </div>
                                         </>
                                     )}
-                                    <div className="text-xs text-gray-400 mt-2">
+                                    <div className={`text-xs mt-2 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                                         {subscription?.plan === 'premium' ? 'Haz clic para ver detalles' : '💎 Haz clic para ver detalles (Premium)'}
                                     </div>
                                 </div>
@@ -226,7 +255,9 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                         ))}
                     </div>
                 ) : (
-                    <p className="text-center text-gray-400 italic">No hay datos para el rango de fechas seleccionado.</p>
+                    <p className={`text-center italic ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        No hay datos para el rango de fechas seleccionado.
+                    </p>
                 )}
             </div>
         </div>
@@ -234,7 +265,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
 };
 
 // --- ActivityDetailView ---
-const ActivityDetailView = ({ activity, entries, onBack }) => {
+const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
     const [timeGroup, setTimeGroup] = useState('weekly');
     const [selectedPeriod, setSelectedPeriod] = useState(null);
 
@@ -298,11 +329,10 @@ const ActivityDetailView = ({ activity, entries, onBack }) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload;
             return (
-                <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg">
-                    <p className="text-white font-semibold">{data.timePeriod}</p>
-                    <p className="text-gray-300">Puntos: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
-                    <p className="text-gray-300">Días: <span className="text-blue-400">{data.daysCount}</span></p>
-                    <p className="text-gray-300">Actividades: <span className="text-purple-400">{data.activities.length}</span></p>
+                <div className={`${currentTheme === 'dark' ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'} border rounded-lg p-3 shadow-lg`}>
+                    <p className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{data.timePeriod}</p>
+                    <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Puntos: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
+                    <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Días: <span className="text-blue-400">{data.daysCount}</span></p>
                 </div>
             );
         }
@@ -310,14 +340,8 @@ const ActivityDetailView = ({ activity, entries, onBack }) => {
     };
 
     const handlePeriodClick = (data) => {
-        let period = null;
         if (data && data.activePayload && data.activePayload[0]) {
-            period = data.activePayload[0].payload;
-        } else if (data && data.activeLabel) {
-            period = processedData.find(p => p.timePeriod === data.activeLabel);
-        }
-        if (period) {
-            setSelectedPeriod(period);
+            setSelectedPeriod(data.activePayload[0].payload);
         }
     };
 
@@ -325,41 +349,39 @@ const ActivityDetailView = ({ activity, entries, onBack }) => {
         return (
             <ActivityPeriodDetail 
                 period={selectedPeriod} 
-                activity={activity}
+                activity={activity} 
                 onBack={() => setSelectedPeriod(null)}
+                currentTheme={currentTheme}
             />
         );
     }
+
     return (
         <div className="p-4 md:p-6">
             <button onClick={onBack} className="text-indigo-400 hover:text-indigo-300 mb-4 inline-flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                Volver a todas las actividades
+                Volver al resumen
             </button>
-            <div className="bg-gray-800 rounded-lg p-6">
-                <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-                    <h3 className="text-xl font-semibold text-white">Análisis de: {activity.name}</h3>
-                    <div className="flex items-center gap-2 bg-gray-700/50 p-1 rounded-lg">
-                        <button onClick={() => setTimeGroup('weekly')} className={`px-3 py-1 text-sm font-medium rounded-md ${timeGroup === 'weekly' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-600'}`}>Semanal</button>
-                        <button onClick={() => setTimeGroup('monthly')} className={`px-3 py-1 text-sm font-medium rounded-md ${timeGroup === 'monthly' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-600'}`}>Mensual</button>
-                    </div>
-                </div>
-                <div className="mb-6 p-4 bg-gray-700 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="text-center">
+            <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className="mb-6">
+                    <h3 className={`text-xl font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        Análisis Detallado: {activity.name}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div className={`text-center p-4 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <div className="text-2xl font-bold text-green-400">{totalPoints}</div>
-                            <div className="text-sm text-gray-300">Puntos Totales</div>
+                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Puntos Totales</div>
                         </div>
-                        <div className="text-center">
+                        <div className={`text-center p-4 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <div className="text-2xl font-bold text-blue-400">{processedData.length}</div>
-                            <div className="text-sm text-gray-300">{timeGroup === 'weekly' ? 'Semanas' : 'Meses'}</div>
+                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{timeGroup === 'weekly' ? 'Semanas' : 'Meses'}</div>
                         </div>
                         {calculateGoalForPeriod && (
                             <div className="text-center">
                                 <div className="text-2xl font-bold text-yellow-400">{calculateGoalForPeriod}</div>
-                                <div className="text-sm text-gray-300">Meta del Periodo</div>
+                                <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Meta del Periodo</div>
                                 <div className={`text-sm font-bold ${goalMet ? 'text-green-400' : 'text-red-400'}`}>{completionPercentage}% {goalMet ? '✅' : '❌'}</div>
                             </div>
                         )}
@@ -370,11 +392,11 @@ const ActivityDetailView = ({ activity, entries, onBack }) => {
                         <div style={{ width: '100%', height: 400 }}>
                             <ResponsiveContainer>
                                 <BarChart data={processedData} margin={{top: 20, right: 30, left: 20, bottom: 5}} onClick={handlePeriodClick}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#4A5568"/>
-                                    <XAxis dataKey="timePeriod" stroke="#A0AEC0" tick={{fontSize: 12}}/>
-                                    <YAxis stroke="#A0AEC0" allowDecimals={false}/>
+                                    <CartesianGrid strokeDasharray="3 3" stroke={currentTheme === 'dark' ? '#4A5568' : '#E2E8F0'}/>
+                                    <XAxis dataKey="timePeriod" stroke={currentTheme === 'dark' ? '#A0AEC0' : '#4A5568'} tick={{fontSize: 12}}/>
+                                    <YAxis stroke={currentTheme === 'dark' ? '#A0AEC0' : '#4A5568'} allowDecimals={false}/>
                                     <Tooltip content={<CustomTooltip />} />
-                                    <Legend wrapperStyle={{ color: '#E2E8F0' }} />
+                                    <Legend wrapperStyle={{ color: currentTheme === 'dark' ? '#E2E8F0' : '#2D3748' }} />
                                     <Bar 
                                         dataKey="totalPoints" 
                                         name="Puntos Totales" 
@@ -396,7 +418,9 @@ const ActivityDetailView = ({ activity, entries, onBack }) => {
                         </div>
                     </div>
                 ) : (
-                    <p className="text-center text-gray-400 italic">No hay datos de esta actividad para el rango y período seleccionados.</p>
+                    <p className={`text-center italic ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        No hay datos de esta actividad para el rango y período seleccionados.
+                    </p>
                 )}
             </div>
         </div>
@@ -404,7 +428,7 @@ const ActivityDetailView = ({ activity, entries, onBack }) => {
 };
 
 // --- ActivityPeriodDetail ---
-const ActivityPeriodDetail = ({ period, activity, onBack }) => {
+const ActivityPeriodDetail = ({ period, activity, onBack, currentTheme }) => {
     const totalPoints = period.activities.reduce((sum, act) => sum + act.points, 0);
     return (
         <div className="p-4 md:p-6">
@@ -414,32 +438,36 @@ const ActivityPeriodDetail = ({ period, activity, onBack }) => {
                 </svg>
                 Volver al análisis de {activity.name}
             </button>
-            <div className="bg-gray-800 rounded-lg p-6">
+            <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                 <div className="mb-6">
-                    <h3 className="text-xl font-semibold text-white mb-2">Detalle del Periodo: {period.timePeriod}</h3>
+                    <h3 className={`text-xl font-semibold mb-2 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        Detalle del Periodo: {period.timePeriod}
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="text-center p-3 bg-gray-700 rounded-lg">
+                        <div className={`text-center p-3 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <div className="text-2xl font-bold text-green-400">{totalPoints}</div>
-                            <div className="text-sm text-gray-300">Puntos Totales</div>
+                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Puntos Totales</div>
                         </div>
-                        <div className="text-center p-3 bg-gray-700 rounded-lg">
+                        <div className={`text-center p-3 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <div className="text-2xl font-bold text-blue-400">{period.daysCount}</div>
-                            <div className="text-sm text-gray-300">Días Registrados</div>
+                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Días Registrados</div>
                         </div>
-                        <div className="text-center p-3 bg-gray-700 rounded-lg">
+                        <div className={`text-center p-3 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <div className="text-2xl font-bold text-purple-400">{period.activities.length}</div>
-                            <div className="text-sm text-gray-300">Actividades</div>
+                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Actividades</div>
                         </div>
                     </div>
                 </div>
                 <div>
-                    <h4 className="text-lg font-semibold text-white mb-4">Actividades del Periodo</h4>
+                    <h4 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        Actividades del Periodo
+                    </h4>
                     <div className="space-y-3">
                         {[...period.activities].sort((a, b) => a.date.localeCompare(b.date)).map((act, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                            <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                                 <div className="flex items-center gap-4">
-                                    <div className="text-sm text-gray-400 w-20">{act.date}</div>
-                                    <div className="text-white font-medium">{act.option}</div>
+                                    <div className={`text-sm w-20 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{act.date}</div>
+                                    <div className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{act.option}</div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="text-green-400 font-bold">{act.points} pts</span>

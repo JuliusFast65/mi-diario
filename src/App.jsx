@@ -564,6 +564,7 @@ const DiaryApp = ({ user }) => {
                             onDeleteEntry={handleDeleteEntry} 
                             user={user}
                             selectedDate={selectedDate}
+                            currentTheme={currentTheme}
                         />
                     ) : (
                        <StatisticsPanel 
@@ -580,6 +581,7 @@ const DiaryApp = ({ user }) => {
                                });
                                setIsPremiumFeatureModalOpen(true);
                            }}
+                           currentTheme={currentTheme}
                        />
                     )}
                 </main>

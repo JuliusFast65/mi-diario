@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { decryptText } from '../utils/crypto';
 import DeleteConfirmModal from './DeleteConfirmModal';
 
-const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedDate }) => {
+const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedDate, currentTheme }) => {
     const [deleteModalEntry, setDeleteModalEntry] = useState(null);
     const [decryptedEntries, setDecryptedEntries] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [focusAfterDelete, setFocusAfterDelete] = useState(null);
     const [focusOnLoad, setFocusOnLoad] = useState(null);
+
+
 
     useEffect(() => {
         const decryptTitles = async () => {
@@ -87,13 +89,19 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedD
     }, [selectedDate, decryptedEntries, isLoading, focusAfterDelete]);
 
     if (isLoading) {
-        return <div className="p-8 text-center text-gray-400">Cargando archivo...</div>;
+        return (
+            <div className={`p-8 text-center ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                Cargando archivo...
+            </div>
+        );
     }
 
     return (
         <div className="p-2 md:p-6">
-            <div className="bg-gray-800 rounded-lg p-4 md:p-6">
-                <h3 className="text-xl font-semibold text-white mb-6">Archivo de Entradas</h3>
+            <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 md:p-6 border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'} shadow-lg`}>
+                <h3 className={`text-xl font-semibold mb-6 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    Archivo de Entradas
+                </h3>
                 {decryptedEntries.length > 0 ? (
                     <ul className="space-y-3">
                         {decryptedEntries.map(entry => (
@@ -101,7 +109,11 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedD
                                 <div className="relative group">
                                     <div
                                         onClick={() => onSelectEntry(entry.id)}
-                                        className="w-full text-left p-4 bg-gray-700 hover:bg-indigo-900 rounded-lg transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-indigo-800"
+                                        className={`w-full text-left p-4 rounded-lg transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-md ${
+                                            currentTheme === 'dark' 
+                                                ? 'bg-gray-700 hover:bg-indigo-900 focus:bg-indigo-800 border border-gray-600' 
+                                                : 'bg-gray-50 hover:bg-indigo-50 focus:bg-indigo-100 border border-gray-200'
+                                        }`}
                                         data-entry-id={entry.id}
                                         tabIndex={0}
                                         onKeyDown={(e) => {
@@ -113,15 +125,23 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedD
                                     >
                                         <div className="flex justify-between items-start gap-3">
                                             <div className="flex-1 min-w-0">
-                                                <div className="font-bold text-indigo-300 text-sm md:text-base">{entry.id}</div>
-                                                <p className="text-gray-200 text-sm md:text-base mt-1 truncate">{entry.title}</p>
+                                                <div className={`font-bold text-sm md:text-base ${currentTheme === 'dark' ? 'text-indigo-300' : 'text-indigo-600'}`}>
+                                                    {entry.id}
+                                                </div>
+                                                <p className={`text-sm md:text-base mt-1 truncate ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>
+                                                    {entry.title}
+                                                </p>
                                             </div>
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setDeleteModalEntry(entry);
                                                 }}
-                                                className="flex-shrink-0 p-2 bg-gray-600 hover:bg-red-500 text-gray-300 hover:text-white rounded transition-colors text-sm"
+                                                className={`flex-shrink-0 p-2 rounded transition-colors text-sm ${
+                                                    currentTheme === 'dark'
+                                                        ? 'bg-gray-600 hover:bg-red-500 text-gray-300 hover:text-white'
+                                                        : 'bg-gray-200 hover:bg-red-500 text-gray-600 hover:text-white'
+                                                }`}
                                                 title="Eliminar entrada"
                                             >
                                                 ✕
@@ -133,7 +153,9 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedD
                         ))}
                     </ul>
                 ) : (
-                    <p className="text-center text-gray-400 italic">Aún no has escrito ninguna entrada.</p>
+                    <p className={`text-center italic ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Aún no has escrito ninguna entrada.
+                    </p>
                 )}
             </div>
             
@@ -177,6 +199,7 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedD
                     }
                 }}
                 entry={deleteModalEntry}
+                currentTheme={currentTheme}
             />
         </div>
     );
