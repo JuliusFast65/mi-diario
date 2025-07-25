@@ -52,7 +52,7 @@ const LoginScreen = ({ onGoogleSignIn }) => (
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Introspect</h1>
                 <p className="text-gray-300 text-lg md:text-xl mb-2">Tu Diario Personal</p>
                 <p className="text-gray-300 text-lg md:text-xl">Guarda tus pensamientos y sigue tus hábitos con propósito.</p>
-                <span className="block mt-4 text-xs text-gray-400">Versión {APP_VERSION}</span>
+                <span className="block mt-4 text-xs text-gray-400">V {APP_VERSION}</span>
             </div>
             <button
                 onClick={onGoogleSignIn}
@@ -423,10 +423,7 @@ const DiaryApp = ({ user }) => {
                         <div>
                             <h1 className="text-xl md:text-2xl font-bold text-white">Mi Diario</h1>
                             <div className="flex items-center gap-2">
-                                <p className="text-xs text-gray-400 flex items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
-                                    100% Encrip
-                                </p>
+                                <span className="text-xs text-gray-400">V {APP_VERSION}</span>
                                 <SubscriptionStatus 
                                     subscription={subscription} 
                                     isSubscriptionActive={isSubscriptionActive} 
@@ -696,6 +693,6 @@ export default function App() {
 
 
 
-const APP_VERSION = 'V 1.53'; // Cambia este valor en cada iteración
+const APP_VERSION = '1.60'; // Cambia este valor en cada iteración
 
 

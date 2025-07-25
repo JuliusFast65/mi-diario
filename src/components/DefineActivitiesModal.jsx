@@ -4,7 +4,6 @@ import CreateActivityModal from './CreateActivityModal';
 const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, onDeleteActivity, onAddOption, onDeleteOption, onSaveGoal, onUpdatePoints, activityLimits, onUpgradeClick, subscription }) => {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingActivity, setEditingActivity] = useState(null);
-    const [newOptionValues, setNewOptionValues] = useState({});
 
     const handleEdit = (activity) => {
         setEditingActivity(activity);
@@ -17,28 +16,24 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
     };
 
     const handleSave = (activityData) => {
+        // Migrar actividades existentes al nuevo formato si es necesario
+        if (subscription?.plan === 'free' && activityData.options && activityData.options.length > 0) {
+            // Convertir actividad premium a simple para usuarios gratuitos
+            activityData.isSimple = true;
+            activityData.originalOptions = activityData.options;
+            activityData.options = [];
+            activityData.points = {};
+        }
         onCreateActivity(activityData);
         setModalOpen(false);
         setEditingActivity(null);
-    };
-
-    const handleNewOptionChange = (activityId, value) => {
-        setNewOptionValues(prev => ({ ...prev, [activityId]: value }));
-    };
-    
-    const handleAddNewOption = (activityId) => {
-        const newOption = newOptionValues[activityId];
-        if (newOption && newOption.trim()) {
-            onAddOption(activityId, newOption.trim());
-            handleNewOptionChange(activityId, '');
-        }
     };
 
     if (!isOpen) return null;
 
     const sortedActivities = Object.values(activities).sort((a, b) => a.name.localeCompare(b.name));
     const isFreePlan = subscription?.plan === 'free';
-    const { maxActivities, maxOptions } = activityLimits;
+    const { maxActivities } = activityLimits;
 
     return (
         <>
@@ -53,21 +48,7 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
                         </button>
                     </div>
 
-                    {/* Límites para plan gratuito */}
-                    {isFreePlan && (
-                        <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-600/50 rounded-lg">
-                            <div className="flex items-center gap-2 text-yellow-300 text-sm">
-                                <span>⚠️ Plan Gratuito:</span>
-                                <span>Máximo {maxActivities} actividades, {maxOptions} opciones por actividad</span>
-                                <button 
-                                    onClick={onUpgradeClick}
-                                    className="ml-auto px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md text-xs font-medium"
-                                >
-                                    Actualizar
-                                </button>
-                            </div>
-                        </div>
-                    )}
+
 
                     <div className="flex justify-between items-center mb-4">
                         <div className="text-gray-300">
@@ -76,101 +57,78 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
                         <button 
                             onClick={handleCreate}
                             className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                            disabled={isFreePlan && sortedActivities.length >= maxActivities}
                         >
                             + Nueva Actividad
                         </button>
                     </div>
 
-                    <div className="overflow-y-auto space-y-4 pr-2">
-                        {sortedActivities.map(activity => (
-                            <div key={activity.id} className="bg-gray-700 p-4 rounded-lg">
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="font-bold text-lg text-white">{activity.name}</span>
-                                    <div className="flex items-center gap-2">
-                                        <button 
-                                            onClick={() => handleEdit(activity)}
-                                            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-full text-white"
-                                            title="Editar actividad"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                        </button>
-                                        <button 
-                                            onClick={() => onDeleteActivity(activity.id)} 
-                                            className="p-2 bg-red-800 hover:bg-red-700 rounded-full text-white" 
-                                            aria-label={`Eliminar permanentemente ${activity.name}`}
-                                        >
-                                            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                {/* Meta actual */}
-                                {activity.goal && (
-                                    <div className="mb-3 p-2 bg-yellow-900/30 border border-yellow-600/50 rounded-lg">
-                                        <div className="flex items-center gap-2 text-yellow-300 text-sm">
-                                            <span>🎯 Meta:</span>
-                                            <span className="font-semibold">
-                                                {activity.goal.target} puntos
-                                                {activity.goal.type === 'weekly' && ' (semanal)'}
-                                                {activity.goal.type === 'monthly' && ' (mensual)'}
-                                                {activity.goal.type === 'custom' && ` (${activity.goal.startDate} a ${activity.goal.endDate})`}
-                                            </span>
+                    <div className="overflow-y-auto space-y-3 pr-2">
+                        {sortedActivities.length === 0 ? (
+                            <div className="text-center py-8 text-gray-400">
+                                <p>No hay actividades definidas.</p>
+                                <p className="text-sm mt-2">Crea tu primera actividad para comenzar a registrar tus hábitos.</p>
+                            </div>
+                        ) : (
+                            sortedActivities.map(activity => (
+                                <div key={activity.id} className="bg-gray-700 p-4 rounded-lg">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-grow">
+                                            <div className="flex items-center gap-3">
+                                                <span className="font-bold text-lg text-white">{activity.name}</span>
+                                                {isFreePlan && (
+                                                    <span className="text-xs bg-gray-600 text-gray-300 px-2 py-1 rounded">
+                                                        +1 punto
+                                                    </span>
+                                                )}
+                                            </div>
+                                            
+                                            {/* Información adicional para premium */}
+                                            {!isFreePlan && (
+                                                <div className="mt-2 space-y-1">
+                                                    {/* Subniveles */}
+                                                    {activity.options && activity.options.length > 0 && (
+                                                        <div className="text-sm text-gray-300">
+                                                            <span className="text-gray-400">Subniveles:</span> {activity.options.length}
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Meta */}
+                                                    {activity.goal && (
+                                                        <div className="text-sm text-yellow-300">
+                                                            <span className="text-gray-400">🎯 Meta:</span> {activity.goal.target} puntos
+                                                            {activity.goal.type === 'weekly' && ' (semanal)'}
+                                                            {activity.goal.type === 'monthly' && ' (mensual)'}
+                                                            {activity.goal.type === 'custom' && ` (${activity.goal.startDate} a ${activity.goal.endDate})`}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-2 ml-4">
+                                            <button 
+                                                onClick={() => handleEdit(activity)}
+                                                className="p-2 bg-blue-600 hover:bg-blue-700 rounded-full text-white"
+                                                title="Editar actividad"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                            <button 
+                                                onClick={() => onDeleteActivity(activity.id)} 
+                                                className="p-2 bg-red-800 hover:bg-red-700 rounded-full text-white" 
+                                                aria-label={`Eliminar permanentemente ${activity.name}`}
+                                            >
+                                                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
                                         </div>
                                     </div>
-                                )}
-                                
-                                <div className="border-t border-gray-600 pt-3">
-                                    <h4 className="text-sm font-semibold text-gray-300 mb-2">Subniveles y Puntos:</h4>
-                                    <div className="space-y-2">
-                                        {(activity.options && activity.options.length > 0) ? (
-                                            activity.options.map(option => (
-                                                <div key={option} className="flex items-center gap-2 bg-gray-600 px-3 py-2 rounded">
-                                                    <span className="text-gray-200 flex-grow">{option}</span>
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        placeholder="Puntos"
-                                                        value={activity.points?.[option] || ''}
-                                                        onChange={(e) => onUpdatePoints(activity.id, option, e.target.value)}
-                                                        className="w-16 bg-gray-700 text-white rounded px-2 py-1 text-sm border border-gray-500"
-                                                    />
-                                                    <button 
-                                                        onClick={() => onDeleteOption(activity.id, option)} 
-                                                        className="p-1 text-gray-400 hover:text-white"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <p className="text-xs text-gray-400 italic">Sin subniveles predefinidos.</p>
-                                        )}
-                                    </div>
-                                    <div className="mt-3 flex gap-2">
-                                        <input 
-                                            type="text" 
-                                            placeholder="Añadir nuevo subnivel" 
-                                            value={newOptionValues[activity.id] || ''} 
-                                            onChange={(e) => handleNewOptionChange(activity.id, e.target.value)} 
-                                            className="flex-grow bg-gray-600 text-white rounded-md p-2 text-sm border border-gray-500" 
-                                        />
-                                        <button 
-                                            onClick={() => handleAddNewOption(activity.id)} 
-                                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 rounded-lg text-sm"
-                                        >
-                                            Añadir
-                                        </button>
-                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
@@ -179,6 +137,7 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
                 onClose={() => setModalOpen(false)}
                 onCreateActivity={handleSave}
                 initialData={editingActivity}
+                subscription={subscription}
             />
         </>
     );

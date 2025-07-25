@@ -11,14 +11,25 @@ export default function useActivities(db, user, appId, subscription) {
             const fetchedActivities = {};
             snapshot.forEach(doc => { 
                 const activityData = { id: doc.id, ...doc.data() };
-                // Migrar actividades existentes al nuevo formato si es necesario
+                
+                // Para usuarios gratuitos: ocultar subniveles pero preservar datos originales
                 if (subscription?.plan === 'free' && activityData.options && activityData.options.length > 0) {
-                    // Convertir actividad premium a simple para usuarios gratuitos
                     activityData.isSimple = true;
                     activityData.originalOptions = activityData.options;
+                    activityData.originalPoints = activityData.points;
                     activityData.options = [];
                     activityData.points = {};
                 }
+                
+                // Para usuarios premium: restaurar subniveles si existen datos originales
+                if (subscription?.plan === 'premium' && activityData.isSimple && activityData.originalOptions) {
+                    activityData.options = activityData.originalOptions;
+                    activityData.points = activityData.originalPoints || {};
+                    delete activityData.isSimple;
+                    delete activityData.originalOptions;
+                    delete activityData.originalPoints;
+                }
+                
                 fetchedActivities[doc.id] = activityData;
             });
             setActivities(fetchedActivities);
@@ -32,30 +43,43 @@ export default function useActivities(db, user, appId, subscription) {
         
         const isFreePlan = subscription?.plan === 'free';
         
-        // Para usuarios gratuitos, simplificar la actividad
-        if (isFreePlan) {
-            const simplifiedActivity = {
-                name: activityData.name,
-                isSimple: true,
-                createdAt: activityData.createdAt || new Date()
-            };
+        if (activityData.id) {
+            // Editar actividad existente
+            const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityData.id);
+            const { id, ...dataToSave } = activityData;
             
-            if (activityData.id) {
-                const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityData.id);
-                const { id, ...dataToSave } = simplifiedActivity;
-                await setDoc(activityRef, dataToSave, { merge: true });
+            if (isFreePlan) {
+                // Para usuarios gratuitos: simplificar pero preservar datos originales
+                const simplifiedActivity = {
+                    name: activityData.name,
+                    isSimple: true,
+                    originalOptions: activityData.options || [],
+                    originalPoints: activityData.points || {},
+                    options: [],
+                    points: {},
+                    createdAt: activityData.createdAt || new Date()
+                };
+                await setDoc(activityRef, simplifiedActivity, { merge: true });
             } else {
-                const activitiesCol = collection(db, 'artifacts', appId, 'users', user.uid, 'activities');
-                await addDoc(activitiesCol, simplifiedActivity);
+                // Para usuarios premium: guardar con funcionalidad completa
+                await setDoc(activityRef, dataToSave, { merge: true });
             }
         } else {
-            // Para usuarios premium, mantener la funcionalidad completa
-            if (activityData.id) {
-                const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityData.id);
-                const { id, ...dataToSave } = activityData;
-                await setDoc(activityRef, dataToSave, { merge: true });
+            // Crear nueva actividad
+            const activitiesCol = collection(db, 'artifacts', appId, 'users', user.uid, 'activities');
+            
+            if (isFreePlan) {
+                // Para usuarios gratuitos: crear actividad simple
+                const simplifiedActivity = {
+                    name: activityData.name,
+                    isSimple: true,
+                    options: [],
+                    points: {},
+                    createdAt: new Date()
+                };
+                await addDoc(activitiesCol, simplifiedActivity);
             } else {
-                const activitiesCol = collection(db, 'artifacts', appId, 'users', user.uid, 'activities');
+                // Para usuarios premium: crear con funcionalidad completa
                 await addDoc(activitiesCol, activityData);
             }
         }
@@ -79,9 +103,11 @@ export default function useActivities(db, user, appId, subscription) {
         }
         
         const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
-        const currentOptions = activities[activityId]?.options || [];
+        const currentActivity = activities[activityId];
+        const currentOptions = currentActivity?.options || [];
+        
         if (!currentOptions.includes(newOption.trim())) {
-            const currentPoints = activities[activityId]?.points || {};
+            const currentPoints = currentActivity?.points || {};
             const updatedPoints = { ...currentPoints, [newOption.trim()]: 0 };
             await setDoc(activityRef, {
                 options: [...currentOptions, newOption.trim()],
@@ -101,8 +127,9 @@ export default function useActivities(db, user, appId, subscription) {
         }
         
         const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
-        const currentOptions = activities[activityId]?.options || [];
-        const currentPoints = activities[activityId]?.points || {};
+        const currentActivity = activities[activityId];
+        const currentOptions = currentActivity?.options || [];
+        const currentPoints = currentActivity?.points || {};
         const newOptions = currentOptions.filter(opt => opt !== optionToDelete);
         const newPoints = { ...currentPoints };
         delete newPoints[optionToDelete];
@@ -135,7 +162,7 @@ export default function useActivities(db, user, appId, subscription) {
         
         const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
         const currentActivity = activities[activityId];
-        const currentPoints = currentActivity.points || {};
+        const currentPoints = currentActivity?.points || {};
         const updatedPoints = { ...currentPoints, [option]: points };
         await setDoc(activityRef, { points: updatedPoints }, { merge: true });
     };
@@ -157,10 +184,22 @@ export default function useActivities(db, user, appId, subscription) {
         };
     };
 
-    // Verificar si una actividad es simple (para usuarios gratuitos)
+    // Verificar si una actividad es simple (sin subniveles disponibles)
     const isSimpleActivity = (activityId) => {
         const activity = activities[activityId];
-        return activity?.isSimple || subscription?.plan === 'free';
+        
+        // Si la actividad tiene subniveles disponibles, no es simple
+        if (activity?.options && activity.options.length > 0) {
+            return false;
+        }
+        
+        // Si el usuario es gratuito y la actividad no tiene subniveles, es simple
+        if (subscription?.plan === 'free') {
+            return true;
+        }
+        
+        // Para usuarios premium, solo es simple si explícitamente está marcada como simple
+        return activity?.isSimple || false;
     };
 
     // Obtener puntos para una actividad (1 punto para actividades simples)
