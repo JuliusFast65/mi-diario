@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import PaymentGateway from './PaymentGateway';
 

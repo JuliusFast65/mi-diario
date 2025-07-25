@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import PremiumFeatureModal from './PremiumFeatureModal';
 
 export default function TwoFactorAuth({ isOpen, onClose, user, onUpgradeClick, hasFeature }) {
