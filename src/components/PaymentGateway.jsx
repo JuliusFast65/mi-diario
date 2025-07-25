@@ -44,17 +44,11 @@ export default function PaymentGateway({
         setError(null);
 
         try {
-            console.log('Iniciando simulación de pago para plan:', selectedPlan);
-            
             // En desarrollo, usamos una simulación
             const { sessionId, url } = await createMockCheckoutSession(selectedPlan, user);
             
-            // Simular redirección a Stripe Checkout
-            console.log('Simulando redirección a:', url);
-            
             // Simular el éxito del pago después de 2 segundos
             setTimeout(() => {
-                console.log('Pago simulado exitoso');
                 onPaymentSuccess?.();
             }, 2000);
 

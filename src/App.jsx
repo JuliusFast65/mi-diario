@@ -696,6 +696,6 @@ export default function App() {
 
 
 
-const APP_VERSION = 'V 1.51'; // Cambia este valor en cada iteración
+const APP_VERSION = 'V 1.53'; // Cambia este valor en cada iteración
 
 

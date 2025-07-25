@@ -54,10 +54,8 @@ export default function useSubscription(db, user, appId) {
         }
         
         try {
-            console.log('Iniciando actualización de suscripción en Firebase...');
             const subscriptionRef = doc(db, 'artifacts', appId, 'users', user.uid, 'subscription', 'current');
             await setDoc(subscriptionRef, newSubscription, { merge: true });
-            console.log('Suscripción actualizada exitosamente en Firebase:', newSubscription);
         } catch (error) {
             console.error('Error al actualizar suscripción en Firebase:', error);
             throw error;

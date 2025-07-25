@@ -92,7 +92,6 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
     };
 
     const handlePaymentSuccess = async () => {
-        console.log('handlePaymentSuccess llamado para plan:', selectedPlan);
         setIsProcessing(true);
         try {
             const newSubscription = {
@@ -103,9 +102,7 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                 updatedAt: new Date()
             };
             
-            console.log('Actualizando suscripción con:', newSubscription);
             await updateSubscription(newSubscription);
-            console.log('Suscripción actualizada exitosamente');
             
             setIsPaymentModalOpen(false);
             onClose();
@@ -124,8 +121,25 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
     };
 
     const getPlanFeatures = (planId) => {
-        const plan = plans.find(p => p.id === planId);
-        return plan ? plan.features : [];
+        // Mapear características descriptivas a identificadores
+        const featureMap = {
+            'free': ['basic'],
+            'premium': [
+                'basic',
+                'unlimited_activities', 
+                'advanced_export', 
+                'custom_themes', 
+                'detailed_stats', 
+                'auto_backup', 
+                'therapy_chat', 
+                'writing_assistant', 
+                'behavior_analysis', 
+                'two_factor', 
+                'priority_support', 
+                'early_access'
+            ]
+        };
+        return featureMap[planId] || featureMap.free;
     };
 
     const getCurrentPlan = () => {
@@ -273,17 +287,7 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                                     selectedPlan === subscription.plan ? 'Plan Actual' : 'Confirmar Actualización'
                                 )}
                             </button>
-                            {/* Botón de prueba para desarrollo */}
-                            {import.meta.env.DEV && selectedPlan === 'premium' && (
-                                <button
-                                    onClick={handlePaymentSuccess}
-                                    disabled={isProcessing}
-                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                                    title="Botón de prueba para desarrollo"
-                                >
-                                    🧪 Activar Premium
-                                </button>
-                            )}
+
                         </div>
                     </div>
                 </div>
