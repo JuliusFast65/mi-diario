@@ -28,6 +28,7 @@ import Onboarding from './components/Onboarding';
 import useActivities from './hooks/useActivities';
 import useDiary from './hooks/useDiary';
 import useSubscription from './hooks/useSubscription';
+import useTheme from './hooks/useTheme';
 import SubscriptionStatus from './components/SubscriptionStatus';
 
 
@@ -45,18 +46,18 @@ const appId = firebaseConfig.projectId;
 
 // --- Componente de Login ---
 const LoginScreen = ({ onGoogleSignIn }) => (
-    <div className="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+    <div className="bg-gray-900 dark:bg-gray-900 bg-white text-gray-900 dark:text-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
         <div className="text-center flex flex-col items-center">
             <div className="mb-8">
                 <img src="/favicon.svg" alt="Logo Diario Personal" className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-6" />
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Introspect</h1>
-                <p className="text-gray-300 text-lg md:text-xl mb-2">Tu Diario Personal</p>
-                <p className="text-gray-300 text-lg md:text-xl">Guarda tus pensamientos y sigue tus hábitos con propósito.</p>
-                <span className="block mt-4 text-xs text-gray-400">V {APP_VERSION}</span>
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">Introspect</h1>
+                <p className="text-gray-600 dark:text-gray-300 text-lg md:text-xl mb-2">Tu Diario Personal</p>
+                <p className="text-gray-600 dark:text-gray-300 text-lg md:text-xl">Guarda tus pensamientos y sigue tus hábitos con propósito.</p>
+                <span className="block mt-4 text-xs text-gray-500 dark:text-gray-400">V {APP_VERSION}</span>
             </div>
             <button
                 onClick={onGoogleSignIn}
-                className="bg-white text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-200 transition-colors duration-300 inline-flex items-center gap-3 text-lg"
+                className="bg-indigo-600 dark:bg-white text-white dark:text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-indigo-700 dark:hover:bg-gray-200 transition-colors duration-300 inline-flex items-center gap-3 text-lg"
             >
                 <svg className="w-6 h-6" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
                 Iniciar sesión con Google
@@ -95,9 +96,13 @@ const DiaryApp = ({ user }) => {
     const [view, setView] = useState('diary');
     const [userPrefs, setUserPrefs] = useState({ 
         font: 'patrick-hand', 
-        fontSize: 'text-3xl'
+        fontSize: 'text-3xl',
+        theme: 'dark'
     });
     const [allEntries, setAllEntries] = useState([]);
+    
+    // Hook para manejo de tema
+    const { currentTheme, systemTheme, setTheme } = useTheme(userPrefs);
     
     // State de Modales
     const [isDefineActivitiesModalOpen, setDefineActivitiesModalOpen] = useState(false);
@@ -414,16 +419,16 @@ const DiaryApp = ({ user }) => {
     };
 
     return (
-        <div className="bg-gray-900 text-gray-100 min-h-screen font-sans flex flex-col">
+        <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen font-sans flex flex-col">
             <UpdateNotification />
             <div className="max-w-5xl mx-auto w-full flex flex-col flex-grow">
-                <header className="p-4 border-b border-gray-700 flex justify-between items-center flex-shrink-0">
+                <header className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center flex-shrink-0 bg-gray-50 dark:bg-gray-800">
                     <div className="flex items-center gap-4">
                         <img src={user.photoURL} alt="Foto de perfil" className="w-10 h-10 rounded-full" />
                         <div>
-                            <h1 className="text-xl md:text-2xl font-bold text-white">Mi Diario</h1>
+                            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Mi Diario</h1>
                             <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-400">V {APP_VERSION}</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">V {APP_VERSION}</span>
                                 <SubscriptionStatus 
                                     subscription={subscription} 
                                     isSubscriptionActive={isSubscriptionActive} 
@@ -488,23 +493,39 @@ const DiaryApp = ({ user }) => {
                             onUserProfile={() => setUserProfileModalOpen(true)}
                             onSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
                             subscription={subscription}
+                            currentTheme={currentTheme}
                         />
 
-                        <button 
-                            onClick={handleLogout}
-                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                            disabled={isLoadingEntry}
-                        >
-                            {isLoadingEntry ? 'Guardando...' : 'Salir'}
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {/* Botón de cambio de tema temporal para testing */}
+                            <button 
+                                onClick={() => {
+                                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                                    setTheme(newTheme);
+                                    handleUpdateUserPrefs({ ...userPrefs, theme: newTheme });
+                                }}
+                                className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-lg transition-colors text-sm"
+                                title={`Cambiar a modo ${currentTheme === 'dark' ? 'claro' : 'oscuro'}`}
+                            >
+                                {currentTheme === 'dark' ? '☀️' : '🌙'}
+                            </button>
+                            
+                            <button 
+                                onClick={handleLogout}
+                                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                                disabled={isLoadingEntry}
+                            >
+                                {isLoadingEntry ? 'Guardando...' : 'Salir'}
+                            </button>
+                        </div>
                     </div>
                 </header>
                 
-                <nav className="flex flex-wrap justify-between items-center p-2 bg-gray-800 gap-2 flex-shrink-0">
+                <nav className="flex flex-wrap justify-between items-center p-2 bg-gray-100 dark:bg-gray-800 gap-2 flex-shrink-0 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-2">
-                        <button onClick={() => setView('diary')} className={`px-4 py-2 text-sm font-medium rounded-md diary-tab ${view === 'diary' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Diario</button>
-                        <button onClick={() => setView('archive')} className={`px-4 py-2 text-sm font-medium rounded-md archive-tab ${view === 'archive' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Archivo</button>
-                        <button onClick={() => setView('stats')} className={`px-4 py-2 text-sm font-medium rounded-md stats-tab ${view === 'stats' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>Estadísticas</button>
+                        <button onClick={() => setView('diary')} className={`px-4 py-2 text-sm font-medium rounded-md diary-tab ${view === 'diary' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>Diario</button>
+                        <button onClick={() => setView('archive')} className={`px-4 py-2 text-sm font-medium rounded-md archive-tab ${view === 'archive' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>Archivo</button>
+                        <button onClick={() => setView('stats')} className={`px-4 py-2 text-sm font-medium rounded-md stats-tab ${view === 'stats' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>Estadísticas</button>
                     </div>
                 </nav>
 
@@ -534,6 +555,7 @@ const DiaryApp = ({ user }) => {
                             onDeleteEntry={handleDeleteEntry}
                             isSimpleActivity={isSimpleActivity}
                             getActivityPoints={getActivityPoints}
+                            currentTheme={currentTheme}
                         />
                     ) : view === 'archive' ? (
                         <ArchiveView 
@@ -578,6 +600,7 @@ const DiaryApp = ({ user }) => {
                 activityLimits={getActivityLimits()}
                 subscription={subscription}
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
+                currentTheme={currentTheme}
             />
             <ExportModal isOpen={isExportModalOpen} onClose={() => setExportModalOpen(false)} onExport={handleExportEntries} />
             <ImportModal 
@@ -643,14 +666,15 @@ const DiaryApp = ({ user }) => {
                 onClose={() => setIsOnboardingOpen(false)} 
                 mode={localStorage.getItem('onboarding-completed') ? 'manual' : 'auto'}
             />
-            <UserProfileModal 
+                        <UserProfileModal 
                 isOpen={isUserProfileModalOpen} 
                 onClose={() => setUserProfileModalOpen(false)} 
-                user={user}
-                userPrefs={userPrefs}
-                onUpdateUserPrefs={handleUpdateUserPrefs}
-                subscription={subscription}
+                user={user} 
+                userPrefs={userPrefs} 
+                onUpdateUserPrefs={handleUpdateUserPrefs} 
+                subscription={subscription} 
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
+                currentTheme={currentTheme}
             />
         </div>
     );

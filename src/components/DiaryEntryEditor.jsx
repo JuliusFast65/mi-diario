@@ -4,7 +4,22 @@ import React, { useState, useMemo, useRef } from 'react';
 import ActivityTrackerItem from './ActivityTrackerItem';
 import DeleteConfirmModal from './DeleteConfirmModal';
 
-const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenDefineActivitiesModal, onConsultAI, onWritingAssistant, onUntrackActivity, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef, onDeleteEntry, isSimpleActivity, getActivityPoints }) => {
+// Estilos CSS para options en diferentes temas
+const selectStyles = `
+    /* Estilos para options en modo claro */
+    .light select option {
+        background-color: white;
+        color: #374151;
+    }
+    
+    /* Estilos para options en modo oscuro */
+    .dark select option {
+        background-color: #374151;
+        color: #f9fafb;
+    }
+`;
+
+const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenDefineActivitiesModal, onConsultAI, onWritingAssistant, onUntrackActivity, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef, onDeleteEntry, isSimpleActivity, getActivityPoints, currentTheme = 'dark' }) => {
     const [activeTab, setActiveTab] = useState('entrada');
     const [focusMode, setFocusMode] = useState(false);
     const [deleteModalEntry, setDeleteModalEntry] = useState(null);
@@ -77,8 +92,10 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
     }, [lastTrackedId]);
 
     const tabBaseStyle = "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors duration-200";
-    const tabActiveStyle = "bg-gray-800 text-white";
-    const tabInactiveStyle = "bg-gray-700 text-gray-400 hover:bg-gray-600";
+    const tabActiveStyle = currentTheme === 'dark' ? "bg-gray-800 text-white" : "bg-white text-gray-900";
+    const tabInactiveStyle = currentTheme === 'dark' 
+        ? "bg-gray-700 text-gray-400 hover:bg-gray-600" 
+        : "bg-gray-200 text-gray-700 hover:bg-gray-300";
 
     // Funciones para manejar los clicks de las pestañas y fecha
     const handleTabClick = (tab) => {
@@ -92,10 +109,12 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
     };
 
     return (
-        <div className="flex flex-col flex-grow relative">
+        <>
+            <style>{selectStyles}</style>
+            <div className="flex flex-col flex-grow relative">
             {/* Modo enfoque - pantalla completa */}
             {focusMode && activeTab === 'entrada' && (
-                <div className="fixed inset-0 z-50 bg-gray-900 flex flex-col">
+                <div className={`fixed inset-0 z-50 flex flex-col ${currentTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
                     {/* Botón para salir del modo enfoque */}
                     <button
                         className="absolute top-4 right-4 z-[60] bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-2 shadow-lg"
@@ -137,16 +156,25 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                     
                     {/* Elementos normales */}
                     <div className="flex justify-between items-center flex-shrink-0 px-4 md:px-6 pt-4">
-                        <div className="flex border-b border-gray-700">
+                        <div className={`flex border-b ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                             <button onClick={() => handleTabClick('entrada')} className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}>Entrada</button>
                             <button onClick={() => handleTabClick('actividades')} className={`${tabBaseStyle} activities-tab ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>Actividades</button>
                         </div>
-                        <input type="date" value={selectedDate} onChange={handleDateChange} className="bg-gray-700 border-gray-600 text-white rounded-lg p-2 focus:ring-2 focus:ring-indigo-500" />
+                        <input 
+                            type="date" 
+                            value={selectedDate} 
+                            onChange={handleDateChange} 
+                            className={`rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 ${
+                                currentTheme === 'dark' 
+                                    ? 'bg-gray-700 border-gray-600 text-white' 
+                                    : 'bg-white border-gray-300 text-gray-900'
+                            } border`} 
+                        />
                     </div>
                     
                     {/* Área de escritura normal */}
                     {activeTab === 'entrada' && (
-                        <div className="bg-gray-800 rounded-b-lg p-2 flex flex-col flex-grow mb-4 md:mb-6 relative">
+                        <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-b-lg p-2 flex flex-col flex-grow mb-4 md:mb-6 relative border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                             <textarea
                                 ref={textareaRef}
                                 value={currentEntry?.text || ''}
@@ -169,7 +197,7 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                             )}
                             
                             {/* Controles */}
-                            <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-700 flex-wrap gap-4 flex-shrink-0">
+                            <div className={`flex justify-between items-center mt-4 pt-4 border-t flex-wrap gap-4 flex-shrink-0 ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                                 <div className="flex items-center gap-2 flex-wrap text-xs">
                                     <div className="flex items-center gap-1 min-w-0">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M10.755 2.168A.75.75 0 009.245 2.168L3.32 13.5h2.978l1.035-2.5h4.334l1.035 2.5h2.978L10.755 2.168zm-2.034 7.5L10 4.17l1.279 5.5H8.721z" /></svg>
@@ -177,7 +205,11 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                                             id="font-select"
                                             value={userPrefs.font}
                                             onChange={(e) => onUpdateUserPrefs({ font: e.target.value })}
-                                            className="bg-gray-700 text-white rounded p-0.5 border border-gray-600 text-xs min-w-0"
+                                            className={`rounded p-0.5 border text-xs min-w-0 ${
+                                                currentTheme === 'dark' 
+                                                    ? 'bg-gray-700 border-gray-600 text-white' 
+                                                    : 'bg-white border-gray-300 text-gray-900'
+                                            }`}
                                             style={{maxWidth:'90px'}}
                                         >
                                             {fontOptions.map(font => (
@@ -191,7 +223,11 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                                             id="fontsize-select"
                                             value={userPrefs.fontSize}
                                             onChange={(e) => onUpdateUserPrefs({ fontSize: e.target.value })}
-                                            className="bg-gray-700 text-white rounded p-0.5 border border-gray-600 text-xs min-w-0"
+                                            className={`rounded p-0.5 border text-xs min-w-0 ${
+                                                currentTheme === 'dark' 
+                                                    ? 'bg-gray-700 border-gray-600 text-white' 
+                                                    : 'bg-white border-gray-300 text-gray-900'
+                                            }`}
                                             style={{maxWidth:'70px'}}
                                         >
                                             {fontSizeOptions.map(size => (
@@ -203,7 +239,7 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                                     <button 
                                         onClick={() => window.dispatchEvent(new CustomEvent('openOnboarding'))} 
                                         title="Ayuda / Tutorial" 
-                                        className="text-gray-400 hover:text-blue-300 transition-colors p-1"
+                                        className={`${currentTheme === 'dark' ? 'text-gray-400 hover:text-blue-300' : 'text-gray-600 hover:text-blue-600'} transition-colors p-1`}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -224,7 +260,7 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                     
                     {/* Tab de actividades */}
                     {activeTab === 'actividades' && (
-                        <div className="bg-gray-800 rounded-b-lg p-4 mx-4 md:mx-6 mb-4 md:mb-6">
+                        <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-b-lg p-4 mx-4 md:mx-6 mb-4 md:mb-6 border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                             <div className="space-y-4 min-h-[50px]">
                                 {trackedActivityIds.length > 0 ? (
                                     trackedActivityIds.map((id, idx) => activities[id]).filter(Boolean).sort((a,b) => a.name.localeCompare(b.name)).map(activity => (
@@ -237,12 +273,26 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                                             autoFocus={lastTrackedId === activity.id}
                                             isSimpleActivity={isSimpleActivity}
                                             getActivityPoints={getActivityPoints}
+                                            currentTheme={currentTheme}
                                         />
                                     ))
-                                ) : (<div className="text-center py-4 text-gray-400 italic">No hay actividades registradas para este día.</div>)}
+                                ) : (<div className={`text-center py-4 italic ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>No hay actividades registradas para este día.</div>)}
                             </div>
-                            <div className="mt-6 border-t border-gray-700 pt-4 flex flex-col sm:flex-row items-center gap-4">
-                                <select onChange={handleAddActivitySelect} defaultValue="" className="w-full sm:flex-grow bg-gray-600 text-white rounded-md p-2 border border-gray-500 focus:ring-1 focus:ring-indigo-400"><option value="" disabled>+ Registrar una actividad...</option>{untrackedActivities.sort((a,b) => a.name.localeCompare(b.name)).map(act => (<option key={act.id} value={act.id}>{act.name}</option>))}</select>
+                            <div className={`mt-6 border-t pt-4 flex flex-col sm:flex-row items-center gap-4 ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                                <select 
+                                    onChange={handleAddActivitySelect} 
+                                    defaultValue="" 
+                                    className={`w-full sm:flex-grow rounded-md p-2 border focus:ring-1 focus:ring-indigo-400 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-600 border-gray-500 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    }`}
+                                >
+                                    <option value="" disabled>+ Registrar una actividad...</option>
+                                    {untrackedActivities.sort((a,b) => a.name.localeCompare(b.name)).map(act => (
+                                        <option key={act.id} value={act.id}>{act.name}</option>
+                                    ))}
+                                </select>
                                 <div className="flex items-center gap-4">
                                     <button onClick={onOpenDefineActivitiesModal} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 whitespace-nowrap">Definir Actividades</button>
                                 </div>
@@ -261,8 +311,10 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                     }
                 }}
                 entry={deleteModalEntry}
+                currentTheme={currentTheme}
             />
         </div>
+        </>
     );
 };
 

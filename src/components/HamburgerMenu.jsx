@@ -11,7 +11,8 @@ export default function HamburgerMenu({
     onUserProfile,
     onFeedback,
     onSubscriptionModal,
-    subscription
+    subscription,
+    currentTheme = 'dark'
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
@@ -58,7 +59,7 @@ export default function HamburgerMenu({
             {/* Botón hamburguesa */}
             <button
                 onClick={handleMenuToggle}
-                className="text-gray-300 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
+                className={`${currentTheme === 'dark' ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'} transition-colors p-2 rounded-lg`}
                 title="Menú de opciones"
             >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,14 +69,18 @@ export default function HamburgerMenu({
 
             {/* Menú desplegable */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50">
+                <div className={`absolute right-0 mt-2 w-64 rounded-lg shadow-xl border z-50 ${
+                    currentTheme === 'dark' 
+                        ? 'bg-gray-800 border-gray-700' 
+                        : 'bg-white border-gray-200'
+                }`}>
                     {/* Header del menú */}
-                    <div className="p-4 border-b border-gray-700">
+                    <div className={`p-4 border-b ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                         <div className="flex items-center justify-between">
-                            <h3 className="text-white font-semibold">Opciones</h3>
+                            <h3 className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Opciones</h3>
                             <button
                                 onClick={handleMenuToggle}
-                                className="text-gray-400 hover:text-white"
+                                className={`${currentTheme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -99,13 +104,17 @@ export default function HamburgerMenu({
 
                     {/* Sección Premium */}
                     <div className="p-2">
-                        <h4 className="text-xs font-medium text-gray-400 uppercase tracking-wider px-3 py-2">
+                        <h4 className={`text-xs font-medium uppercase tracking-wider px-3 py-2 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                             Características Premium
                         </h4>
                         
                         <button
                             onClick={() => handleMenuItemClick(onTherapistChat)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'text-gray-300 hover:bg-gray-700' 
+                                    : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                             <span className="text-green-400">💬</span>
                             <div>
@@ -115,7 +124,11 @@ export default function HamburgerMenu({
 
                         <button
                             onClick={() => handleMenuItemClick(onWritingAssistant)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'text-gray-300 hover:bg-gray-700' 
+                                    : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                             <span className="text-purple-400">✍️</span>
                             <div>
@@ -125,7 +138,11 @@ export default function HamburgerMenu({
 
                         <button
                             onClick={() => handleMenuItemClick(onBehaviorAnalysis)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'text-gray-300 hover:bg-gray-700' 
+                                    : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                             <span className="text-indigo-400">📊</span>
                             <div>
@@ -135,7 +152,11 @@ export default function HamburgerMenu({
 
                         <button
                             onClick={() => handleMenuItemClick(onTwoFactorAuth)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'text-gray-300 hover:bg-gray-700' 
+                                    : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                             <span className="text-red-400">🔒</span>
                             <div>
@@ -145,14 +166,18 @@ export default function HamburgerMenu({
                     </div>
 
                     {/* Sección Herramientas */}
-                    <div className="p-2 border-t border-gray-700">
-                        <h4 className="text-xs font-medium text-gray-400 uppercase tracking-wider px-3 py-2">
+                    <div className={`p-2 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                        <h4 className={`text-xs font-medium uppercase tracking-wider px-3 py-2 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                             Herramientas
                         </h4>
                         
                         <button
                             onClick={() => handleMenuItemClick(onExport)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'text-gray-300 hover:bg-gray-700' 
+                                    : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                             <span className="text-blue-400">📤</span>
                             <div>
@@ -162,7 +187,11 @@ export default function HamburgerMenu({
 
                         <button
                             onClick={() => handleMenuItemClick(onImport)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'text-gray-300 hover:bg-gray-700' 
+                                    : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                             <span className="text-green-400">📥</span>
                             <div>
@@ -172,7 +201,11 @@ export default function HamburgerMenu({
 
                         <button
                             onClick={() => handleMenuItemClick(onInspirationalMessage)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'text-gray-300 hover:bg-gray-700' 
+                                    : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                             <span className="text-yellow-400">✨</span>
                             <div>
@@ -182,7 +215,11 @@ export default function HamburgerMenu({
 
                         <button
                             onClick={() => handleMenuItemClick(onUserProfile)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'text-gray-300 hover:bg-gray-700' 
+                                    : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                             <span className="text-blue-400">👤</span>
                             <div>
@@ -192,14 +229,18 @@ export default function HamburgerMenu({
                     </div>
 
                     {/* Sección Ayuda */}
-                    <div className="p-2 border-t border-gray-700">
-                        <h4 className="text-xs font-medium text-gray-400 uppercase tracking-wider px-3 py-2">
+                    <div className={`p-2 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                        <h4 className={`text-xs font-medium uppercase tracking-wider px-3 py-2 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                             Ayuda
                         </h4>
                         
                         <a
                             href="mailto:tu-email-aqui@example.com?subject=Feedback sobre la App de Diario"
-                            className="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'text-gray-300 hover:bg-gray-700' 
+                                    : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                             <span className="text-gray-400">📧</span>
                             <div>
@@ -212,7 +253,11 @@ export default function HamburgerMenu({
                                 setIsOpen(false);
                                 window.dispatchEvent(new CustomEvent('openOnboarding'));
                             }}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'text-gray-300 hover:bg-gray-700' 
+                                    : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                             <span className="text-gray-400">❓</span>
                             <div>

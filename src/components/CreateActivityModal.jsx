@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
 
-const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, subscription }) => {
+// Estilos CSS para options en diferentes temas
+const selectStyles = `
+    /* Estilos para options en modo claro */
+    .light select option {
+        background-color: white;
+        color: #374151;
+    }
+    
+    /* Estilos para options en modo oscuro */
+    .dark select option {
+        background-color: #374151;
+        color: #f9fafb;
+    }
+`;
+
+const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, subscription, currentTheme = 'dark' }) => {
     const isEdit = !!initialData;
     const isFreePlan = subscription?.plan === 'free';
     
@@ -105,12 +120,14 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
     if (!isOpen) return null;
     
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <>
+            <style>{selectStyles}</style>
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] flex flex-col`}>
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold text-white">{isEdit ? 'Editar Actividad' : 'Crear Nueva Actividad'}</h2>
-                    <button onClick={handleCancel} className="p-1 rounded-full hover:bg-gray-700">
-                        <svg className="w-6 h-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <h2 className={`text-2xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{isEdit ? 'Editar Actividad' : 'Crear Nueva Actividad'}</h2>
+                    <button onClick={handleCancel} className={`p-1 rounded-full ${currentTheme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
+                        <svg className={`w-6 h-6 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
@@ -129,7 +146,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                 <form onSubmit={handleSubmit} className="overflow-y-auto space-y-6 pr-2">
                     {/* Nombre de la actividad */}
                     <div>
-                        <label htmlFor="activity-name" className="block text-sm font-medium text-gray-300 mb-2">
+                        <label htmlFor="activity-name" className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                             Nombre de la Actividad *
                         </label>
                         <input
@@ -138,7 +155,11 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                             value={activityName}
                             onChange={(e) => setActivityName(e.target.value)}
                             placeholder="Ej: Leer, Ejercicio, Meditación..."
-                            className="w-full bg-gray-700 text-white rounded-md p-3 border border-gray-600 focus:ring-2 focus:ring-indigo-500"
+                            className={`w-full rounded-md p-3 border focus:ring-2 focus:ring-indigo-500 ${
+                                currentTheme === 'dark' 
+                                    ? 'bg-gray-700 border-gray-600 text-white' 
+                                    : 'bg-white border-gray-300 text-gray-900'
+                            }`}
                             required
                         />
                     </div>
@@ -146,7 +167,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                     {/* Opciones/Subniveles - Solo para premium */}
                     {!isFreePlan && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-3">
+                            <label className={`block text-sm font-medium mb-3 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                                 Subniveles/Opciones
                             </label>
                             <div className="space-y-3">
@@ -157,7 +178,11 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                             value={option.desc}
                                             onChange={e => handleOptionChange(index, 'desc', e.target.value)}
                                             placeholder={`Opción ${index + 1}`}
-                                            className="flex-grow min-w-0 bg-gray-700 text-white rounded-md p-2 border border-gray-600"
+                                            className={`flex-grow min-w-0 rounded-md p-2 border ${
+                                                currentTheme === 'dark' 
+                                                    ? 'bg-gray-700 border-gray-600 text-white' 
+                                                    : 'bg-white border-gray-300 text-gray-900'
+                                            }`}
                                             style={{ maxWidth: '60%' }}
                                         />
                                         <input
@@ -166,7 +191,11 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                             value={option.pts}
                                             onChange={e => handleOptionChange(index, 'pts', e.target.value)}
                                             placeholder="Puntos"
-                                            className="bg-gray-700 text-white rounded-md p-2 border border-gray-600 text-center"
+                                            className={`rounded-md p-2 border text-center ${
+                                                currentTheme === 'dark' 
+                                                    ? 'bg-gray-700 border-gray-600 text-white' 
+                                                    : 'bg-white border-gray-300 text-gray-900'
+                                            }`}
                                             style={{ width: 70 }}
                                         />
                                         <button
@@ -197,9 +226,9 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                     
                     {/* Sección de Meta - Solo para premium */}
                     {!isFreePlan && (
-                        <div className="border-t border-gray-700 pt-4">
+                        <div className={`border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'} pt-4`}>
                             <div className="flex items-center justify-between mb-3">
-                                <label className="text-sm font-medium text-gray-300">
+                                <label className={`text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                                     Configurar Meta (Opcional)
                                 </label>
                                 <button
@@ -208,23 +237,29 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                     className={`px-3 py-1 rounded-md text-sm font-medium ${
                                         showGoalSection
                                             ? 'bg-yellow-600 text-white'
-                                            : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                                            : currentTheme === 'dark'
+                                                ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                     }`}
                                 >
                                     {showGoalSection ? 'Ocultar' : 'Mostrar'}
                                 </button>
                             </div>
                             {showGoalSection && (
-                                <div className="space-y-4 p-4 bg-gray-700 rounded-lg">
+                                <div className={`space-y-4 p-4 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                                                 Tipo de Meta
                                             </label>
                                             <select
                                                 value={goalType}
                                                 onChange={(e) => setGoalType(e.target.value)}
-                                                className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500"
+                                                className={`w-full rounded-md p-2 border ${
+                                                    currentTheme === 'dark' 
+                                                        ? 'bg-gray-600 border-gray-500 text-white' 
+                                                        : 'bg-white border-gray-300 text-gray-900'
+                                                }`}
                                             >
                                                 <option value="weekly">Semanal</option>
                                                 <option value="monthly">Mensual</option>
@@ -232,7 +267,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                                                 Puntos Objetivo *
                                             </label>
                                             <input
@@ -241,7 +276,11 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                                 value={goalTarget}
                                                 onChange={(e) => setGoalTarget(e.target.value)}
                                                 placeholder="Ej: 100"
-                                                className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500"
+                                                className={`w-full rounded-md p-2 border ${
+                                                    currentTheme === 'dark' 
+                                                        ? 'bg-gray-600 border-gray-500 text-white' 
+                                                        : 'bg-white border-gray-300 text-gray-900'
+                                                }`}
                                                 required={showGoalSection}
                                             />
                                         </div>
@@ -249,25 +288,33 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                     {goalType === 'custom' && (
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                                                     Fecha de Inicio
                                                 </label>
                                                 <input
                                                     type="date"
                                                     value={goalStartDate}
                                                     onChange={(e) => setGoalStartDate(e.target.value)}
-                                                    className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500"
+                                                    className={`w-full rounded-md p-2 border ${
+                                                        currentTheme === 'dark' 
+                                                            ? 'bg-gray-600 border-gray-500 text-white' 
+                                                            : 'bg-white border-gray-300 text-gray-900'
+                                                    }`}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                                                     Fecha de Fin
                                                 </label>
                                                 <input
                                                     type="date"
                                                     value={goalEndDate}
                                                     onChange={(e) => setGoalEndDate(e.target.value)}
-                                                    className="w-full bg-gray-600 text-white rounded-md p-2 border border-gray-500"
+                                                    className={`w-full rounded-md p-2 border ${
+                                                        currentTheme === 'dark' 
+                                                            ? 'bg-gray-600 border-gray-500 text-white' 
+                                                            : 'bg-white border-gray-300 text-gray-900'
+                                                    }`}
                                                 />
                                             </div>
                                         </div>
@@ -278,11 +325,15 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                     )}
                     
                     {/* Botones */}
-                    <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+                    <div className={`flex justify-end space-x-3 pt-4 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                         <button
                             type="button"
                             onClick={handleCancel}
-                            className="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-white"
+                            className={`px-6 py-2 rounded-lg ${
+                                currentTheme === 'dark' 
+                                    ? 'bg-gray-600 hover:bg-gray-500 text-white' 
+                                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                            }`}
                         >
                             Cancelar
                         </button>
@@ -296,6 +347,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                 </form>
             </div>
         </div>
+        </>
     );
 };
 

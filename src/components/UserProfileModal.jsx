@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-// Estilos CSS para ocultar scrollbar
+// Estilos CSS para ocultar scrollbar y temas
 const scrollbarHideStyles = `
     .scrollbar-hide {
         -ms-overflow-style: none;
@@ -9,9 +9,21 @@ const scrollbarHideStyles = `
     .scrollbar-hide::-webkit-scrollbar {
         display: none;
     }
+    
+    /* Estilos para options en modo claro */
+    .light select option {
+        background-color: white;
+        color: #374151;
+    }
+    
+    /* Estilos para options en modo oscuro */
+    .dark select option {
+        background-color: #374151;
+        color: #f9fafb;
+    }
 `;
 
-const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs, subscription, onUpgradeClick }) => {
+const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs, subscription, onUpgradeClick, currentTheme = 'dark' }) => {
     const [activeTab, setActiveTab] = useState('personal');
     const [formData, setFormData] = useState({
         // Información Personal
@@ -83,7 +95,9 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
 
     const tabBaseStyle = "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors duration-200";
     const tabActiveStyle = "bg-indigo-600 text-white";
-    const tabInactiveStyle = "bg-gray-700 text-gray-400 hover:bg-gray-600";
+    const tabInactiveStyle = currentTheme === 'dark' 
+        ? "bg-gray-700 text-gray-400 hover:bg-gray-600" 
+        : "bg-gray-200 text-gray-700 hover:bg-gray-300";
 
     if (!isOpen) return null;
 
@@ -91,9 +105,9 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
         <>
             <style>{scrollbarHideStyles}</style>
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden shadow-xl`}>
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-700">
+                <div className={`flex items-center justify-between p-6 border-b ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                     <div className="flex items-center gap-4">
                         <img 
                             src={user?.photoURL || '/default-avatar.png'} 
@@ -101,13 +115,13 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             className="w-12 h-12 rounded-full"
                         />
                         <div>
-                            <h2 className="text-xl font-bold text-white">Mi Perfil</h2>
-                            <p className="text-gray-400 text-sm">{user?.email}</p>
+                            <h2 className={`text-xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Mi Perfil</h2>
+                            <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{user?.email}</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-white transition-colors"
+                        className={`${currentTheme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'} transition-colors`}
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -116,7 +130,7 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-gray-700 overflow-x-auto scrollbar-hide">
+                <div className={`flex border-b ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'} overflow-x-auto scrollbar-hide`}>
                     <div className="flex min-w-max">
                         <button
                             onClick={() => setActiveTab('personal')}
@@ -172,34 +186,46 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* Información Personal */}
                     {activeTab === 'personal' && (
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-white mb-4">Información Personal</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Información Personal</h3>
                             
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Nombre Completo</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Nombre Completo</label>
                                 <input
                                     type="text"
                                     value={formData.fullName}
                                     onChange={(e) => handleInputChange('fullName', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Fecha de Nacimiento (Opcional)</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Fecha de Nacimiento (Opcional)</label>
                                 <input
                                     type="date"
                                     value={formData.birthDate}
                                     onChange={(e) => handleInputChange('birthDate', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Género/Identidad (Opcional)</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Género/Identidad (Opcional)</label>
                                 <select
                                     value={formData.gender}
                                     onChange={(e) => handleInputChange('gender', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 >
                                     <option value="">No especificar</option>
                                     <option value="masculino">Masculino</option>
@@ -210,11 +236,15 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Zona Horaria</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Zona Horaria</label>
                                 <select
                                     value={formData.timezone}
                                     onChange={(e) => handleInputChange('timezone', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 >
                                     <option value="America/Mexico_City">México (GMT-6)</option>
                                     <option value="America/New_York">Nueva York (GMT-5)</option>
@@ -229,14 +259,18 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* Configuración Regional */}
                     {activeTab === 'regional' && (
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-white mb-4">Configuración Regional</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Configuración Regional</h3>
                             
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Idioma</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Idioma</label>
                                 <select
                                     value={formData.language}
                                     onChange={(e) => handleInputChange('language', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 >
                                     <option value="es">Español</option>
                                     <option value="en">English</option>
@@ -245,11 +279,15 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Formato de Fecha</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Formato de Fecha</label>
                                 <select
                                     value={formData.dateFormat}
                                     onChange={(e) => handleInputChange('dateFormat', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 >
                                     <option value="DD/MM/YYYY">DD/MM/YYYY</option>
                                     <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -258,11 +296,15 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Formato de Hora</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Formato de Hora</label>
                                 <select
                                     value={formData.timeFormat}
                                     onChange={(e) => handleInputChange('timeFormat', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 >
                                     <option value="24h">24 horas</option>
                                     <option value="12h">12 horas</option>
@@ -274,14 +316,18 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* Preferencias Básicas */}
                     {activeTab === 'preferences' && (
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-white mb-4">Preferencias de Escritura</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Preferencias de Escritura</h3>
                             
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Fuente Predeterminada</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Fuente Predeterminada</label>
                                 <select
                                     value={formData.defaultFont}
                                     onChange={(e) => handleInputChange('defaultFont', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 >
                                     <option value="patrick-hand">Patrick Hand</option>
                                     <option value="caveat">Caveat</option>
@@ -294,11 +340,15 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Tamaño de Fuente Predeterminado</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Tamaño de Fuente Predeterminado</label>
                                 <select
                                     value={formData.defaultFontSize}
                                     onChange={(e) => handleInputChange('defaultFontSize', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 >
                                     <option value="text-lg">Muy Pequeño</option>
                                     <option value="text-xl">Pequeño</option>
@@ -309,11 +359,15 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Tema</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Tema</label>
                                 <select
                                     value={formData.theme}
                                     onChange={(e) => handleInputChange('theme', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 >
                                     <option value="dark">Oscuro</option>
                                     <option value="light">Claro</option>
@@ -326,12 +380,12 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* Notificaciones Básicas */}
                     {activeTab === 'notifications' && (
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-white mb-4">Notificaciones</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Notificaciones</h3>
                             
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300">Recordatorio Diario</label>
-                                    <p className="text-sm text-gray-400">Recibir notificación diaria para escribir</p>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Recordatorio Diario</label>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Recibir notificación diaria para escribir</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -346,12 +400,16 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
 
                             {formData.dailyReminder && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-2">Hora del Recordatorio</label>
+                                    <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Hora del Recordatorio</label>
                                     <input
                                         type="time"
                                         value={formData.reminderTime}
                                         onChange={(e) => handleInputChange('reminderTime', e.target.value)}
-                                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                        className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                            currentTheme === 'dark' 
+                                                ? 'bg-gray-700 border-gray-600 text-white' 
+                                                : 'bg-white border-gray-300 text-gray-900'
+                                        } border`}
                                     />
                                 </div>
                             )}
@@ -387,14 +445,18 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* IA Personalizada (Premium) */}
                     {activeTab === 'ai' && isPremium && (
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-white mb-4">Personalización de IA</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Personalización de IA</h3>
                             
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Estilo del Terapeuta IA</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Estilo del Terapeuta IA</label>
                                 <select
                                     value={formData.therapistStyle}
                                     onChange={(e) => handleInputChange('therapistStyle', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 >
                                     <option value="empatico">Empático y comprensivo</option>
                                     <option value="directo">Directo y analítico</option>
@@ -406,11 +468,15 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Estilo del Asistente de Escritura</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Estilo del Asistente de Escritura</label>
                                 <select
                                     value={formData.writingAssistantStyle}
                                     onChange={(e) => handleInputChange('writingAssistantStyle', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 >
                                     <option value="formal">Formal y académico</option>
                                     <option value="creativo">Creativo y expresivo</option>
@@ -421,11 +487,15 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Tono de Frases Motivacionales</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Tono de Frases Motivacionales</label>
                                 <select
                                     value={formData.motivationalTone}
                                     onChange={(e) => handleInputChange('motivationalTone', e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                 >
                                     <option value="espiritual">Espiritual y trascendental</option>
                                     <option value="filosofico">Filosófico y reflexivo</option>
@@ -442,12 +512,12 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* Seguridad (Premium) */}
                     {activeTab === 'security' && isPremium && (
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-white mb-4">Seguridad y Respaldo</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Seguridad y Respaldo</h3>
                             
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300">Autenticación de Dos Factores</label>
-                                    <p className="text-sm text-gray-400">Mayor seguridad para tu cuenta</p>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Autenticación de Dos Factores</label>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Mayor seguridad para tu cuenta</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -462,8 +532,8 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
 
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300">Respaldo Automático</label>
-                                    <p className="text-sm text-gray-400">Respaldar datos automáticamente</p>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Respaldo Automático</label>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Respaldar datos automáticamente</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -478,8 +548,8 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
 
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300">Sincronización</label>
-                                    <p className="text-sm text-gray-400">Sincronizar entre dispositivos</p>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Sincronización</label>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Sincronizar entre dispositivos</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -497,37 +567,49 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* Metas (Premium) */}
                     {activeTab === 'goals' && isPremium && (
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-white mb-4">Metas Personales</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Metas Personales</h3>
                             
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Objetivo de Escritura Diario (palabras)</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Objetivo de Escritura Diario (palabras)</label>
                                 <input
                                     type="number"
                                     value={formData.dailyWritingGoal}
                                     onChange={(e) => handleInputChange('dailyWritingGoal', parseInt(e.target.value))}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                     min="1"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Objetivo de Escritura Semanal (palabras)</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Objetivo de Escritura Semanal (palabras)</label>
                                 <input
                                     type="number"
                                     value={formData.weeklyWritingGoal}
                                     onChange={(e) => handleInputChange('weeklyWritingGoal', parseInt(e.target.value))}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                     min="1"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Meta de Actividades Diarias</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Meta de Actividades Diarias</label>
                                 <input
                                     type="number"
                                     value={formData.dailyActivityGoal}
                                     onChange={(e) => handleInputChange('dailyActivityGoal', parseInt(e.target.value))}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500"
+                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                                        currentTheme === 'dark' 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } border`}
                                     min="1"
                                     max="10"
                                 />
@@ -535,8 +617,8 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
 
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300">Recordatorios de Actividades</label>
-                                    <p className="text-sm text-gray-400">Notificar actividades pendientes</p>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Recordatorios de Actividades</label>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Notificar actividades pendientes</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -551,8 +633,8 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
 
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300">Resúmenes Semanales</label>
-                                    <p className="text-sm text-gray-400">Recibir resumen semanal del diario</p>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Resúmenes Semanales</label>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Recibir resumen semanal del diario</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -569,10 +651,14 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                 </div>
 
                 {/* Footer */}
-                <div className="flex justify-end gap-3 p-6 border-t border-gray-700">
+                <div className={`flex justify-end gap-3 p-6 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-gray-300 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
+                        className={`px-4 py-2 rounded-lg transition-colors ${
+                            currentTheme === 'dark' 
+                                ? 'text-gray-300 bg-gray-700 hover:bg-gray-600' 
+                                : 'text-gray-700 bg-gray-200 hover:bg-gray-300'
+                        }`}
                     >
                         Cancelar
                     </button>
