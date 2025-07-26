@@ -3,7 +3,7 @@
 ## 📋 Información General
 
 **Nombre del Proyecto:** Introspect - Tu Diario Personal  
-**Versión:** 1.60.0  
+**Versión:** 1.62.0  
 **Tecnologías:** React 19, Vite, Firebase, Tailwind CSS  
 **Tipo:** PWA (Progressive Web App) con funcionalidades premium
 
@@ -218,31 +218,38 @@ npm run lint         # Linting
 Para mantener la consistencia y asegurar despliegues exitosos, seguir este orden:
 
 1. **Desarrollo** → `npm run dev`
-2. **Build** → `npm run build`
-3. **Despliegue** → `firebase deploy`
-4. **Commit** → `git add . && git commit -m "mensaje"`
-5. **Push** → `git push`
+2. **Incremento de Versión** → Actualizar `package.json` y `APP_VERSION` en `App.jsx`
+3. **Build** → `npm run build`
+4. **Despliegue** → `firebase deploy`
+5. **Commit** → `git add . && git commit -m "mensaje"`
+6. **Push** → `git push`
 
 ### ¿Por qué este orden?
 
-#### 1. **Build Primero**
+#### 1. **Incremento de Versión Primero**
+- Actualiza la versión antes de cualquier build
+- Asegura que el Service Worker se actualice con la nueva versión
+- Mantiene sincronizados `package.json` y `APP_VERSION`
+- Facilita el seguimiento de cambios en producción
+
+#### 2. **Build Después del Incremento**
 - Verifica que el código compile sin errores
-- Actualiza automáticamente el Service Worker
+- Actualiza automáticamente el Service Worker con la nueva versión
 - Genera los archivos optimizados para producción
 - Detecta problemas antes del despliegue
 
-#### 2. **Despliegue Antes del Commit**
+#### 3. **Despliegue Antes del Commit**
 - Asegura que los cambios funcionen en producción
 - Permite probar la app desplegada antes de guardar en git
 - Si hay problemas, se pueden corregir antes del commit
 - Evita commits con código que no funciona en producción
 
-#### 3. **Commit Final**
+#### 4. **Commit Final**
 - Solo se hace commit del código que ya está funcionando
 - El historial de git refleja el estado real de producción
 - Facilita el rollback si es necesario
 
-#### 4. **Push al Repositorio**
+#### 5. **Push al Repositorio**
 - Sincroniza los cambios con el repositorio remoto
 - Permite colaboración en equipo
 - Crea backup del código en la nube
@@ -253,17 +260,21 @@ Para mantener la consistencia y asegurar despliegues exitosos, seguir este orden
 # 1. Desarrollo (en paralelo)
 npm run dev
 
-# 2. Build y verificación
+# 2. Incremento de versión
+# - Actualizar "version" en package.json (ej: "1.62.0")
+# - Actualizar APP_VERSION en src/App.jsx (ej: '1.62')
+
+# 3. Build y verificación
 npm run build
 
-# 3. Despliegue a Firebase
+# 4. Despliegue a Firebase
 firebase deploy
 
-# 4. Commit de cambios
+# 5. Commit de cambios
 git add .
 git commit -m "feat: descripción de cambios"
 
-# 5. Push al repositorio
+# 6. Push al repositorio
 git push
 ```
 
