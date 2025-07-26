@@ -588,7 +588,41 @@ const DiaryApp = ({ user }) => {
             </div>
             
             {/* Modals */}
-            {isAIModalOpen && <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"><div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-lg flex flex-col"><h2 className="text-2xl font-bold text-purple-300 mb-4">{aiModalTitle}</h2><div className="overflow-y-auto max-h-[60vh] pr-2">{isAILoading ? <div className="text-center py-10"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div><p className="mt-4 text-gray-300">Analizando...</p></div> : <div className="text-gray-200 whitespace-pre-wrap prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: aiResponse.replace(/\n/g, '<br />') }} />}</div><div className="flex justify-end mt-6 pt-4 border-t border-gray-700 gap-3">{aiModalTitle === 'Sugerencias del Asistente' && !isAILoading && <button onClick={acceptWritingSuggestion} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition">Usar esta versión</button>}<button onClick={() => setAIModalOpen(false)} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg">Cerrar</button></div></div></div>}
+            {isAIModalOpen && (
+                <div className={`fixed inset-0 ${currentTheme === 'dark' ? 'bg-black bg-opacity-70' : 'bg-black bg-opacity-50'} flex items-center justify-center z-50 p-4`}>
+                    <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-6 w-full max-w-lg flex flex-col`}>
+                        <h2 className={`text-2xl font-bold ${currentTheme === 'dark' ? 'text-purple-300' : 'text-purple-600'} mb-4`}>{aiModalTitle}</h2>
+                        <div className="overflow-y-auto max-h-[60vh] pr-2">
+                            {isAILoading ? (
+                                <div className="text-center py-10">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
+                                    <p className={`mt-4 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Analizando...</p>
+                                </div>
+                            ) : (
+                                <div className={`${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} whitespace-pre-wrap prose ${currentTheme === 'dark' ? 'prose-invert' : ''} max-w-none`} 
+                                     dangerouslySetInnerHTML={{ __html: aiResponse.replace(/\n/g, '<br />') }} />
+                            )}
+                        </div>
+                        <div className={`flex justify-end mt-6 pt-4 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-300'} gap-3`}>
+                            {aiModalTitle === 'Sugerencias del Asistente' && !isAILoading && (
+                                <button onClick={acceptWritingSuggestion} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition">
+                                    Usar esta versión
+                                </button>
+                            )}
+                            <button 
+                                onClick={() => setAIModalOpen(false)} 
+                                className={`px-4 py-2 rounded-lg transition-colors ${
+                                    currentTheme === 'dark' 
+                                        ? 'bg-gray-600 hover:bg-gray-500 text-white' 
+                                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                                }`}
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <DefineActivitiesModal 
                 isOpen={isDefineActivitiesModalOpen} 
                 onClose={() => setDefineActivitiesModalOpen(false)} 
@@ -639,6 +673,7 @@ const DiaryApp = ({ user }) => {
                 entries={allEntries}
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
                 hasFeature={hasFeature}
+                currentTheme={currentTheme}
             />
             <TwoFactorAuth 
                 isOpen={isTwoFactorAuthOpen} 

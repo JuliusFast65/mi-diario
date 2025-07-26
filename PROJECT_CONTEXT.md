@@ -221,6 +221,7 @@ Para mantener la consistencia y asegurar despliegues exitosos, seguir este orden
 2. **Build** → `npm run build`
 3. **Despliegue** → `firebase deploy`
 4. **Commit** → `git add . && git commit -m "mensaje"`
+5. **Push** → `git push`
 
 ### ¿Por qué este orden?
 
@@ -241,6 +242,12 @@ Para mantener la consistencia y asegurar despliegues exitosos, seguir este orden
 - El historial de git refleja el estado real de producción
 - Facilita el rollback si es necesario
 
+#### 4. **Push al Repositorio**
+- Sincroniza los cambios con el repositorio remoto
+- Permite colaboración en equipo
+- Crea backup del código en la nube
+- Facilita el deployment en otros entornos
+
 ### Comandos del Flujo
 ```bash
 # 1. Desarrollo (en paralelo)
@@ -255,6 +262,9 @@ firebase deploy
 # 4. Commit de cambios
 git add .
 git commit -m "feat: descripción de cambios"
+
+# 5. Push al repositorio
+git push
 ```
 
 ### Scripts Automatizados
