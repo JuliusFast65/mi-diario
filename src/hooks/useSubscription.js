@@ -63,7 +63,19 @@ export default function useSubscription(db, user, appId) {
     };
 
     const hasFeature = (feature) => {
-        return subscription.features.includes(feature);
+        // Mapeo de características premium
+        const premiumFeatures = {
+            'therapy_chat': subscription.plan === 'premium',
+            'writing_assistant': subscription.plan === 'premium',
+            'advanced_introspective_assistant': subscription.plan === 'premium',
+            'behavior_analysis': subscription.plan === 'premium',
+            'two_factor_auth': subscription.plan === 'premium',
+            'unlimited_activities': subscription.plan === 'premium',
+            'activity_sublevels': subscription.plan === 'premium',
+            'activity_goals': subscription.plan === 'premium'
+        };
+        
+        return premiumFeatures[feature] || subscription.features.includes(feature);
     };
 
     const isSubscriptionActive = () => {

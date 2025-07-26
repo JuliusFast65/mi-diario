@@ -15,6 +15,7 @@ import UserProfileModal from './components/UserProfileModal';
 import UpdateNotification from './components/UpdateNotification';
 
 // Premium Components
+import AdvancedIntrospectiveAssistant from './components/AdvancedIntrospectiveAssistant';
 import TherapistChat from './components/TherapistChat';
 import WritingAssistant from './components/WritingAssistant';
 import BehaviorAnalysis from './components/BehaviorAnalysis';
@@ -112,6 +113,7 @@ const DiaryApp = ({ user }) => {
     const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
     // Premium Modals State
+    const [isAdvancedIntrospectiveAssistantOpen, setIsAdvancedIntrospectiveAssistantOpen] = useState(false);
     const [isTherapistChatOpen, setIsTherapistChatOpen] = useState(false);
     const [isWritingAssistantOpen, setIsWritingAssistantOpen] = useState(false);
     const [isBehaviorAnalysisOpen, setIsBehaviorAnalysisOpen] = useState(false);
@@ -439,6 +441,18 @@ const DiaryApp = ({ user }) => {
                     </div>
                     <div className="flex items-center gap-4">
                         <HamburgerMenu 
+                            onAdvancedIntrospectiveAssistant={() => {
+                                if (subscription?.plan === 'premium') {
+                                    setIsAdvancedIntrospectiveAssistantOpen(true);
+                                } else {
+                                    setPremiumFeatureInfo({
+                                        name: 'Asistente Introspectivo Avanzado',
+                                        description: 'Combina el poder del chat terapéutico con asistencia de escritura avanzada para una experiencia de reflexión personal completa.',
+                                        icon: '🧠'
+                                    });
+                                    setIsPremiumFeatureModalOpen(true);
+                                }
+                            }}
                             onTherapistChat={() => {
                                 if (subscription?.plan === 'premium') {
                                     setIsTherapistChatOpen(true);
@@ -650,6 +664,18 @@ const DiaryApp = ({ user }) => {
             />
             
             {/* Premium Modals */}
+            <AdvancedIntrospectiveAssistant 
+                isOpen={isAdvancedIntrospectiveAssistantOpen} 
+                onClose={() => setIsAdvancedIntrospectiveAssistantOpen(false)} 
+                db={db} 
+                user={user} 
+                onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
+                hasFeature={hasFeature}
+                currentEntry={currentEntry}
+                onUpdateEntry={setCurrentEntry}
+                selectedDate={selectedDate}
+                textareaRef={textareaRef}
+            />
             <TherapistChat 
                 isOpen={isTherapistChatOpen} 
                 onClose={() => setIsTherapistChatOpen(false)} 

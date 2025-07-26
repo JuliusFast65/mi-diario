@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 export default function HamburgerMenu({ 
+    onAdvancedIntrospectiveAssistant,
     onTherapistChat, 
     onWritingAssistant, 
     onBehaviorAnalysis, 
@@ -109,6 +110,21 @@ export default function HamburgerMenu({
                         </h4>
                         
                         <button
+                            onClick={() => handleMenuItemClick(onAdvancedIntrospectiveAssistant)}
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'text-gray-300 hover:bg-gray-700' 
+                                    : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                        >
+                            <span className="text-gradient-to-r from-blue-500 to-purple-600">🧠</span>
+                            <div>
+                                <div className="font-medium">Asistente Introspectivo Avanzado</div>
+                                <div className="text-xs text-gray-500">Nuevo - Terapeuta + Escritura</div>
+                            </div>
+                        </button>
+
+                        <button
                             onClick={() => handleMenuItemClick(onTherapistChat)}
                             className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
                                 currentTheme === 'dark' 
@@ -119,6 +135,7 @@ export default function HamburgerMenu({
                             <span className="text-green-400">💬</span>
                             <div>
                                 <div className="font-medium">Chat con Terapeuta</div>
+                                <div className="text-xs text-gray-500">Versión original</div>
                             </div>
                         </button>
 
@@ -133,6 +150,7 @@ export default function HamburgerMenu({
                             <span className="text-purple-400">✍️</span>
                             <div>
                                 <div className="font-medium">Asistente de Escritura</div>
+                                <div className="text-xs text-gray-500">Versión original</div>
                             </div>
                         </button>
 
