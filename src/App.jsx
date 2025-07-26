@@ -604,7 +604,7 @@ const DiaryApp = ({ user }) => {
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
                 currentTheme={currentTheme}
             />
-            <ExportModal isOpen={isExportModalOpen} onClose={() => setExportModalOpen(false)} onExport={handleExportEntries} />
+            <ExportModal isOpen={isExportModalOpen} onClose={() => setExportModalOpen(false)} onExport={handleExportEntries} currentTheme={currentTheme} />
             <ImportModal 
                 isOpen={isImportModalOpen} 
                 onClose={() => setImportModalOpen(false)} 
@@ -612,6 +612,7 @@ const DiaryApp = ({ user }) => {
                 user={user}
                 db={db}
                 appId={appId}
+                currentTheme={currentTheme}
             />
             
             {/* Premium Modals */}

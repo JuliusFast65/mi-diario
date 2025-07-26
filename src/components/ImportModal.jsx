@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-export default function ImportModal({ isOpen, onClose, onImportEntries, user, db, appId }) {
+export default function ImportModal({ isOpen, onClose, onImportEntries, user, db, appId, currentTheme = 'dark' }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [dragActive, setDragActive] = useState(false);
     const [fileInfo, setFileInfo] = useState(null);
@@ -529,13 +529,13 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className={`fixed inset-0 ${currentTheme === 'dark' ? 'bg-black bg-opacity-50' : 'bg-black bg-opacity-50'} flex items-center justify-center z-50`}>
+            <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto`}>
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Importar Entradas</h2>
+                    <h2 className={`text-2xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Importar Entradas</h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700"
+                        className={`${currentTheme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -544,9 +544,9 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                 </div>
 
                 {/* Instrucciones */}
-                <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-                    <h3 className="font-semibold text-blue-900 mb-2">📋 Instrucciones:</h3>
-                    <ul className="text-sm text-blue-800 space-y-1">
+                <div className={`mb-6 p-4 ${currentTheme === 'dark' ? 'bg-blue-900 bg-opacity-20' : 'bg-blue-50'} rounded-lg`}>
+                    <h3 className={`font-semibold ${currentTheme === 'dark' ? 'text-blue-200' : 'text-blue-900'} mb-2`}>📋 Instrucciones:</h3>
+                    <ul className={`text-sm ${currentTheme === 'dark' ? 'text-blue-100' : 'text-blue-800'} space-y-1`}>
                         <li>• <strong>TXT Simple:</strong> Una fecha por línea, seguida del contenido</li>
                         <li>• <strong>TXT Estructurado:</strong> ##### DATE: YYYY-MM-DD ########## seguido del contenido y ##### END #######################</li>
                         <li>• <strong>CSV:</strong> Columnas: fecha, título, contenido, actividades</li>
@@ -558,7 +558,9 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                 {/* Área de drag & drop */}
                 <div
                     className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                        dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                        dragActive 
+                            ? `${currentTheme === 'dark' ? 'border-blue-400 bg-blue-900 bg-opacity-20' : 'border-blue-500 bg-blue-50'}` 
+                            : `${currentTheme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`
                     }`}
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}
@@ -575,10 +577,10 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                     
                     {!fileInfo ? (
                         <div>
-                            <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <svg className={`mx-auto h-12 w-12 ${currentTheme === 'dark' ? 'text-gray-500' : 'text-gray-400'} mb-4`} stroke="currentColor" fill="none" viewBox="0 0 48 48">
                                 <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
-                            <p className="text-lg text-gray-600 mb-2">
+                            <p className={`text-lg ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-2`}>
                                 Arrastra tu archivo aquí o
                             </p>
                             <button
@@ -587,7 +589,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                             >
                                 selecciona un archivo
                             </button>
-                            <p className="text-sm text-gray-500 mt-2">
+                            <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-2`}>
                                 Soporta archivos TXT y CSV
                             </p>
                         </div>
@@ -598,10 +600,10 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <p className="text-lg font-medium text-gray-900 mb-2">
+                            <p className={`text-lg font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>
                                 {fileInfo.name}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                                 {(fileInfo.size / 1024).toFixed(1)} KB
                             </p>
                         </div>
@@ -610,8 +612,8 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
 
                 {/* Resultados de detección */}
                                             {detectionResult && (
-                                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                                    <h3 className="font-semibold text-gray-900 text-sm mb-3">🔍 Análisis del Archivo</h3>
+                                <div className={`mt-4 p-3 ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg`}>
+                                    <h3 className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} text-sm mb-3`}>🔍 Análisis del Archivo</h3>
                                     {previewData && (
                                         <button
                                             onClick={() => setShowPreview(!showPreview)}
@@ -621,19 +623,19 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                         </button>
                                     )}
                         <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div><strong>Tipo:</strong> {detectionResult.type.toUpperCase()}</div>
-                            <div><strong>Formato:</strong> {detectionResult.dateFormat || 'No detectado'}</div>
-                            <div><strong>Entradas:</strong> {detectionResult.totalLines}</div>
+                            <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}><strong>Tipo:</strong> {detectionResult.type.toUpperCase()}</div>
+                            <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}><strong>Formato:</strong> {detectionResult.dateFormat || 'No detectado'}</div>
+                            <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}><strong>Entradas:</strong> {detectionResult.totalLines}</div>
                             
                             {detectionResult.type === 'csv' && (
-                                <div><strong>Separador:</strong> {detectionResult.separator}</div>
+                                <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}><strong>Separador:</strong> {detectionResult.separator}</div>
                             )}
                         </div>
                         
                         {detectionResult.type === 'csv' && (
-                            <div className="mt-2 pt-2 border-t border-gray-200">
-                                <div className="text-xs"><strong>Columnas:</strong></div>
-                                <div className="grid grid-cols-2 gap-1 text-xs text-gray-600">
+                            <div className={`mt-2 pt-2 border-t ${currentTheme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
+                                <div className={`text-xs ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}><strong>Columnas:</strong></div>
+                                <div className={`grid grid-cols-2 gap-1 text-xs ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                                     {Object.entries(detectionResult.columnMapping).map(([key, index]) => (
                                         <div key={key}>
                                             • {key}: {index !== null ? detectionResult.headers[index] : 'No detectado'}
@@ -647,55 +649,55 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
 
                 {/* Previsualización de entradas */}
                 {showPreview && previewData && (
-                    <div className="mt-6 p-4 bg-white border border-gray-200 rounded-lg">
-                        <h3 className="font-semibold text-gray-900 mb-4">📋 Previsualización de Entradas</h3>
+                    <div className={`mt-6 p-4 ${currentTheme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'} border rounded-lg`}>
+                        <h3 className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} mb-4`}>📋 Previsualización de Entradas</h3>
                         
                         {/* Estadísticas */}
-                        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                        <div className={`mb-4 p-3 ${currentTheme === 'dark' ? 'bg-blue-900 bg-opacity-20' : 'bg-blue-50'} rounded-lg`}>
                             <div className="grid grid-cols-3 gap-4 text-sm">
                                 <div className="text-center">
                                     <div className="font-bold text-blue-600">{previewData.total}</div>
-                                    <div className="text-gray-600">Total</div>
+                                    <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Total</div>
                                 </div>
                                 <div className="text-center">
                                     <div className="font-bold text-green-600">{previewData.valid}</div>
-                                    <div className="text-gray-600">Válidas</div>
+                                    <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Válidas</div>
                                 </div>
                                 <div className="text-center">
                                     <div className="font-bold text-red-600">{previewData.invalid}</div>
-                                    <div className="text-gray-600">Inválidas</div>
+                                    <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Inválidas</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Filtros */}
-                        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                            <h4 className="font-medium text-gray-900 mb-2">Filtros</h4>
+                        <div className={`mb-4 p-3 ${currentTheme === 'dark' ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg`}>
+                            <h4 className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Filtros</h4>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-800 mb-1">Desde:</label>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-1`}>Desde:</label>
                                     <input
                                         type="date"
                                         value={dateFilter.start}
                                         onChange={(e) => setDateFilter(prev => ({ ...prev, start: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 bg-white"
+                                        className={`w-full px-3 py-2 border rounded-md text-sm ${currentTheme === 'dark' ? 'border-gray-500 text-white bg-gray-700' : 'border-gray-300 text-gray-900 bg-white'}`}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-800 mb-1">Hasta:</label>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-1`}>Hasta:</label>
                                     <input
                                         type="date"
                                         value={dateFilter.end}
                                         onChange={(e) => setDateFilter(prev => ({ ...prev, end: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 bg-white"
+                                        className={`w-full px-3 py-2 border rounded-md text-sm ${currentTheme === 'dark' ? 'border-gray-500 text-white bg-gray-700' : 'border-gray-300 text-gray-900 bg-white'}`}
                                     />
                                 </div>
                             </div>
                         </div>
 
                         {/* Opciones de conflicto */}
-                        <div className="mb-4 p-3 bg-yellow-50 rounded-lg">
-                            <h4 className="font-medium text-gray-900 mb-2">Modo de Conflicto</h4>
+                        <div className={`mb-4 p-3 ${currentTheme === 'dark' ? 'bg-yellow-900 bg-opacity-20' : 'bg-yellow-50'} rounded-lg`}>
+                            <h4 className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Modo de Conflicto</h4>
                             <div className="space-y-2">
                                 <label className="flex items-center">
                                     <input
@@ -705,7 +707,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                         onChange={(e) => setConflictMode(e.target.value)}
                                         className="mr-2"
                                     />
-                                    <span className="text-sm text-gray-800 font-medium">Sobrescribir entradas existentes</span>
+                                    <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} font-medium`}>Sobrescribir entradas existentes</span>
                                 </label>
                                 <label className="flex items-center">
                                     <input
@@ -715,7 +717,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                         onChange={(e) => setConflictMode(e.target.value)}
                                         className="mr-2"
                                     />
-                                    <span className="text-sm text-gray-800 font-medium">Saltar entradas existentes</span>
+                                    <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} font-medium`}>Saltar entradas existentes</span>
                                 </label>
                                 <label className="flex items-center">
                                     <input
@@ -725,14 +727,14 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                         onChange={(e) => setConflictMode(e.target.value)}
                                         className="mr-2"
                                     />
-                                    <span className="text-sm text-gray-800 font-medium">Crear nueva versión (agregar sufijo)</span>
+                                    <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} font-medium`}>Crear nueva versión (agregar sufijo)</span>
                                 </label>
                             </div>
                         </div>
 
                         {/* Contador de selección */}
                         <div className="mb-4 flex justify-end">
-                            <span className="text-sm text-gray-800 font-medium">
+                            <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
                                 {selectedEntries.length} de {getFilteredEntries().length} seleccionadas
                             </span>
                         </div>
@@ -740,9 +742,9 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                         {/* Tabla de entradas */}
                         <div className="max-h-96 overflow-y-auto">
                             <table className="w-full text-sm">
-                                <thead className="bg-gray-50 sticky top-0">
+                                <thead className={`${currentTheme === 'dark' ? 'bg-gray-600' : 'bg-gray-50'} sticky top-0`}>
                                     <tr>
-                                        <th className="px-2 py-2 text-left font-semibold text-gray-900">
+                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                             <input
                                                 type="checkbox"
                                                 checked={isAllVisibleSelected()}
@@ -762,15 +764,15 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                                 title="Seleccionar todas las entradas visibles"
                                             />
                                         </th>
-                                        <th className="px-2 py-2 text-left font-semibold text-gray-900">Fecha</th>
-                                        <th className="px-2 py-2 text-left font-semibold text-gray-900">Título</th>
-                                        <th className="px-2 py-2 text-left font-semibold text-gray-900">Contenido</th>
-                                        <th className="px-2 py-2 text-left font-semibold text-gray-900">Estado</th>
+                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Fecha</th>
+                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Título</th>
+                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Contenido</th>
+                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Estado</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {getFilteredEntries().map((entry) => (
-                                        <tr key={entry.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                        <tr key={entry.id} className={`border-b ${currentTheme === 'dark' ? 'border-gray-600 hover:bg-gray-600' : 'border-gray-100 hover:bg-gray-50'}`}>
                                             <td className="px-2 py-2">
                                                 <input
                                                     type="checkbox"
@@ -780,13 +782,13 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                                     className="mr-2"
                                                 />
                                             </td>
-                                            <td className="px-2 py-2 font-mono text-xs text-gray-900 font-semibold">
+                                            <td className={`px-2 py-2 font-mono text-xs font-semibold ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
                                                 {entry.date}
                                             </td>
-                                            <td className="px-2 py-2 max-w-32 truncate text-gray-900 font-medium" title={entry.title}>
+                                            <td className={`px-2 py-2 max-w-32 truncate font-medium ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`} title={entry.title}>
                                                 {entry.title}
                                             </td>
-                                            <td className="px-2 py-2 max-w-48 truncate text-gray-800" title={entry.content}>
+                                            <td className={`px-2 py-2 max-w-48 truncate ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-800'}`} title={entry.content}>
                                                 {entry.content}
                                             </td>
                                             <td className="px-2 py-2">
@@ -811,7 +813,11 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                     {fileInfo && (
                         <button
                             onClick={resetModal}
-                            className="px-4 py-2 text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
+                            className={`px-4 py-2 rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'text-blue-300 bg-blue-900 hover:bg-blue-800' 
+                                    : 'text-blue-700 bg-blue-100 hover:bg-blue-200'
+                            }`}
                             disabled={isProcessing}
                             title="Cargar un archivo diferente"
                         >
@@ -820,7 +826,11 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                     )}
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                        className={`px-4 py-2 rounded-lg transition-colors ${
+                            currentTheme === 'dark' 
+                                ? 'text-gray-200 bg-gray-600 hover:bg-gray-500' 
+                                : 'text-gray-700 bg-gray-200 hover:bg-gray-300'
+                        }`}
                         disabled={isProcessing}
                     >
                         Cancelar
