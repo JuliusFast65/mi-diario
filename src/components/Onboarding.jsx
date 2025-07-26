@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
+const Onboarding = ({ isOpen, onClose, mode = 'manual', currentTheme = 'dark' }) => {
     const [currentStep, setCurrentStep] = useState(0);
     const [isVisible, setIsVisible] = useState(false);
     const [highlightedElement, setHighlightedElement] = useState(null);
@@ -196,13 +196,13 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
             {/* Overlay más claro */}
             <div 
                 ref={overlayRef}
-                className="absolute inset-0 bg-black bg-opacity-40"
+                className={`absolute inset-0 ${currentTheme === 'dark' ? 'bg-black bg-opacity-40' : 'bg-black bg-opacity-50'}`}
                 onClick={mode === 'manual' ? onClose : undefined}
             />
             
             {/* Tooltip centrado - siempre visible */}
             <div 
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white rounded-xl shadow-2xl max-w-sm p-4 border border-gray-600"
+                className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${currentTheme === 'dark' ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'} rounded-xl shadow-2xl max-w-sm p-4 border`}
                 style={{
                     maxWidth: '320px',
                     minWidth: '280px',
@@ -232,7 +232,7 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
                     </div>
                     <button 
                         onClick={skipOnboarding}
-                        className="text-gray-400 hover:text-white transition-colors"
+                        className={`${currentTheme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'} transition-colors`}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -241,7 +241,7 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
                 </div>
                 
                 {/* Contenido */}
-                <p className="text-gray-300 mb-4 text-sm leading-relaxed">{currentStepData.content}</p>
+                <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-4 text-sm leading-relaxed`}>{currentStepData.content}</p>
                 
                 {/* Navegación */}
                 <div className="flex items-center justify-between">
@@ -250,7 +250,7 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
                             <div 
                                 key={index}
                                 className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                                    index === currentStep ? 'bg-blue-500 scale-110' : 'bg-gray-600'
+                                    index === currentStep ? 'bg-blue-500 scale-110' : `${currentTheme === 'dark' ? 'bg-gray-600' : 'bg-gray-400'}`
                                 }`}
                             />
                         ))}
@@ -260,14 +260,14 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual' }) => {
                         {currentStep > 0 && (
                             <button 
                                 onClick={prevStep}
-                                className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm transition-colors font-medium"
+                                className={`px-3 py-1.5 ${currentTheme === 'dark' ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300'} rounded-lg text-sm transition-colors font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-700'}`}
                             >
                                 Anterior
                             </button>
                         )}
                         <button 
                             onClick={nextStep}
-                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm transition-colors font-medium"
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm transition-colors font-medium text-white"
                         >
                             {currentStep === steps.length - 1 ? 'Finalizar' : 'Siguiente'}
                         </button>

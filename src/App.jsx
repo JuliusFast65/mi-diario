@@ -668,6 +668,7 @@ const DiaryApp = ({ user }) => {
                 isOpen={isOnboardingOpen} 
                 onClose={() => setIsOnboardingOpen(false)} 
                 mode={localStorage.getItem('onboarding-completed') ? 'manual' : 'auto'}
+                currentTheme={currentTheme}
             />
                         <UserProfileModal 
                 isOpen={isUserProfileModalOpen} 
@@ -720,6 +721,6 @@ export default function App() {
 
 
 
-const APP_VERSION = '1.60'; // Cambia este valor en cada iteración
+const APP_VERSION = '1.61'; // Cambia este valor en cada iteración
 
 

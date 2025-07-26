@@ -153,12 +153,39 @@ artifacts/{appId}/
 - **Almacenamiento:** Solo datos encriptados en Firestore
 - **Autenticación:** Google OAuth con Firebase
 
-## 📱 PWA Features
+## 📱 PWA (Progressive Web App)
 
-- **Service Worker:** Cache inteligente y actualizaciones
-- **Manifest:** Instalación como app nativa
-- **Offline:** Funcionalidad básica offline
-- **Notificaciones:** Actualizaciones de la app
+### Configuración PWA
+La aplicación está configurada como PWA completa para permitir instalación en dispositivos móviles y desktop.
+
+#### Archivos PWA
+- **`public/manifest.json`**: Configuración de la app instalable
+- **`public/sw.js`**: Service Worker para cache y actualizaciones
+- **`index.html`**: Meta tags y registro del Service Worker
+- **Iconos**: `pwa-192x192.png`, `pwa-512x512.png`, `favicon.svg`
+
+#### Características PWA
+- ✅ **Instalable**: Se puede instalar como app nativa
+- ✅ **Offline**: Funcionalidad básica sin conexión
+- ✅ **Actualizaciones automáticas**: Service Worker detecta cambios
+- ✅ **Cache inteligente**: Recursos cacheados para mejor rendimiento
+- ✅ **Notificaciones push**: Preparado para notificaciones (futuro)
+
+#### Criterios de Instalación
+Para que el navegador muestre el prompt de instalación, la app debe cumplir:
+- ✅ **HTTPS**: Desplegada en Firebase Hosting
+- ✅ **Manifest válido**: Con todos los campos requeridos
+- ✅ **Service Worker registrado**: En `index.html`
+- ✅ **Iconos**: 192x192 y 512x512 píxeles
+- ✅ **Meta tags PWA**: Para todos los navegadores
+- ✅ **Display standalone**: Se abre como app nativa
+
+#### Versiones y Actualizaciones
+- **`package.json`**: Versión del proyecto (1.61.0)
+- **`APP_VERSION`**: Versión visible al usuario (1.61)
+- **`SW_VERSION`**: Versión del Service Worker (2.0.141)
+
+El script `prebuild` actualiza automáticamente la versión del Service Worker cuando cambia la versión en `package.json`.
 
 ## 🎯 Funcionalidades Clave
 
@@ -184,6 +211,56 @@ npm run build        # Build de producción
 npm run preview      # Preview del build
 npm run lint         # Linting
 ```
+
+## 🔄 Flujo de Trabajo de Desarrollo
+
+### Ciclo de Desarrollo Estándar
+Para mantener la consistencia y asegurar despliegues exitosos, seguir este orden:
+
+1. **Desarrollo** → `npm run dev`
+2. **Build** → `npm run build`
+3. **Despliegue** → `firebase deploy`
+4. **Commit** → `git add . && git commit -m "mensaje"`
+
+### ¿Por qué este orden?
+
+#### 1. **Build Primero**
+- Verifica que el código compile sin errores
+- Actualiza automáticamente el Service Worker
+- Genera los archivos optimizados para producción
+- Detecta problemas antes del despliegue
+
+#### 2. **Despliegue Antes del Commit**
+- Asegura que los cambios funcionen en producción
+- Permite probar la app desplegada antes de guardar en git
+- Si hay problemas, se pueden corregir antes del commit
+- Evita commits con código que no funciona en producción
+
+#### 3. **Commit Final**
+- Solo se hace commit del código que ya está funcionando
+- El historial de git refleja el estado real de producción
+- Facilita el rollback si es necesario
+
+### Comandos del Flujo
+```bash
+# 1. Desarrollo (en paralelo)
+npm run dev
+
+# 2. Build y verificación
+npm run build
+
+# 3. Despliegue a Firebase
+firebase deploy
+
+# 4. Commit de cambios
+git add .
+git commit -m "feat: descripción de cambios"
+```
+
+### Scripts Automatizados
+- **`prebuild`**: Actualiza automáticamente la versión del Service Worker
+- **Service Worker**: Se actualiza con cada build
+- **Firebase**: Despliega automáticamente a hosting y Firestore
 
 ## 🔧 Configuración
 
@@ -242,4 +319,4 @@ VITE_FIREBASE_APP_ID=
 ---
 
 **Última actualización:** Diciembre 2024  
-**Versión del documento:** 1.0 
+**Versión del documento:** 1.1 
