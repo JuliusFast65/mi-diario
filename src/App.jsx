@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { getFirestore, doc, onSnapshot, setDoc, collection, getDocs, getDoc, query, where, documentId, deleteDoc } from 'firebase/firestore';
+import { getFirestore, doc, onSnapshot, setDoc, collection, getDocs, getDoc, query, where, documentId, deleteDoc, updateDoc } from 'firebase/firestore';
 
 import { auth, db } from './firebase';
 import DiaryEntryEditor from './components/DiaryEntryEditor';
@@ -16,6 +16,7 @@ import UpdateNotification from './components/UpdateNotification';
 
 // Premium Components
 import AdvancedIntrospectiveAssistant from './components/AdvancedIntrospectiveAssistant';
+import TherapistReflection from './components/TherapistReflection';
 
 import WritingAssistant from './components/WritingAssistant';
 import BehaviorAnalysis from './components/BehaviorAnalysis';
@@ -114,6 +115,7 @@ const DiaryApp = ({ user }) => {
 
     // Premium Modals State
     const [isAdvancedIntrospectiveAssistantOpen, setIsAdvancedIntrospectiveAssistantOpen] = useState(false);
+    const [isTherapistReflectionOpen, setIsTherapistReflectionOpen] = useState(false);
 
     const [isWritingAssistantOpen, setIsWritingAssistantOpen] = useState(false);
     const [isBehaviorAnalysisOpen, setIsBehaviorAnalysisOpen] = useState(false);
@@ -165,6 +167,8 @@ const DiaryApp = ({ user }) => {
             return () => clearTimeout(timer);
         }
     }, [user]);
+
+
 
     // Listener para abrir onboarding manualmente
     useEffect(() => {
@@ -280,12 +284,16 @@ const DiaryApp = ({ user }) => {
                 setWritingAssistantSuggestion(suggestion);
             }
             setAiResponse(textResponse);
-        } catch (error) { setAiResponse("Error al conectar con la IA."); } finally { setAILoading(false); }
+            return textResponse; // Retornar la respuesta para poder guardarla
+        } catch (error) { 
+            setAiResponse("Error al conectar con la IA."); 
+            return null;
+        } finally { 
+            setAILoading(false); 
+        }
     };
-    const handleConsultAI = async () => {
-        const trackedActivitiesSummary = Object.entries(currentEntry.tracked || {}).map(([activityId, option]) => `- ${activities[activityId]?.name || 'Actividad'}: ${option}`).join('\n');
-        const prompt = `Actúa como un terapeuta empático y perspicaz. Analiza la siguiente entrada de diario y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.\n\n**Entrada del Diario:**\n"${currentEntry.text || 'No se escribió nada.'}"\n\n**Actividades Registradas:**\n${trackedActivitiesSummary || 'No se registraron actividades.'}`;
-        callAI(prompt, "Reflexión del Terapeuta IA");
+    const handleConsultAI = () => {
+        setIsTherapistReflectionOpen(true);
     };
     const handleWritingAssistant = async () => {
         const prompt = `Eres un editor de texto. Revisa la siguiente entrada de diario. - Corrige gramática y ortografía y mejora el flujo. - No cambies la voz del autor. - Ofrece tus explicaciones o comentarios si lo deseas. - Al final, presenta la versión mejorada del texto envuelta entre tres arrobas. Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dentro.@@@" - Si el texto de entrada está vacío, devuelve un mensaje indicándolo.\n\n**Texto Original:**\n"${currentEntry.text || ''}"`;
@@ -667,6 +675,18 @@ const DiaryApp = ({ user }) => {
                 activities={activities}
             />
 
+            <TherapistReflection 
+                isOpen={isTherapistReflectionOpen} 
+                onClose={() => setIsTherapistReflectionOpen(false)} 
+                db={db} 
+                user={user} 
+                appId={appId}
+                selectedDate={selectedDate}
+                currentEntry={currentEntry}
+                activities={activities}
+                currentTheme={currentTheme}
+            />
+
             <WritingAssistant 
                 isOpen={isWritingAssistantOpen} 
                 onClose={() => setIsWritingAssistantOpen(false)} 
@@ -765,6 +785,6 @@ export default function App() {
 
 
 
-const APP_VERSION = '1.63'; // Cambia este valor en cada iteración
+const APP_VERSION = '1.66'; // Cambia este valor en cada iteración
 
 
