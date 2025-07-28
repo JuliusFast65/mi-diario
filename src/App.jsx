@@ -675,6 +675,7 @@ const DiaryApp = ({ user }) => {
                 onUpdateEntry={setCurrentEntry}
                 selectedDate={selectedDate}
                 textareaRef={textareaRef}
+                activities={activities}
             />
             <TherapistChat 
                 isOpen={isTherapistChatOpen} 
