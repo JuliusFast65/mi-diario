@@ -16,7 +16,7 @@ import UpdateNotification from './components/UpdateNotification';
 
 // Premium Components
 import AdvancedIntrospectiveAssistant from './components/AdvancedIntrospectiveAssistant';
-import TherapistChat from './components/TherapistChat';
+
 import WritingAssistant from './components/WritingAssistant';
 import BehaviorAnalysis from './components/BehaviorAnalysis';
 import TwoFactorAuth from './components/TwoFactorAuth';
@@ -114,7 +114,7 @@ const DiaryApp = ({ user }) => {
 
     // Premium Modals State
     const [isAdvancedIntrospectiveAssistantOpen, setIsAdvancedIntrospectiveAssistantOpen] = useState(false);
-    const [isTherapistChatOpen, setIsTherapistChatOpen] = useState(false);
+
     const [isWritingAssistantOpen, setIsWritingAssistantOpen] = useState(false);
     const [isBehaviorAnalysisOpen, setIsBehaviorAnalysisOpen] = useState(false);
     const [isTwoFactorAuthOpen, setIsTwoFactorAuthOpen] = useState(false);
@@ -453,18 +453,7 @@ const DiaryApp = ({ user }) => {
                                     setIsPremiumFeatureModalOpen(true);
                                 }
                             }}
-                            onTherapistChat={() => {
-                                if (subscription?.plan === 'premium') {
-                                    setIsTherapistChatOpen(true);
-                                } else {
-                                    setPremiumFeatureInfo({
-                                        name: 'Chat con Terapeuta',
-                                        description: 'Conecta con un terapeuta virtual para recibir orientación personalizada y apoyo emocional.',
-                                        icon: '💬'
-                                    });
-                                    setIsPremiumFeatureModalOpen(true);
-                                }
-                            }}
+
                             onWritingAssistant={() => {
                                 if (subscription?.plan === 'premium') {
                                     setIsWritingAssistantOpen(true);
@@ -677,18 +666,7 @@ const DiaryApp = ({ user }) => {
                 textareaRef={textareaRef}
                 activities={activities}
             />
-            <TherapistChat 
-                isOpen={isTherapistChatOpen} 
-                onClose={() => setIsTherapistChatOpen(false)} 
-                db={db} 
-                user={user} 
-                onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
-                hasFeature={hasFeature}
-                currentEntry={currentEntry}
-                selectedDate={selectedDate}
-                callAI={callAI}
-                activities={activities}
-            />
+
             <WritingAssistant 
                 isOpen={isWritingAssistantOpen} 
                 onClose={() => setIsWritingAssistantOpen(false)} 
