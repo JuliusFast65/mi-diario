@@ -68,10 +68,24 @@ const LoginScreen = ({ onGoogleSignIn }) => (
     </div>
 );
 
+// Función para obtener la fecha actual en zona horaria local
+const getLocalDateString = (date = new Date()) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 // --- Componente Principal de la App ---
 const DiaryApp = ({ user }) => {
     const [db, setDb] = useState(null);
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [selectedDate, setSelectedDate] = useState(() => {
+        // Inicializar con la fecha de hoy por defecto en zona horaria local
+        return getLocalDateString();
+    });
+    
+    // Ref para evitar ciclos de navegación
+    const isNavigatingFromDeleteRef = useRef(false);
     
     // Usar hook de suscripción real
     const { subscription, updateSubscription, hasFeature, isSubscriptionActive, isLoading: isLoadingSubscription } = useSubscription(db, user, appId);
@@ -99,7 +113,8 @@ const DiaryApp = ({ user }) => {
     const [userPrefs, setUserPrefs] = useState({ 
         font: 'patrick-hand', 
         fontSize: 'text-3xl',
-        theme: 'dark'
+        theme: 'dark',
+        lastVisitedDate: null
     });
     const [allEntries, setAllEntries] = useState([]);
     
@@ -146,16 +161,98 @@ const DiaryApp = ({ user }) => {
         return () => unsubscribe();
     }, [db, user]);
 
+    // Función para determinar la fecha inicial basada en la última visita
+    const getInitialDate = (lastVisitedDate) => {
+        const today = getLocalDateString();
+        
+        console.log('getInitialDate called with:', { lastVisitedDate, today });
+        
+        if (!lastVisitedDate) {
+            console.log('No last visited date, returning today:', today);
+            return today; // Si no hay fecha guardada, ir a hoy
+        }
+        
+        // Calcular ayer en zona horaria local
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayDate = getLocalDateString(yesterday);
+        
+        console.log('Comparing dates:', { lastVisitedDate, yesterdayDate, today });
+        
+        // Si la última visita fue exactamente ayer, ir a hoy
+        if (lastVisitedDate === yesterdayDate) {
+            console.log('Last visited was yesterday, returning today:', today);
+            return today;
+        }
+        
+        // En cualquier otro caso, ir a la última fecha visitada
+        console.log('Returning last visited date:', lastVisitedDate);
+        return lastVisitedDate;
+    };
+
     useEffect(() => {
         if (!db || !user?.uid) return;
         const prefsDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'settings');
         const unsubscribe = onSnapshot(prefsDocRef, (doc) => {
             if (doc.exists()) {
-                setUserPrefs(prev => ({ ...prev, ...doc.data() }));
+                const prefsData = doc.data();
+                console.log('Preferences loaded:', prefsData);
+                setUserPrefs(prev => ({ ...prev, ...prefsData }));
+                
+                // Determinar la fecha inicial
+                const initialDate = getInitialDate(prefsData.lastVisitedDate);
+                console.log('Initial date determined:', initialDate, 'Current selectedDate:', selectedDate);
+                
+                // Solo cambiar la fecha si es diferente Y no estamos navegando desde una eliminación
+                if (selectedDate !== initialDate && !isNavigatingFromDeleteRef.current) {
+                    console.log('Setting new selectedDate:', initialDate);
+                    setSelectedDate(initialDate);
+                } else if (isNavigatingFromDeleteRef.current) {
+                    console.log('Skipping date change due to delete navigation');
+                } else {
+                    console.log('No date change needed - already on correct date');
+                }
             }
         });
         return () => unsubscribe();
     }, [db, user]);
+
+    // Función para guardar la fecha actual como última visitada
+    const saveLastVisitedDate = async (date) => {
+        if (!db || !user?.uid) return;
+        try {
+            console.log('Saving last visited date:', date);
+            const prefsDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'settings');
+            
+            await setDoc(prefsDocRef, { 
+                ...userPrefs, 
+                lastVisitedDate: date 
+            }, { merge: true });
+            console.log('Last visited date saved successfully');
+        } catch (error) {
+            console.error('Error saving last visited date:', error);
+        }
+    };
+
+    // Función para manejar el cambio de fecha
+    const handleDateChange = (newDate) => {
+        console.log('handleDateChange called with:', newDate);
+        setSelectedDate(newDate);
+        // Solo guardar la fecha si no estamos navegando desde una eliminación
+        if (!isNavigatingFromDeleteRef.current) {
+            saveLastVisitedDate(newDate);
+        } else {
+            console.log('Skipping save in handleDateChange due to delete navigation');
+        }
+    };
+
+    // Guardar la fecha actual como última visitada cuando cambie
+    useEffect(() => {
+        if (selectedDate && userPrefs.lastVisitedDate !== null) {
+            // Solo guardar si ya se han cargado las preferencias iniciales
+            saveLastVisitedDate(selectedDate);
+        }
+    }, [selectedDate]);
 
     // Onboarding automático en primera vez
     useEffect(() => {
@@ -312,8 +409,8 @@ const DiaryApp = ({ user }) => {
         return await importEntry(date, title, content, activities, conflictMode);
     };
 
-    const handleDeleteEntry = async (date) => {
-        console.log('handleDeleteEntry called with:', { date });
+    const handleDeleteEntry = async (date, nextDate = null) => {
+        console.log('handleDeleteEntry called with:', { date, nextDate });
         if (!db || !user?.uid) {
             console.error('Missing db or user.uid');
             return false;
@@ -346,11 +443,32 @@ const DiaryApp = ({ user }) => {
                 setCurrentEntry({ text: '', tracked: {} });
             }
             
-            // Siempre limpiar selectedDate si coincide con la entrada eliminada
-            // para evitar problemas en la vista de archivo
-            if (selectedDate === date) {
-                console.log('Clearing selectedDate for deleted entry');
-                setSelectedDate(new Date().toISOString().split('T')[0]);
+            // Manejar la navegación después de eliminar
+            console.log('Handling navigation after delete');
+            if (nextDate) {
+                // Si se proporciona una fecha específica, ir a esa fecha
+                console.log('Navigating to specific date:', nextDate);
+                // Activar la bandera ANTES de llamar handleDateChange
+                isNavigatingFromDeleteRef.current = true;
+                console.log('Delete navigation flag set to true');
+                handleDateChange(nextDate);
+                // Limpiar la bandera después de un breve delay
+                setTimeout(() => {
+                    isNavigatingFromDeleteRef.current = false;
+                    console.log('Delete navigation flag cleared');
+                }, 1000);
+            } else if (selectedDate === date) {
+                // Si no se proporciona fecha y la entrada eliminada es la seleccionada, ir a hoy
+                console.log('Navigating to today (default behavior)');
+                // Activar la bandera ANTES de llamar handleDateChange
+                isNavigatingFromDeleteRef.current = true;
+                console.log('Delete navigation flag set to true');
+                handleDateChange(getLocalDateString());
+                // Limpiar la bandera después de un breve delay
+                setTimeout(() => {
+                    isNavigatingFromDeleteRef.current = false;
+                    console.log('Delete navigation flag cleared');
+                }, 1000);
             }
             
             return true;
@@ -561,7 +679,7 @@ const DiaryApp = ({ user }) => {
                             userPrefs={userPrefs} 
                             onUpdateUserPrefs={handleUpdateUserPrefs} 
                             selectedDate={selectedDate} 
-                            onDateChange={setSelectedDate} 
+                            onDateChange={handleDateChange} 
                             textareaRef={textareaRef} 
                             onDeleteEntry={handleDeleteEntry}
                             isSimpleActivity={isSimpleActivity}
@@ -571,8 +689,8 @@ const DiaryApp = ({ user }) => {
                     ) : view === 'archive' ? (
                         <ArchiveView 
                             allEntries={allEntries} 
-                            onSelectEntry={(date) => { setSelectedDate(date); setView('diary'); }} 
-                            onDeleteEntry={handleDeleteEntry} 
+                            onSelectEntry={(date) => { handleDateChange(date); setView('diary'); }} 
+                            onDeleteEntry={(date, nextDate) => handleDeleteEntry(date, nextDate)} 
                             user={user}
                             selectedDate={selectedDate}
                             currentTheme={currentTheme}
@@ -695,6 +813,11 @@ const DiaryApp = ({ user }) => {
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
                 hasFeature={hasFeature}
                 textareaRef={textareaRef}
+                db={db}
+                user={user}
+                appId={appId}
+                selectedDate={selectedDate}
+                currentTheme={currentTheme}
             />
             <BehaviorAnalysis 
                 isOpen={isBehaviorAnalysisOpen} 
@@ -785,6 +908,6 @@ export default function App() {
 
 
 
-const APP_VERSION = '1.66'; // Cambia este valor en cada iteración
+const APP_VERSION = '1.67'; // Cambia este valor en cada iteración
 
 

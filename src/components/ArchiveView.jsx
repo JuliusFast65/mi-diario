@@ -194,8 +194,8 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedD
                         // Guardar la entrada que debe recibir el foco
                         setFocusAfterDelete(targetEntryId);
                         
-                        console.log('Calling onDeleteEntry with id:', deleteModalEntry.id);
-                        await onDeleteEntry(deleteModalEntry.id);
+                        console.log('Calling onDeleteEntry with id:', deleteModalEntry.id, 'and nextDate:', targetEntryId);
+                        await onDeleteEntry(deleteModalEntry.id, targetEntryId);
                     }
                 }}
                 entry={deleteModalEntry}
