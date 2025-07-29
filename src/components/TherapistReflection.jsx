@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const TherapistReflection = ({ 
@@ -23,6 +23,18 @@ const TherapistReflection = ({
     const [hasSignificantChanges, setHasSignificantChanges] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
+    // Debug: Solo mostrar log cuando el modal esté abierto
+    useEffect(() => {
+        if (isOpen) {
+            console.log('🎯 TherapistReflection recibió currentEntry:', {
+                textLength: (currentEntry?.text || '').length,
+                textPreview: (currentEntry?.text || '').substring(0, 100) + '...',
+                activitiesCount: Object.keys(currentEntry?.tracked || {}).length,
+                isOpen: isOpen
+            });
+        }
+    }, [currentEntry, isOpen]);
+
     // Función para generar hash de la entrada
     const generateEntryHash = (entry) => {
         const entryData = JSON.stringify({
@@ -30,13 +42,27 @@ const TherapistReflection = ({
             tracked: entry.tracked || {}
         });
         // Use encodeURIComponent to handle special characters safely
-        return btoa(encodeURIComponent(entryData)).slice(0, 20); // Hash simple para comparación
+        const hash = btoa(encodeURIComponent(entryData)).slice(0, 20); // Hash simple para comparación
+        console.log('🔐 Generando hash para entrada:', {
+            textLength: (entry.text || '').length,
+            activitiesCount: Object.keys(entry.tracked || {}).length,
+            hash: hash
+        });
+        return hash;
     };
 
     // Función para detectar si el cambio es significativo
     const isSignificantChange = (currentHash, lastHash, currentEntry, lastEntry) => {
+        console.log('🔍 Verificando cambios significativos...');
+        console.log('Hash actual:', currentHash);
+        console.log('Hash guardado:', lastHash);
+        console.log('Hash diferente:', currentHash !== lastHash);
+        
         // Si no hay entrada previa, cualquier entrada es significativa
-        if (!lastHash || !lastEntry) return true;
+        if (!lastHash || !lastEntry) {
+            console.log('✅ Cambio significativo: No hay entrada previa');
+            return true;
+        }
         
         // Si el hash es diferente, hay cambio
         if (currentHash !== lastHash) {
@@ -55,10 +81,20 @@ const TherapistReflection = ({
             const lastActivitiesContent = JSON.stringify(lastEntry.tracked || {});
             const activitiesContentChanged = currentActivitiesContent !== lastActivitiesContent;
             
+            console.log('📊 Detalles del cambio:');
+            console.log('- Diferencia de texto:', textDiff, 'caracteres');
+            console.log('- Diferencia de actividades:', activitiesDiff);
+            console.log('- Contenido de actividades cambió:', activitiesContentChanged);
+            console.log('- Texto actual:', currentText.substring(0, 50) + '...');
+            console.log('- Texto guardado:', lastText.substring(0, 50) + '...');
+            
             // Considerar significativo si hay más de 10 caracteres de diferencia, cambió el número de actividades, o cambió el contenido de las actividades
-            return textDiff > 10 || activitiesDiff > 0 || activitiesContentChanged;
+            const isSignificant = textDiff > 10 || activitiesDiff > 0 || activitiesContentChanged;
+            console.log('✅ Cambio significativo:', isSignificant);
+            return isSignificant;
         }
         
+        console.log('❌ No hay cambios significativos');
         return false;
     };
 
@@ -75,32 +111,41 @@ const TherapistReflection = ({
             
             console.log(`Cargando reflexión para la fecha: ${selectedDate}`);
             
+            let hasReflection = false;
+            let loadedReflection = '';
+            let loadedAnalysisCount = 0;
+            let loadedHash = '';
+            let loadedAnalyzedEntry = null;
+            
             if (reflectionDoc.exists()) {
                 const data = reflectionDoc.data();
                 console.log('Datos encontrados en Firestore:', data);
                 
                 if (data.therapistReflection) {
                     console.log(`Reflexión encontrada para ${selectedDate}, análisis: ${data.reflectionAnalysisCount || 0}/3`);
-                    setTherapistReflection(data.therapistReflection);
-                    setReflectionAnalysisCount(data.reflectionAnalysisCount || 0);
-                    setLastEntryHash(data.lastEntryHash || '');
-                    setLastAnalyzedEntry(data.lastAnalyzedEntry || null);
+                    hasReflection = true;
+                    loadedReflection = data.therapistReflection;
+                    loadedAnalysisCount = data.reflectionAnalysisCount || 0;
+                    loadedHash = data.lastEntryHash || '';
+                    loadedAnalyzedEntry = data.lastAnalyzedEntry || null;
                 } else {
                     console.log(`No hay reflexión guardada para ${selectedDate}`);
-                    // Limpiar estado si no hay reflexión
-                    setTherapistReflection('');
-                    setReflectionAnalysisCount(0);
-                    setLastEntryHash('');
-                    setLastAnalyzedEntry(null);
                 }
             } else {
                 console.log(`No existe entrada para ${selectedDate}`);
-                // Limpiar estado si no existe la entrada
-                setTherapistReflection('');
-                setReflectionAnalysisCount(0);
-                setLastEntryHash('');
-                setLastAnalyzedEntry(null);
             }
+            
+            // Actualizar estado con los datos cargados
+            setTherapistReflection(loadedReflection);
+            setReflectionAnalysisCount(loadedAnalysisCount);
+            setLastEntryHash(loadedHash);
+            setLastAnalyzedEntry(loadedAnalyzedEntry);
+            
+            console.log('📋 Datos cargados para comparación:');
+            console.log('- Reflexión cargada:', loadedReflection ? 'SÍ' : 'NO');
+            console.log('- Hash cargado:', loadedHash);
+            console.log('- Entrada analizada anterior:', loadedAnalyzedEntry);
+            
         } catch (error) {
             console.error('Error loading therapist reflection:', error);
             // Limpiar estado en caso de error
@@ -111,7 +156,7 @@ const TherapistReflection = ({
         }
     };
 
-    // Función para guardar reflexión
+    // Función para guardar reflexión (simplificada)
     const saveTherapistReflection = async (reflection) => {
         if (!db || !user?.uid || !selectedDate) {
             console.error('Faltan parámetros para guardar reflexión');
@@ -157,7 +202,11 @@ const TherapistReflection = ({
                 tracked: currentEntry.tracked || {}
             });
             
+            // Asegurar que la respuesta se mantenga visible
+            setAiResponse(reflection);
+            
             console.log(`Reflexión guardada exitosamente para la fecha: ${selectedDate}`);
+            console.log(`✅ Respuesta visible: ${aiResponse ? 'SÍ' : 'NO'}`);
             
             // Verificar que se guardó correctamente
             const verificationDoc = await getDoc(reflectionRef);
@@ -203,35 +252,32 @@ const TherapistReflection = ({
         }
     };
 
-    // Función para generar análisis
+    // Función para generar análisis (simplificada)
     const generateAnalysis = async (forceNewAnalysis = false) => {
-        const currentHash = generateEntryHash(currentEntry);
+        console.log('🔄 Generando análisis con currentEntry:', {
+            textLength: (currentEntry?.text || '').length,
+            activitiesCount: Object.keys(currentEntry?.tracked || {}).length
+        });
         
-        // Si hay una reflexión guardada y no hay cambios significativos, mostrar la existente
-        if (therapistReflection && !isSignificantChange(currentHash, lastEntryHash, currentEntry, lastAnalyzedEntry) && !forceNewAnalysis) {
-            console.log('Mostrando reflexión existente - no hay cambios significativos');
-            setAiResponse(therapistReflection);
-            setIsShowingExistingReflection(true);
-            return;
-        }
-        
-        // Si la entrada ha cambiado significativamente o se fuerza un nuevo análisis, verificar límite
+        // Verificar límite
         if (reflectionAnalysisCount >= 3) {
-            console.log('Límite de análisis alcanzado');
+            console.log('❌ Límite de análisis alcanzado');
             setAiResponse('Has alcanzado el límite de 3 análisis por entrada. Modifica el contenido para poder hacer un nuevo análisis.');
             return;
         }
         
         // Hacer nuevo análisis
-        console.log('Generando nuevo análisis...');
+        console.log('✅ Generando nuevo análisis...');
         setIsShowingExistingReflection(false);
         setHasSignificantChanges(false);
-        const trackedActivitiesSummary = Object.entries(currentEntry.tracked || {}).map(([activityId, option]) => `- ${activities[activityId]?.name || 'Actividad'}: ${option}`).join('\n');
-        const prompt = `Actúa como un terapeuta empático y perspicaz. Analiza la siguiente entrada de diario y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.\n\n**Entrada del Diario:**\n"${currentEntry.text || 'No se escribió nada.'}"\n\n**Actividades Registradas:**\n${trackedActivitiesSummary || 'No se registraron actividades.'}`;
+        
+        const trackedActivitiesSummary = Object.entries(currentEntry?.tracked || {}).map(([activityId, option]) => `- ${activities[activityId]?.name || 'Actividad'}: ${option}`).join('\n');
+        const prompt = `Actúa como un terapeuta empático y perspicaz. Analiza la siguiente entrada de diario y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.\n\n**Entrada del Diario:**\n"${currentEntry?.text || 'No se escribió nada.'}"\n\n**Actividades Registradas:**\n${trackedActivitiesSummary || 'No se registraron actividades.'}`;
         
         const response = await callAI(prompt);
         if (response) {
             await saveTherapistReflection(response);
+            setAiResponse(response);
         }
     };
 
@@ -241,10 +287,13 @@ const TherapistReflection = ({
         await generateAnalysis(true);
     };
 
-    // Limpiar estado cuando cambia la fecha (se ejecuta ANTES del useEffect de carga)
+    // Limpiar estado cuando cambia la fecha Y el modal está abierto
+    const previousDateRef = useRef(selectedDate);
+    
     useEffect(() => {
-        if (selectedDate && !isSaving) {
-            console.log(`=== LIMPIANDO ESTADO para fecha: ${selectedDate} ===`);
+        // Solo limpiar si el modal está abierto y la fecha realmente cambió
+        if (isOpen && selectedDate && previousDateRef.current !== selectedDate) {
+            console.log(`=== LIMPIANDO ESTADO para fecha: ${selectedDate} (cambio real de fecha) ===`);
             // Limpiar completamente el estado para la nueva fecha
             setTherapistReflection('');
             setReflectionAnalysisCount(0);
@@ -253,10 +302,16 @@ const TherapistReflection = ({
             setAiResponse('');
             setIsShowingExistingReflection(false);
             setHasSignificantChanges(false);
+            // Actualizar la referencia
+            previousDateRef.current = selectedDate;
         } else if (isSaving) {
             console.log('No limpiando estado - hay un guardado en progreso');
+        } else if (!isOpen) {
+            console.log('No limpiando estado - modal cerrado');
+        } else {
+            console.log(`No limpiando estado - fecha sin cambio real: ${selectedDate}`);
         }
-    }, [selectedDate, isSaving]);
+    }, [selectedDate, isSaving, isOpen]);
 
     // Cargar reflexión cuando se abre el modal o cambia la fecha
     useEffect(() => {
@@ -267,48 +322,41 @@ const TherapistReflection = ({
             
             loadTherapistReflection().then(() => {
                 setIsLoading(false);
-                
-                // Esperar un momento para que el estado se actualice
-                setTimeout(() => {
-                    console.log(`=== PROCESANDO REFLEXIÓN para fecha: ${selectedDate} ===`);
-                    // Solo generar análisis si no hay reflexión existente o si hay cambios significativos
-                    const currentHash = generateEntryHash(currentEntry);
-                    console.log(`Hash actual: ${currentHash}, Hash guardado: ${lastEntryHash}`);
-                    console.log(`Reflexión existente: ${therapistReflection ? 'SÍ' : 'NO'}`);
-                    
-                    if (!therapistReflection) {
-                        console.log('No hay reflexión guardada, generando nuevo análisis...');
-                        generateAnalysis();
-                    } else if (isSignificantChange(currentHash, lastEntryHash, currentEntry, lastAnalyzedEntry)) {
-                        console.log('Hay cambios significativos, generando nuevo análisis...');
-                        generateAnalysis();
-                    } else {
-                        // Mostrar reflexión existente
-                        console.log('Mostrando reflexión existente...');
-                        setAiResponse(therapistReflection);
-                        setIsShowingExistingReflection(true);
-                    }
-                }, 100);
             });
         }
     }, [isOpen, selectedDate, db, user]);
 
-    // Detectar cambios en la entrada actual cuando el modal está abierto
+    // Lógica mejorada: cargar, mostrar existente, o generar nueva si hay cambios
     useEffect(() => {
-        if (isOpen && therapistReflection) {
-            const currentHash = generateEntryHash(currentEntry);
-            const hasSignificantChanges = isSignificantChange(currentHash, lastEntryHash, currentEntry, lastAnalyzedEntry);
+        if (isOpen && !isLoading) {
+            console.log(`=== PROCESANDO REFLEXIÓN MEJORADA para fecha: ${selectedDate} ===`);
             
-            if (hasSignificantChanges) {
-                console.log('Detectados cambios significativos en la entrada');
-                setIsShowingExistingReflection(false);
+            // Si no hay reflexión guardada, generar nueva
+            if (!therapistReflection) {
+                console.log('🆕 No hay reflexión guardada, generando nueva');
+                generateAnalysis();
+                return;
+            }
+            
+            // Si hay reflexión guardada, verificar si hay cambios significativos
+            const currentHash = generateEntryHash(currentEntry);
+            const hasChanges = isSignificantChange(currentHash, lastEntryHash, currentEntry, lastAnalyzedEntry);
+            
+            if (hasChanges) {
+                console.log('🔄 Cambios detectados, generando nueva reflexión');
                 setHasSignificantChanges(true);
-                // No generar análisis automáticamente, solo indicar que hay cambios
+                setIsShowingExistingReflection(false);
+                generateAnalysis();
             } else {
+                console.log('✅ Mostrando reflexión existente (sin cambios)');
+                setAiResponse(therapistReflection);
+                setIsShowingExistingReflection(true);
                 setHasSignificantChanges(false);
             }
         }
-    }, [currentEntry, isOpen, therapistReflection, lastEntryHash, lastAnalyzedEntry]);
+    }, [isOpen, isLoading, therapistReflection, selectedDate, currentEntry, lastEntryHash, lastAnalyzedEntry]);
+
+
 
     // Limpiar estado cuando se cierra el modal
     useEffect(() => {
@@ -321,9 +369,9 @@ const TherapistReflection = ({
         }
     }, [isOpen]);
 
-    // Debug: Verificar estado cuando cambia la fecha
+    // Debug: Verificar estado cuando cambia la fecha Y el modal está abierto
     useEffect(() => {
-        if (selectedDate) {
+        if (isOpen && selectedDate) {
             console.log(`=== DEBUG: Cambio de fecha a ${selectedDate} ===`);
             console.log('Estado actual:', {
                 therapistReflection: therapistReflection ? 'SÍ' : 'NO',
@@ -332,18 +380,18 @@ const TherapistReflection = ({
                 hasLastAnalyzedEntry: !!lastAnalyzedEntry
             });
         }
-    }, [selectedDate, therapistReflection, reflectionAnalysisCount, lastEntryHash, lastAnalyzedEntry]);
+    }, [selectedDate, therapistReflection, reflectionAnalysisCount, lastEntryHash, lastAnalyzedEntry, isOpen]);
 
-    // Verificar que el estado se limpió correctamente después del cambio de fecha
+    // Verificar que el estado se limpió correctamente después del cambio de fecha (solo cuando modal abierto)
     useEffect(() => {
-        if (selectedDate && !therapistReflection && !lastEntryHash) {
+        if (isOpen && selectedDate && !therapistReflection && !lastEntryHash) {
             console.log(`✅ Estado limpiado correctamente para fecha: ${selectedDate}`);
         }
-    }, [selectedDate, therapistReflection, lastEntryHash]);
+    }, [selectedDate, therapistReflection, lastEntryHash, isOpen]);
 
-    // Verificar que el guardado se completó correctamente
+    // Verificar que el guardado se completó correctamente (solo cuando modal abierto)
     useEffect(() => {
-        if (!isSaving && therapistReflection && lastEntryHash) {
+        if (isOpen && !isSaving && therapistReflection && lastEntryHash) {
             console.log(`✅ Estado persistente confirmado para fecha: ${selectedDate}`);
             console.log('Estado actual:', {
                 hasReflection: !!therapistReflection,
@@ -351,7 +399,35 @@ const TherapistReflection = ({
                 hash: lastEntryHash
             });
         }
-    }, [isSaving, therapistReflection, lastEntryHash, selectedDate, reflectionAnalysisCount]);
+    }, [isSaving, therapistReflection, lastEntryHash, selectedDate, reflectionAnalysisCount, isOpen]);
+
+    // Asegurar que la respuesta se mantenga visible después del guardado
+    useEffect(() => {
+        if (!isSaving && therapistReflection && !aiResponse && isOpen) {
+            console.log('Restaurando respuesta después del guardado...');
+            setAiResponse(therapistReflection);
+        }
+    }, [isSaving, therapistReflection, aiResponse, isOpen]);
+
+    // Debug: Verificar cambios en aiResponse
+    useEffect(() => {
+        if (aiResponse) {
+            console.log(`📝 aiResponse actualizado: ${aiResponse.substring(0, 50)}...`);
+        } else {
+            console.log('📝 aiResponse limpiado');
+        }
+    }, [aiResponse]);
+
+    // Debug: Verificar cambios en currentEntry
+    useEffect(() => {
+        if (isOpen && currentEntry) {
+            console.log(`🔄 currentEntry actualizado:`, {
+                textLength: (currentEntry.text || '').length,
+                textPreview: (currentEntry.text || '').substring(0, 50) + '...',
+                activitiesCount: Object.keys(currentEntry.tracked || {}).length
+            });
+        }
+    }, [currentEntry, isOpen]);
 
     if (!isOpen) return null;
 

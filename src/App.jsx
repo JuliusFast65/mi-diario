@@ -91,6 +91,15 @@ const DiaryApp = ({ user }) => {
     const { subscription, updateSubscription, hasFeature, isSubscriptionActive, isLoading: isLoadingSubscription } = useSubscription(db, user, appId);
     
     const { currentEntry, setCurrentEntry, isLoadingEntry, importEntry } = useDiary(db, user, appId, selectedDate);
+    
+    // Debug: Verificar cambios en currentEntry
+    useEffect(() => {
+        console.log('📝 currentEntry en App.jsx actualizado:', {
+            textLength: (currentEntry?.text || '').length,
+            textPreview: (currentEntry?.text || '').substring(0, 50) + '...',
+            activitiesCount: Object.keys(currentEntry?.tracked || {}).length
+        });
+    }, [currentEntry]);
     const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints, getActivityLimits, isSimpleActivity, getActivityPoints } = useActivities(db, user, appId, subscription);
 
     // Manejo de errores para límite de actividades
@@ -390,6 +399,25 @@ const DiaryApp = ({ user }) => {
         }
     };
     const handleConsultAI = () => {
+        console.log('🔍 Abriendo reflexión del terapeuta con currentEntry:', {
+            textLength: (currentEntry?.text || '').length,
+            textPreview: (currentEntry?.text || '').substring(0, 100) + '...',
+            activitiesCount: Object.keys(currentEntry?.tracked || {}).length
+        });
+        
+        // Verificar si hay texto en el textarea
+        if (typeof window !== 'undefined') {
+            const textarea = document.querySelector('textarea[data-testid="diary-textarea"]') || 
+                            document.querySelector('textarea') ||
+                            document.querySelector('.diary-textarea');
+            if (textarea) {
+                console.log('🔍 Texto en textarea:', {
+                    textLength: textarea.value.length,
+                    textPreview: textarea.value.substring(0, 100) + '...'
+                });
+            }
+        }
+        
         setIsTherapistReflectionOpen(true);
     };
     const handleWritingAssistant = async () => {
