@@ -13,7 +13,8 @@ export default function AdvancedIntrospectiveAssistant({
     onUpdateEntry,
     selectedDate,
     textareaRef,
-    activities
+    activities,
+    currentTheme = 'dark'
 }) {
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
@@ -983,22 +984,23 @@ Analiza de manera terapéutica:`;
                 featureName="Asistente Introspectivo Avanzado"
                 featureDescription="Combina el poder del chat terapéutico con asistencia de escritura avanzada para una experiencia de reflexión personal completa."
                 featureIcon="🧠"
+                currentTheme={currentTheme}
             />
         );
     }
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg w-full max-w-2xl h-[80vh] mx-4 flex flex-col">
+            <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg w-full max-w-2xl h-[80vh] mx-4 flex flex-col`}>
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-300">
+                <div className={`flex items-center justify-between p-4 border-b ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                             <span className="text-white font-semibold">🧠</span>
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900">Asistente Introspectivo</h2>
-                            <p className="text-sm text-gray-700 font-medium">Terapeuta + Ayuda para escribir</p>
+                            <h2 className={`text-xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Asistente Introspectivo</h2>
+                            <p className={`text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Terapeuta + Ayuda para escribir</p>
                             <p className="text-xs text-blue-600 font-medium">
                                 📅 {new Date(selectedDate).toLocaleDateString('es-ES', { 
                                     weekday: 'long', 
@@ -1026,14 +1028,14 @@ Analiza de manera terapéutica:`;
                                     }
                                 }
                             }}
-                            className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-100 transition-colors text-xs"
+                            className={`text-red-600 hover:text-red-900 p-2 rounded-lg transition-colors text-xs ${currentTheme === 'dark' ? 'hover:bg-red-900 hover:bg-opacity-20' : 'hover:bg-red-100'}`}
                             title={`Limpiar conversación del ${new Date(selectedDate).toLocaleDateString('es-ES')}`}
                         >
                             🗑️
                         </button>
                         <button
                             onClick={handleClose}
-                            className="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                            className={`${currentTheme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'} p-2 rounded-lg transition-colors`}
                         >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1052,7 +1054,7 @@ Analiza de manera terapéutica:`;
                                     <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                                     <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                                 </div>
-                                <p className="text-sm text-gray-600">Cargando conversación del {new Date(selectedDate).toLocaleDateString('es-ES')}...</p>
+                                <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Cargando conversación del {new Date(selectedDate).toLocaleDateString('es-ES')}...</p>
                             </div>
                         </div>
                     )}
@@ -1066,11 +1068,13 @@ Analiza de manera terapéutica:`;
                                 className={`max-w-[80%] rounded-lg px-4 py-2 ${
                                     message.type === 'user'
                                         ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-200 text-gray-900'
+                                        : currentTheme === 'dark' 
+                                            ? 'bg-gray-700 text-white' 
+                                            : 'bg-gray-200 text-gray-900'
                                 }`}
                             >
                                 <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                                <p className="text-xs text-gray-600 mt-1 font-medium">
+                                <p className={`text-xs mt-1 font-medium ${message.type === 'user' ? 'text-blue-100' : currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                                     {message.timestamp.toLocaleTimeString()}
                                 </p>
                                 
@@ -1082,7 +1086,11 @@ Analiza de manera terapéutica:`;
                                                 key={option.id}
                                                 onClick={() => handleOptionClick(option)}
                                                 disabled={isLoading}
-                                                className="w-full text-left px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors"
+                                                className={`w-full text-left px-3 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors ${
+                                                    currentTheme === 'dark' 
+                                                        ? 'bg-gray-600 border-gray-500 text-white hover:bg-gray-500' 
+                                                        : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                                                }`}
                                             >
                                                 {option.text}
                                             </button>
@@ -1095,11 +1103,11 @@ Analiza de manera terapéutica:`;
                     
                     {!isLoadingSession && isLoading && (
                         <div className="flex justify-start">
-                            <div className="bg-gray-200 rounded-lg px-4 py-2">
+                            <div className={`${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} rounded-lg px-4 py-2`}>
                                 <div className="flex space-x-1">
-                                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"></div>
-                                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                    <div className={`w-2 h-2 rounded-full animate-bounce ${currentTheme === 'dark' ? 'bg-gray-400' : 'bg-gray-600'}`}></div>
+                                    <div className={`w-2 h-2 rounded-full animate-bounce ${currentTheme === 'dark' ? 'bg-gray-400' : 'bg-gray-600'}`} style={{animationDelay: '0.1s'}}></div>
+                                    <div className={`w-2 h-2 rounded-full animate-bounce ${currentTheme === 'dark' ? 'bg-gray-400' : 'bg-gray-600'}`} style={{animationDelay: '0.2s'}}></div>
                                 </div>
                             </div>
                         </div>
@@ -1109,7 +1117,7 @@ Analiza de manera terapéutica:`;
                 </div>
 
                 {/* Input */}
-                <div className="p-4 border-t border-gray-300">
+                <div className={`p-4 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
                     <div className="flex gap-2">
                         <input
                             ref={inputRef}
@@ -1118,7 +1126,11 @@ Analiza de manera terapéutica:`;
                             onChange={(e) => setInputMessage(e.target.value)}
                             onKeyPress={handleKeyPress}
                             placeholder="Escribe tu mensaje..."
-                            className="flex-1 border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600 font-medium"
+                            className={`flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium ${
+                                currentTheme === 'dark' 
+                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                                    : 'border-gray-400 text-gray-900 placeholder-gray-600'
+                            }`}
                             disabled={isLoading}
                         />
                         <button

@@ -19,6 +19,7 @@ import AdvancedIntrospectiveAssistant from './components/AdvancedIntrospectiveAs
 import TherapistReflection from './components/TherapistReflection';
 
 import WritingAssistant from './components/WritingAssistant';
+import BasicWritingAssistant from './components/BasicWritingAssistant';
 import BehaviorAnalysis from './components/BehaviorAnalysis';
 import TwoFactorAuth from './components/TwoFactorAuth';
 import SubscriptionModal from './components/SubscriptionModal';
@@ -141,6 +142,7 @@ const DiaryApp = ({ user }) => {
     const [isAdvancedIntrospectiveAssistantOpen, setIsAdvancedIntrospectiveAssistantOpen] = useState(false);
     const [isTherapistReflectionOpen, setIsTherapistReflectionOpen] = useState(false);
 
+    const [isBasicWritingAssistantOpen, setIsBasicWritingAssistantOpen] = useState(false);
     const [isWritingAssistantOpen, setIsWritingAssistantOpen] = useState(false);
     const [isBehaviorAnalysisOpen, setIsBehaviorAnalysisOpen] = useState(false);
     const [isTwoFactorAuthOpen, setIsTwoFactorAuthOpen] = useState(false);
@@ -152,7 +154,6 @@ const DiaryApp = ({ user }) => {
     const [aiResponse, setAiResponse] = useState('');
     const [isAILoading, setAILoading] = useState(false);
     const [aiModalTitle, setAIModalTitle] = useState('');
-    const [writingAssistantSuggestion, setWritingAssistantSuggestion] = useState('');
     const textareaRef = useRef();
 
     useEffect(() => {
@@ -374,7 +375,6 @@ const DiaryApp = ({ user }) => {
         setAIModalOpen(true);
         setAILoading(true);
         setAiResponse('');
-        setWritingAssistantSuggestion('');
         try {
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
@@ -384,11 +384,6 @@ const DiaryApp = ({ user }) => {
             });
             const result = await response.json();
             const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo procesar la respuesta.";
-            if (title === "Sugerencias del Asistente" && textResponse.includes('@@@')) {
-                const match = textResponse.match(/@@@(.*?)@@@/s);
-                const suggestion = match ? match[1].trim() : '';
-                setWritingAssistantSuggestion(suggestion);
-            }
             setAiResponse(textResponse);
             return textResponse; // Retornar la respuesta para poder guardarla
         } catch (error) { 
@@ -420,14 +415,7 @@ const DiaryApp = ({ user }) => {
         
         setIsTherapistReflectionOpen(true);
     };
-    const handleWritingAssistant = async () => {
-        const prompt = `Eres un editor de texto. Revisa la siguiente entrada de diario. - Corrige gramática y ortografía y mejora el flujo. - No cambies la voz del autor. - Ofrece tus explicaciones o comentarios si lo deseas. - Al final, presenta la versión mejorada del texto envuelta entre tres arrobas. Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dentro.@@@" - Si el texto de entrada está vacío, devuelve un mensaje indicándolo.\n\n**Texto Original:**\n"${currentEntry.text || ''}"`;
-        callAI(prompt, "Sugerencias del Asistente");
-    };
-    const acceptWritingSuggestion = () => {
-        if (writingAssistantSuggestion) setCurrentEntry(prev => ({ ...prev, text: writingAssistantSuggestion }));
-        setAIModalOpen(false);
-    };
+
     const handleInspirationalMessage = () => {
         const prompt = "Actúa como un sabio filósofo. Escribe una frase inspiradora, corta y única para empezar el día. Sé profundo pero conciso. No añadas introducciones, saludos, ni comillas, solo la frase.";
         callAI(prompt, "Mensaje del Día");
@@ -609,16 +597,7 @@ const DiaryApp = ({ user }) => {
                             }}
 
                             onWritingAssistant={() => {
-                                if (subscription?.plan === 'premium') {
-                                    setIsWritingAssistantOpen(true);
-                                } else {
-                                    setPremiumFeatureInfo({
-                                        name: 'Asistente de Escritura',
-                                        description: 'Mejora tu escritura con sugerencias inteligentes y correcciones automáticas.',
-                                        icon: '✍️'
-                                    });
-                                    setIsPremiumFeatureModalOpen(true);
-                                }
+                                setIsBasicWritingAssistantOpen(true);
                             }}
                             onBehaviorAnalysis={() => {
                                 if (subscription?.plan === 'premium') {
@@ -702,7 +681,7 @@ const DiaryApp = ({ user }) => {
                             onAddOption={handleAddOptionToActivity} 
                             onOpenDefineActivitiesModal={() => setDefineActivitiesModalOpen(true)} 
                             onConsultAI={handleConsultAI} 
-                            onWritingAssistant={handleWritingAssistant} 
+                            onWritingAssistant={() => setIsBasicWritingAssistantOpen(true)} 
                             onUntrackActivity={handleUntrackActivity} 
                             userPrefs={userPrefs} 
                             onUpdateUserPrefs={handleUpdateUserPrefs} 
@@ -761,11 +740,6 @@ const DiaryApp = ({ user }) => {
                             )}
                         </div>
                         <div className={`flex justify-end mt-6 pt-4 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-300'} gap-3`}>
-                            {aiModalTitle === 'Sugerencias del Asistente' && !isAILoading && (
-                                <button onClick={acceptWritingSuggestion} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition">
-                                    Usar esta versión
-                                </button>
-                            )}
                             <button 
                                 onClick={() => setAIModalOpen(false)} 
                                 className={`px-4 py-2 rounded-lg transition-colors ${
@@ -819,6 +793,7 @@ const DiaryApp = ({ user }) => {
                 selectedDate={selectedDate}
                 textareaRef={textareaRef}
                 activities={activities}
+                currentTheme={currentTheme}
             />
 
             <TherapistReflection 
@@ -833,6 +808,13 @@ const DiaryApp = ({ user }) => {
                 currentTheme={currentTheme}
             />
 
+            <BasicWritingAssistant 
+                isOpen={isBasicWritingAssistantOpen} 
+                onClose={() => setIsBasicWritingAssistantOpen(false)} 
+                currentEntry={currentEntry}
+                onUpdateEntry={setCurrentEntry}
+                currentTheme={currentTheme}
+            />
             <WritingAssistant 
                 isOpen={isWritingAssistantOpen} 
                 onClose={() => setIsWritingAssistantOpen(false)} 
@@ -936,6 +918,6 @@ export default function App() {
 
 
 
-const APP_VERSION = '1.67'; // Cambia este valor en cada iteración
+const APP_VERSION = '1.68'; // Cambia este valor en cada iteración
 
 
