@@ -1,82 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const BasicWritingAssistant = ({ 
     isOpen, 
     onClose, 
     currentEntry, 
     onUpdateEntry,
-    currentTheme = 'dark',
-    db,
-    user,
-    appId,
-    selectedDate
+    currentTheme = 'dark'
 }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [aiResponse, setAiResponse] = useState('');
-    const [savedSuggestion, setSavedSuggestion] = useState(null);
-
-    // Función para generar hash simple del texto
-    const generateTextHash = (text) => {
-        if (!text) return '';
-        // Hash simple basado en longitud y contenido
-        return btoa(text.slice(0, 100) + text.length).slice(0, 20);
-    };
-
-    // Función para detectar si el texto ha cambiado significativamente
-    const hasTextChanged = (currentText) => {
-        // Comparar contra el texto original que se analizó, no contra el último analizado
-        const currentHash = generateTextHash(currentText);
-        const originalHash = savedSuggestion?.textHash || '';
-        return currentHash !== originalHash;
-    };
-
-    // Función para cargar sugerencia guardada
-    const loadSavedSuggestion = async () => {
-        if (!db || !user?.uid || !selectedDate) return;
-        
-        try {
-            const entryRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate);
-            const entryDoc = await getDoc(entryRef);
-            
-            if (entryDoc.exists()) {
-                const data = entryDoc.data();
-                if (data.writingAssistantSuggestion) {
-                    setSavedSuggestion(data.writingAssistantSuggestion);
-                    setAiResponse(data.writingAssistantSuggestion.aiResponse || '');
-                    console.log('Sugerencia cargada desde Firestore');
-                    return true;
-                }
-            }
-        } catch (error) {
-            console.error('Error loading saved suggestion:', error);
-        }
-        return false;
-    };
-
-    // Función para guardar sugerencia
-    const saveSuggestion = async (aiResponse, originalText) => {
-        if (!db || !user?.uid || !selectedDate) return;
-        
-        try {
-            const entryRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate);
-            const suggestionData = {
-                aiResponse,
-                originalText,
-                textHash: generateTextHash(originalText),
-                createdAt: new Date()
-            };
-            
-            await setDoc(entryRef, {
-                writingAssistantSuggestion: suggestionData
-            }, { merge: true });
-            
-            setSavedSuggestion(suggestionData);
-            console.log('Sugerencia guardada en Firestore');
-        } catch (error) {
-            console.error('Error saving suggestion:', error);
-        }
-    };
 
     const callAI = async (prompt, title) => {
         setIsLoading(true);
@@ -109,21 +41,9 @@ const BasicWritingAssistant = ({
         }
 
         const currentText = currentEntry.text.trim();
+        const prompt = `Eres un editor de texto. Revisa la siguiente entrada de diario. - Corrige gramática y ortografía y mejora el flujo. - No cambies la voz del autor. - Ofrece tus explicaciones o comentarios si lo deseas. - Al final, presenta la versión mejorada del texto envuelta entre tres arrobas. Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dentro.@@@" - Si el texto de entrada está vacío, devuelve un mensaje indicándolo.\n\n**Texto Original:**\n"${currentText}"`;
         
-        // Intentar cargar sugerencia guardada primero
-        const hasLoadedSuggestion = await loadSavedSuggestion();
-        
-        // Si no hay sugerencia guardada o el texto ha cambiado, generar nueva
-        if (!hasLoadedSuggestion || hasTextChanged(currentText)) {
-            const prompt = `Eres un editor de texto. Revisa la siguiente entrada de diario. - Corrige gramática y ortografía y mejora el flujo. - No cambies la voz del autor. - Ofrece tus explicaciones o comentarios si lo deseas. - Al final, presenta la versión mejorada del texto envuelta entre tres arrobas. Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dentro.@@@" - Si el texto de entrada está vacío, devuelve un mensaje indicándolo.\n\n**Texto Original:**\n"${currentText}"`;
-            
-            const aiResponse = await callAI(prompt, "Sugerencias del Asistente");
-            
-            // Guardar la nueva sugerencia
-            if (aiResponse && aiResponse !== "Error al conectar con la IA.") {
-                await saveSuggestion(aiResponse, currentText);
-            }
-        }
+        await callAI(prompt, "Sugerencias del Asistente");
     };
 
     // Función para extraer el texto mejorado de la respuesta de la IA
@@ -200,6 +120,7 @@ const BasicWritingAssistant = ({
                                 className={`text-sm leading-relaxed ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} whitespace-pre-wrap`}
                                 dangerouslySetInnerHTML={{ 
                                     __html: aiResponse
+                                        .replace(/@@@(.*?)@@@/s, `<blockquote class="${currentTheme === 'dark' ? 'border-l-4 border-cyan-400 bg-gray-800' : 'border-l-4 border-cyan-400 bg-gray-100'} pl-4 py-2 my-3 italic">$1</blockquote>`)
                                         .replace(/\n\n/g, '<br><br>')
                                         .replace(/\n/g, '<br>')
                                 }}

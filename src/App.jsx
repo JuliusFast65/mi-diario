@@ -80,10 +80,8 @@ const getLocalDateString = (date = new Date()) => {
 // --- Componente Principal de la App ---
 const DiaryApp = ({ user }) => {
     const [db, setDb] = useState(null);
-    const [selectedDate, setSelectedDate] = useState(() => {
-        // Inicializar con la fecha de hoy por defecto en zona horaria local
-        return getLocalDateString();
-    });
+    const [selectedDate, setSelectedDate] = useState(null); // Inicializar como null para evitar parpadeo
+    const [isInitializingDate, setIsInitializingDate] = useState(true); // Estado de carga inicial
     
     // Ref para evitar ciclos de navegación
     const isNavigatingFromDeleteRef = useRef(false);
@@ -209,18 +207,33 @@ const DiaryApp = ({ user }) => {
                 console.log('Preferences loaded:', prefsData);
                 setUserPrefs(prev => ({ ...prev, ...prefsData }));
                 
-                // Determinar la fecha inicial
-                const initialDate = getInitialDate(prefsData.lastVisitedDate);
-                console.log('Initial date determined:', initialDate, 'Current selectedDate:', selectedDate);
-                
-                // Solo cambiar la fecha si es diferente Y no estamos navegando desde una eliminación
-                if (selectedDate !== initialDate && !isNavigatingFromDeleteRef.current) {
-                    console.log('Setting new selectedDate:', initialDate);
+                // Determinar la fecha inicial solo si aún no se ha establecido
+                if (selectedDate === null) {
+                    const initialDate = getInitialDate(prefsData.lastVisitedDate);
+                    console.log('Initial date determined:', initialDate);
                     setSelectedDate(initialDate);
-                } else if (isNavigatingFromDeleteRef.current) {
-                    console.log('Skipping date change due to delete navigation');
+                    setIsInitializingDate(false);
                 } else {
-                    console.log('No date change needed - already on correct date');
+                    // Si ya hay una fecha seleccionada, solo actualizar si es necesario
+                    const initialDate = getInitialDate(prefsData.lastVisitedDate);
+                    console.log('Initial date determined:', initialDate, 'Current selectedDate:', selectedDate);
+                    
+                    if (selectedDate !== initialDate && !isNavigatingFromDeleteRef.current) {
+                        console.log('Setting new selectedDate:', initialDate);
+                        setSelectedDate(initialDate);
+                    } else if (isNavigatingFromDeleteRef.current) {
+                        console.log('Skipping date change due to delete navigation');
+                    } else {
+                        console.log('No date change needed - already on correct date');
+                    }
+                }
+            } else {
+                // Si no existen preferencias, establecer fecha de hoy y terminar inicialización
+                if (selectedDate === null) {
+                    const today = getLocalDateString();
+                    console.log('No preferences found, setting today as initial date:', today);
+                    setSelectedDate(today);
+                    setIsInitializingDate(false);
                 }
             }
         });
@@ -672,7 +685,16 @@ const DiaryApp = ({ user }) => {
                 />
 
                 <main className="flex-grow flex flex-col">
-                    {view === 'diary' ? (
+                    {isInitializingDate ? (
+                        <div className="flex items-center justify-center flex-grow">
+                            <div className="text-center">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                                <p className={`text-lg ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Cargando tu diario...
+                                </p>
+                            </div>
+                        </div>
+                    ) : view === 'diary' ? (
                         <DiaryEntryEditor 
                             currentEntry={currentEntry} 
                             onTextChange={handleTextChange} 
@@ -867,7 +889,7 @@ const DiaryApp = ({ user }) => {
                 mode={localStorage.getItem('onboarding-completed') ? 'manual' : 'auto'}
                 currentTheme={currentTheme}
             />
-                        <UserProfileModal 
+            <UserProfileModal 
                 isOpen={isUserProfileModalOpen} 
                 onClose={() => setUserProfileModalOpen(false)} 
                 user={user} 

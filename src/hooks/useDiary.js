@@ -7,7 +7,14 @@ export default function useDiary(db, user, appId, selectedDate) {
     const [isLoadingEntry, setIsLoadingEntry] = useState(false);
 
     useEffect(() => {
-        if (!db || !user?.uid || !selectedDate) return;
+        if (!db || !user?.uid || !selectedDate) {
+            // Si no hay fecha seleccionada, no cargar entrada
+            if (selectedDate === null) {
+                setCurrentEntry({ text: '', tracked: {} });
+                setIsLoadingEntry(false);
+            }
+            return;
+        }
         setIsLoadingEntry(true);
         setCurrentEntry({ text: '', tracked: {} });
         let isMounted = true;
