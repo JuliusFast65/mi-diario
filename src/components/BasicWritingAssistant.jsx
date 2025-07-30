@@ -1,14 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const BasicWritingAssistant = ({ 
     isOpen, 
     onClose, 
     currentEntry, 
     onUpdateEntry,
-    currentTheme = 'dark' 
+    currentTheme = 'dark',
+    db,
+    user,
+    appId,
+    selectedDate
 }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [aiResponse, setAiResponse] = useState('');
+    const [savedSuggestion, setSavedSuggestion] = useState(null);
+
+    // Función para generar hash simple del texto
+    const generateTextHash = (text) => {
+        if (!text) return '';
+        // Hash simple basado en longitud y contenido
+        return btoa(text.slice(0, 100) + text.length).slice(0, 20);
+    };
+
+    // Función para detectar si el texto ha cambiado significativamente
+    const hasTextChanged = (currentText) => {
+        // Comparar contra el texto original que se analizó, no contra el último analizado
+        const currentHash = generateTextHash(currentText);
+        const originalHash = savedSuggestion?.textHash || '';
+        return currentHash !== originalHash;
+    };
+
+    // Función para cargar sugerencia guardada
+    const loadSavedSuggestion = async () => {
+        if (!db || !user?.uid || !selectedDate) return;
+        
+        try {
+            const entryRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate);
+            const entryDoc = await getDoc(entryRef);
+            
+            if (entryDoc.exists()) {
+                const data = entryDoc.data();
+                if (data.writingAssistantSuggestion) {
+                    setSavedSuggestion(data.writingAssistantSuggestion);
+                    setAiResponse(data.writingAssistantSuggestion.aiResponse || '');
+                    console.log('Sugerencia cargada desde Firestore');
+                    return true;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading saved suggestion:', error);
+        }
+        return false;
+    };
+
+    // Función para guardar sugerencia
+    const saveSuggestion = async (aiResponse, originalText) => {
+        if (!db || !user?.uid || !selectedDate) return;
+        
+        try {
+            const entryRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate);
+            const suggestionData = {
+                aiResponse,
+                originalText,
+                textHash: generateTextHash(originalText),
+                createdAt: new Date()
+            };
+            
+            await setDoc(entryRef, {
+                writingAssistantSuggestion: suggestionData
+            }, { merge: true });
+            
+            setSavedSuggestion(suggestionData);
+            console.log('Sugerencia guardada en Firestore');
+        } catch (error) {
+            console.error('Error saving suggestion:', error);
+        }
+    };
 
     const callAI = async (prompt, title) => {
         setIsLoading(true);
@@ -34,14 +102,55 @@ const BasicWritingAssistant = ({
     };
 
     const handleWritingAssistant = async () => {
-        const prompt = `Eres un editor de texto. Revisa la siguiente entrada de diario. - Corrige gramática y ortografía y mejora el flujo. - No cambies la voz del autor. - Ofrece tus explicaciones o comentarios si lo deseas. - Al final, presenta la versión mejorada del texto envuelta entre tres arrobas. Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dentro.@@@" - Si el texto de entrada está vacío, devuelve un mensaje indicándolo.\n\n**Texto Original:**\n"${currentEntry?.text || ''}"`;
-        await callAI(prompt, "Sugerencias del Asistente");
+        // Verificar si el texto está vacío
+        if (!currentEntry?.text || currentEntry.text.trim() === '') {
+            setAiResponse("No hay texto para analizar. Escribe algo en tu diario para recibir sugerencias de mejora.");
+            return;
+        }
+
+        const currentText = currentEntry.text.trim();
+        
+        // Intentar cargar sugerencia guardada primero
+        const hasLoadedSuggestion = await loadSavedSuggestion();
+        
+        // Si no hay sugerencia guardada o el texto ha cambiado, generar nueva
+        if (!hasLoadedSuggestion || hasTextChanged(currentText)) {
+            const prompt = `Eres un editor de texto. Revisa la siguiente entrada de diario. - Corrige gramática y ortografía y mejora el flujo. - No cambies la voz del autor. - Ofrece tus explicaciones o comentarios si lo deseas. - Al final, presenta la versión mejorada del texto envuelta entre tres arrobas. Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dentro.@@@" - Si el texto de entrada está vacío, devuelve un mensaje indicándolo.\n\n**Texto Original:**\n"${currentText}"`;
+            
+            const aiResponse = await callAI(prompt, "Sugerencias del Asistente");
+            
+            // Guardar la nueva sugerencia
+            if (aiResponse && aiResponse !== "Error al conectar con la IA.") {
+                await saveSuggestion(aiResponse, currentText);
+            }
+        }
     };
 
+    // Función para extraer el texto mejorado de la respuesta de la IA
+    const extractImprovedText = (response) => {
+        const match = response.match(/@@@(.*?)@@@/s);
+        return match ? match[1].trim() : null;
+    };
 
+    // Función para aplicar la sugerencia
+    const handleApplySuggestion = () => {
+        const improvedText = extractImprovedText(aiResponse);
+        if (improvedText && currentEntry) {
+            onUpdateEntry({
+                ...currentEntry,
+                text: improvedText
+            });
+            onClose();
+        }
+    };
+
+    // Verificar si hay una sugerencia aplicable
+    const hasApplicableSuggestion = () => {
+        return extractImprovedText(aiResponse) !== null && !isLoading;
+    };
 
     // Ejecutar automáticamente cuando se abre el modal
-    React.useEffect(() => {
+    useEffect(() => {
         if (isOpen) {
             handleWritingAssistant();
         }
@@ -53,7 +162,7 @@ const BasicWritingAssistant = ({
         <div className={`fixed inset-0 ${currentTheme === 'dark' ? 'bg-black bg-opacity-70' : 'bg-black bg-opacity-50'} flex items-center justify-center z-50 p-4`}>
             <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col`}>
                 {/* Header */}
-                <div className={`flex items-center justify-between p-4 border-b ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
+                <div className={`flex items-center justify-between p-4`}>
                     <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 ${currentTheme === 'dark' ? 'bg-cyan-900' : 'bg-cyan-100'} rounded-full flex items-center justify-center`}>
                             <span className={`${currentTheme === 'dark' ? 'text-cyan-300' : 'text-cyan-600'} font-semibold`}>✍️</span>
@@ -62,9 +171,6 @@ const BasicWritingAssistant = ({
                             <h2 className={`text-xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                 Sugerencias del Asistente
                             </h2>
-                            <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'} font-medium`}>
-                                Mejora tu escritura con correcciones automáticas
-                            </p>
                         </div>
                     </div>
                     <button
@@ -114,6 +220,18 @@ const BasicWritingAssistant = ({
                     >
                         Cerrar
                     </button>
+                    {hasApplicableSuggestion() && (
+                        <button 
+                            onClick={handleApplySuggestion} 
+                            className={`ml-2 px-4 py-2 rounded-lg transition-colors ${
+                                currentTheme === 'dark' 
+                                    ? 'bg-cyan-600 hover:bg-cyan-700 text-white' 
+                                    : 'bg-cyan-100 hover:bg-cyan-200 text-cyan-800'
+                            }`}
+                        >
+                            Aplicar Sugerencia
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
