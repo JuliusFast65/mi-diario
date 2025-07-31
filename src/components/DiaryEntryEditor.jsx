@@ -19,7 +19,7 @@ const selectStyles = `
     }
 `;
 
-const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenDefineActivitiesModal, onConsultAI, onWritingAssistant, onUntrackActivity, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef, onDeleteEntry, isSimpleActivity, getActivityPoints, currentTheme = 'dark' }) => {
+const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenDefineActivitiesModal, onConsultAI, onWritingAssistant, onUntrackActivity, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef, onDeleteEntry, isSimpleActivity, getActivityPoints, getActivityCount, usesCountInsteadOfPoints, currentTheme = 'dark' }) => {
     const [activeTab, setActiveTab] = useState('entrada');
     const [focusMode, setFocusMode] = useState(false);
     const [deleteModalEntry, setDeleteModalEntry] = useState(null);
@@ -273,6 +273,8 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                                             autoFocus={lastTrackedId === activity.id}
                                             isSimpleActivity={isSimpleActivity}
                                             getActivityPoints={getActivityPoints}
+                                            getActivityCount={getActivityCount}
+                                            usesCountInsteadOfPoints={usesCountInsteadOfPoints}
                                             currentTheme={currentTheme}
                                         />
                                     ))

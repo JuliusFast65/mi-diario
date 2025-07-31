@@ -3,7 +3,7 @@
 ## 📋 Información General
 
 **Nombre del Proyecto:** Introspect - Tu Diario Personal  
-**Versión:** 1.62.0  
+**Versión:** 1.68.0  
 **Tecnologías:** React 19, Vite, Firebase, Tailwind CSS  
 **Tipo:** PWA (Progressive Web App) con funcionalidades premium
 
@@ -181,11 +181,21 @@ Para que el navegador muestre el prompt de instalación, la app debe cumplir:
 - ✅ **Display standalone**: Se abre como app nativa
 
 #### Versiones y Actualizaciones
-- **`package.json`**: Versión del proyecto (1.61.0)
-- **`APP_VERSION`**: Versión visible al usuario (1.61)
+- **`package.json`**: Versión del proyecto (1.68.0)
+- **`src/config/version.js`**: Versión centralizada de la aplicación (1.68)
+- **`APP_VERSION`**: Versión visible al usuario (1.68) - Importada desde config/version.js
 - **`SW_VERSION`**: Versión del Service Worker (2.0.141)
 
 El script `prebuild` actualiza automáticamente la versión del Service Worker cuando cambia la versión en `package.json`.
+
+#### Sistema de Versiones Centralizado
+Para evitar duplicaciones y mantener consistencia, la versión se define en un solo lugar:
+- **`src/config/version.js`**: Archivo centralizado con todas las versiones
+- **Importación**: Todos los componentes importan `APP_VERSION` desde este archivo
+- **Beneficios**: 
+  - Una sola fuente de verdad para la versión
+  - Fácil actualización (solo cambiar en un lugar)
+  - Evita inconsistencias entre archivos
 
 ## 🎯 Funcionalidades Clave
 
@@ -218,7 +228,7 @@ npm run lint         # Linting
 Para mantener la consistencia y asegurar despliegues exitosos, seguir este orden:
 
 1. **Desarrollo** → `npm run dev`
-2. **Incremento de Versión** → Actualizar `package.json` y `APP_VERSION` en `App.jsx`
+2. **Incremento de Versión** → Actualizar `package.json` y `src/config/version.js`
 3. **Build** → `npm run build`
 4. **Despliegue** → `firebase deploy`
 5. **Commit** → `git add . && git commit -m "mensaje"`
@@ -229,7 +239,7 @@ Para mantener la consistencia y asegurar despliegues exitosos, seguir este orden
 #### 1. **Incremento de Versión Primero**
 - Actualiza la versión antes de cualquier build
 - Asegura que el Service Worker se actualice con la nueva versión
-- Mantiene sincronizados `package.json` y `APP_VERSION`
+- Mantiene sincronizados `package.json` y `src/config/version.js`
 - Facilita el seguimiento de cambios en producción
 
 #### 2. **Build Después del Incremento**
@@ -261,8 +271,8 @@ Para mantener la consistencia y asegurar despliegues exitosos, seguir este orden
 npm run dev
 
 # 2. Incremento de versión
-# - Actualizar "version" en package.json (ej: "1.62.0")
-# - Actualizar APP_VERSION en src/App.jsx (ej: '1.62')
+# - Actualizar "version" en package.json (ej: "1.68.0")
+# - Actualizar APP_VERSION en src/config/version.js (ej: '1.68')
 
 # 3. Build y verificación
 npm run build

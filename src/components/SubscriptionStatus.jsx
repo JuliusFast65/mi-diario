@@ -38,16 +38,6 @@ const SubscriptionStatus = ({ subscription, isSubscriptionActive, onUpgradeClick
                 <span>{getPlanIcon(currentPlan)}</span>
                 <span>{getPlanDisplayName(currentPlan)}</span>
             </button>
-            {subscription.expiresAt && isSubscriptionActive() && (
-                <span className="text-gray-500">
-                    • Expira {subscription.expiresAt.toLocaleDateString()}
-                </span>
-            )}
-            {!isSubscriptionActive() && subscription.isPremium && (
-                <span className="text-red-400">
-                    • Expirada
-                </span>
-            )}
         </div>
     );
 };

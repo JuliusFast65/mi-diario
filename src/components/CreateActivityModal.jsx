@@ -138,7 +138,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                     <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-600/50 rounded-lg">
                         <div className="flex items-center gap-2 text-yellow-300 text-sm">
                             <span>⚠️ Plan Gratuito:</span>
-                            <span>Las actividades tendrán 1 punto automáticamente</span>
+                            <span>Las actividades se contarán por veces realizadas</span>
                         </div>
                     </div>
                 )}
@@ -224,8 +224,8 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                         </div>
                     )}
                     
-                    {/* Sección de Meta - Solo para premium */}
-                    {!isFreePlan && (
+                    {/* Sección de Meta - Para premium y actividades simples gratuitas */}
+                    {(!isFreePlan || (isFreePlan && options.length === 0)) && (
                         <div className={`border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'} pt-4`}>
                             <div className="flex items-center justify-between mb-3">
                                 <label className={`text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
@@ -268,14 +268,14 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                         </div>
                                         <div>
                                             <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                                                Puntos Objetivo *
+                                                {isFreePlan && options.length === 0 ? 'Veces Objetivo *' : 'Puntos Objetivo *'}
                                             </label>
                                             <input
                                                 type="number"
                                                 min="1"
                                                 value={goalTarget}
                                                 onChange={(e) => setGoalTarget(e.target.value)}
-                                                placeholder="Ej: 100"
+                                                placeholder={isFreePlan && options.length === 0 ? "Ej: 5" : "Ej: 100"}
                                                 className={`w-full rounded-md p-2 border ${
                                                     currentTheme === 'dark' 
                                                         ? 'bg-gray-600 border-gray-500 text-white' 

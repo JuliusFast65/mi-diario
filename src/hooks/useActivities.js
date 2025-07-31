@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, setDoc, addDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, setDoc, addDoc, doc, deleteDoc, getDocs } from 'firebase/firestore';
 
 export default function useActivities(db, user, appId, subscription) {
     const [activities, setActivities] = useState({});
@@ -34,8 +34,16 @@ export default function useActivities(db, user, appId, subscription) {
             });
             setActivities(fetchedActivities);
         });
+        
         return () => unsubscribe();
     }, [db, user, appId, subscription]);
+
+    // Migrar metas de usuarios gratuitos en un useEffect separado
+    useEffect(() => {
+        if (subscription?.plan === 'free' && Object.keys(activities).length > 0) {
+            migrateFreeUserGoals();
+        }
+    }, [subscription?.plan, activities]);
 
     // Crear o editar actividad
     const handleSaveActivity = async (activityData) => {
@@ -141,6 +149,16 @@ export default function useActivities(db, user, appId, subscription) {
         if (!db || !user?.uid || !activityId) return;
         
         const isFreePlan = subscription?.plan === 'free';
+        const activity = activities[activityId];
+        const isSimple = !activity?.options || activity.options.length === 0;
+        
+        // Para usuarios gratuitos con actividades simples, permitir metas por veces
+        if (isFreePlan && isSimple) {
+            const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
+            await setDoc(activityRef, { goal }, { merge: true });
+            return;
+        }
+        
         if (isFreePlan) {
             console.warn('Los usuarios gratuitos no pueden configurar metas complejas');
             return;
@@ -148,6 +166,34 @@ export default function useActivities(db, user, appId, subscription) {
         
         const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', activityId);
         await setDoc(activityRef, { goal }, { merge: true });
+    };
+
+    // Migrar metas existentes de usuarios gratuitos de puntos a veces
+    const migrateFreeUserGoals = async () => {
+        if (!db || !user?.uid || subscription?.plan !== 'free') return;
+        
+        const activitiesCol = collection(db, 'artifacts', appId, 'users', user.uid, 'activities');
+        const snapshot = await getDocs(activitiesCol);
+        
+        const migrationPromises = snapshot.docs.map(async (docSnapshot) => {
+            const activityData = docSnapshot.data();
+            const isSimple = !activityData.options || activityData.options.length === 0;
+            
+            // Solo migrar actividades simples que tengan metas por puntos
+            if (isSimple && activityData.goal && activityData.goal.target) {
+                const activityRef = doc(db, 'artifacts', appId, 'users', user.uid, 'activities', docSnapshot.id);
+                // La meta ya está en el formato correcto, solo asegurar que se entienda como veces
+                await setDoc(activityRef, { 
+                    goal: {
+                        ...activityData.goal,
+                        // Agregar un flag para indicar que es por veces
+                        isCountBased: true
+                    }
+                }, { merge: true });
+            }
+        });
+        
+        await Promise.all(migrationPromises);
     };
 
     // Actualizar puntos (solo para premium)
@@ -211,6 +257,20 @@ export default function useActivities(db, user, appId, subscription) {
         return activity?.points?.[selectedValue] || 0;
     };
 
+    // Obtener conteo de veces para una actividad (nuevo método para actividades simples)
+    const getActivityCount = (activityId, selectedValue) => {
+        const activity = activities[activityId];
+        if (isSimpleActivity(activityId)) {
+            return selectedValue ? 1 : 0; // 1 vez si está registrada, 0 si no
+        }
+        return 0; // Para actividades con subniveles, no aplica conteo simple
+    };
+
+    // Verificar si una actividad usa conteo de veces en lugar de puntos
+    const usesCountInsteadOfPoints = (activityId) => {
+        return isSimpleActivity(activityId);
+    };
+
     return {
         activities,
         handleSaveActivity,
@@ -221,6 +281,9 @@ export default function useActivities(db, user, appId, subscription) {
         handleUpdatePoints,
         getActivityLimits,
         isSimpleActivity,
-        getActivityPoints
+        getActivityPoints,
+        getActivityCount,
+        usesCountInsteadOfPoints,
+        migrateFreeUserGoals
     };
 } 

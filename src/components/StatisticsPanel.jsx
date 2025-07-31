@@ -143,25 +143,51 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                             id: activityId,
                             name: activities[activityId]?.name || 'Actividad Desconocida',
                             totalPoints: 0,
+                            totalCount: 0,
                             daysCount: 0,
-                            goal: activities[activityId]?.goal
+                            goal: activities[activityId]?.goal,
+                            isSimple: !activities[activityId]?.options || activities[activityId].options.length === 0
                         };
                     }
-                    const points = activities[activityId]?.points?.[option] || 0;
-                    activityStats[activityId].totalPoints += points;
+                    
+                    const activity = activities[activityId];
+                    const isSimple = !activity?.options || activity.options.length === 0;
+                    
+                    if (isSimple) {
+                        // Para actividades simples: contar veces
+                        activityStats[activityId].totalCount += 1;
+                    } else {
+                        // Para actividades con subniveles: usar puntos
+                        const points = activity?.points?.[option] || 0;
+                        activityStats[activityId].totalPoints += points;
+                    }
                     activityStats[activityId].daysCount += 1;
                 });
             }
         });
+        
         Object.values(activityStats).forEach(activity => {
             if (activity.goal) {
                 const goalTarget = activity.goal.target;
-                activity.completionPercentage = Math.round((activity.totalPoints / goalTarget) * 100);
-                activity.isGoalMet = activity.totalPoints >= goalTarget;
+                if (activity.isSimple) {
+                    // Para actividades simples: metas por veces
+                    activity.completionPercentage = Math.round((activity.totalCount / goalTarget) * 100);
+                    activity.isGoalMet = activity.totalCount >= goalTarget;
+                } else {
+                    // Para actividades con subniveles: metas por puntos
+                    activity.completionPercentage = Math.round((activity.totalPoints / goalTarget) * 100);
+                    activity.isGoalMet = activity.totalPoints >= goalTarget;
+                }
             }
         });
+        
         return Object.values(activityStats)
-            .sort((a, b) => b.totalPoints - a.totalPoints);
+            .sort((a, b) => {
+                // Ordenar por el valor relevante (puntos o conteo)
+                const aValue = a.isSimple ? a.totalCount : a.totalPoints;
+                const bValue = b.isSimple ? b.totalCount : b.totalPoints;
+                return bValue - aValue;
+            });
     }, [rawEntries, activities]);
 
     const CustomTooltip = ({ active, payload, label }) => {
@@ -170,12 +196,20 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
             return (
                 <div className={`${currentTheme === 'dark' ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'} border rounded-lg p-3 shadow-lg`}>
                     <p className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{data.name}</p>
-                    <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Puntos totales: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
+                    {data.isSimple ? (
+                        <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Veces realizadas: <span className="text-green-400 font-bold">{data.totalCount}</span></p>
+                    ) : (
+                        <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Puntos totales: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
+                    )}
                     <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Días registrados: <span className="text-blue-400">{data.daysCount}</span></p>
                     {data.goal && (
                         <div className={`mt-2 pt-2 border-t ${currentTheme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`}>
-                            <p className="text-yellow-300">Meta: {data.goal.target} puntos</p>
-                            <p className={`font-bold ${data.isGoalMet ? 'text-green-400' : 'text-red-400'}`}>{data.completionPercentage}% cumplido{data.isGoalMet ? ' ✅' : ' ❌'}</p>
+                            <p className="text-yellow-300">
+                                Meta: {data.goal.target} {data.isSimple ? 'veces' : 'puntos'}
+                            </p>
+                            <p className={`font-bold ${data.isGoalMet ? 'text-green-400' : 'text-red-400'}`}>
+                                {data.completionPercentage}% cumplido{data.isGoalMet ? ' ✅' : ' ❌'}
+                            </p>
                         </div>
                     )}
                 </div>
@@ -227,14 +261,18 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                                 </div>
                                 <div className={`text-sm space-y-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                                     <div className="flex justify-between">
-                                        <span>Puntos:</span>
-                                        <span className="text-green-400 font-bold">{activity.totalPoints}</span>
+                                        <span>{activity.isSimple ? 'Veces:' : 'Puntos:'}</span>
+                                        <span className="text-green-400 font-bold">
+                                            {activity.isSimple ? activity.totalCount : activity.totalPoints}
+                                        </span>
                                     </div>
                                     {activity.goal && (
                                         <>
                                             <div className="flex justify-between">
                                                 <span>Meta:</span>
-                                                <span className="text-yellow-400">{activity.goal.target}</span>
+                                                <span className="text-yellow-400">
+                                                    {activity.goal.target} {activity.isSimple ? 'veces' : 'puntos'}
+                                                </span>
                                             </div>
                                             <div className="mt-2">
                                                 <div className={`w-full rounded-full h-2 ${currentTheme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'}`}>
@@ -281,25 +319,37 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
         };
         const getMonth = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
         const relevantEntries = entries.filter(e => e.tracked && e.tracked[activity.id]);
+        const isSimple = !activity.options || activity.options.length === 0;
+        
         const groupedData = relevantEntries.reduce((acc, entry) => {
             const date = new Date(`${entry.id}T00:00:00`);
             const key = timeGroup === 'weekly' ? getWeek(date) : getMonth(date);
             const option = entry.tracked[activity.id] || 'N/A';
-            const points = activity.points?.[option] || 0;
+            
             if (!acc[key]) {
                 acc[key] = { 
                     timePeriod: key, 
                     totalPoints: 0,
+                    totalCount: 0,
                     daysCount: 0,
                     activities: []
                 };
             }
-            acc[key].totalPoints += points;
+            
+            if (isSimple) {
+                // Para actividades simples: contar veces
+                acc[key].totalCount += 1;
+            } else {
+                // Para actividades con subniveles: usar puntos
+                const points = activity.points?.[option] || 0;
+                acc[key].totalPoints += points;
+            }
+            
             acc[key].daysCount += 1;
             acc[key].activities.push({
                 date: entry.id,
                 option: option,
-                points: points
+                points: isSimple ? 1 : (activity.points?.[option] || 0)
             });
             return acc;
         }, {});
@@ -309,6 +359,8 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
     const calculateGoalForPeriod = useMemo(() => {
         if (!activity.goal || processedData.length === 0) return null;
         const { type, target } = activity.goal;
+        const isSimple = !activity.options || activity.options.length === 0;
+        
         if (type === 'weekly') {
             const weeksCount = processedData.length;
             return target * weeksCount;
@@ -321,9 +373,12 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
         return null;
     }, [activity.goal, processedData]);
 
-    const totalPoints = processedData.reduce((sum, period) => sum + period.totalPoints, 0);
-    const goalMet = calculateGoalForPeriod ? totalPoints >= calculateGoalForPeriod : false;
-    const completionPercentage = calculateGoalForPeriod ? Math.round((totalPoints / calculateGoalForPeriod) * 100) : 0;
+    const isSimple = !activity.options || activity.options.length === 0;
+    const totalValue = isSimple 
+        ? processedData.reduce((sum, period) => sum + period.totalCount, 0)
+        : processedData.reduce((sum, period) => sum + period.totalPoints, 0);
+    const goalMet = calculateGoalForPeriod ? totalValue >= calculateGoalForPeriod : false;
+    const completionPercentage = calculateGoalForPeriod ? Math.round((totalValue / calculateGoalForPeriod) * 100) : 0;
 
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
@@ -331,7 +386,11 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
             return (
                 <div className={`${currentTheme === 'dark' ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'} border rounded-lg p-3 shadow-lg`}>
                     <p className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{data.timePeriod}</p>
-                    <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Puntos: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
+                    {isSimple ? (
+                        <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Veces: <span className="text-green-400 font-bold">{data.totalCount}</span></p>
+                    ) : (
+                        <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Puntos: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
+                    )}
                     <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Días: <span className="text-blue-400">{data.daysCount}</span></p>
                 </div>
             );
@@ -371,8 +430,10 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div className={`text-center p-4 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                            <div className="text-2xl font-bold text-green-400">{totalPoints}</div>
-                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Puntos Totales</div>
+                            <div className="text-2xl font-bold text-green-400">{totalValue}</div>
+                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                {isSimple ? 'Veces Totales' : 'Puntos Totales'}
+                            </div>
                         </div>
                         <div className={`text-center p-4 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <div className="text-2xl font-bold text-blue-400">{processedData.length}</div>
@@ -381,7 +442,9 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
                         {calculateGoalForPeriod && (
                             <div className="text-center">
                                 <div className="text-2xl font-bold text-yellow-400">{calculateGoalForPeriod}</div>
-                                <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Meta del Periodo</div>
+                                <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    Meta del Periodo ({isSimple ? 'veces' : 'puntos'})
+                                </div>
                                 <div className={`text-sm font-bold ${goalMet ? 'text-green-400' : 'text-red-400'}`}>{completionPercentage}% {goalMet ? '✅' : '❌'}</div>
                             </div>
                         )}
@@ -398,8 +461,8 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
                                     <Tooltip content={<CustomTooltip />} />
                                     <Legend wrapperStyle={{ color: currentTheme === 'dark' ? '#E2E8F0' : '#2D3748' }} />
                                     <Bar 
-                                        dataKey="totalPoints" 
-                                        name="Puntos Totales" 
+                                        dataKey={isSimple ? "totalCount" : "totalPoints"} 
+                                        name={isSimple ? "Veces Totales" : "Puntos Totales"} 
                                         fill="#667EEA" 
                                         cursor="pointer"
                                         radius={[4, 4, 0, 0]}
@@ -429,7 +492,9 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
 
 // --- ActivityPeriodDetail ---
 const ActivityPeriodDetail = ({ period, activity, onBack, currentTheme }) => {
-    const totalPoints = period.activities.reduce((sum, act) => sum + act.points, 0);
+    const isSimple = !activity.options || activity.options.length === 0;
+    const totalValue = period.activities.reduce((sum, act) => sum + act.points, 0);
+    
     return (
         <div className="p-4 md:p-6">
             <button onClick={onBack} className="text-indigo-400 hover:text-indigo-300 mb-4 inline-flex items-center gap-2">
@@ -445,8 +510,10 @@ const ActivityPeriodDetail = ({ period, activity, onBack, currentTheme }) => {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className={`text-center p-3 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                            <div className="text-2xl font-bold text-green-400">{totalPoints}</div>
-                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Puntos Totales</div>
+                            <div className="text-2xl font-bold text-green-400">{totalValue}</div>
+                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                {isSimple ? 'Veces Totales' : 'Puntos Totales'}
+                            </div>
                         </div>
                         <div className={`text-center p-3 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <div className="text-2xl font-bold text-blue-400">{period.daysCount}</div>
@@ -470,7 +537,9 @@ const ActivityPeriodDetail = ({ period, activity, onBack, currentTheme }) => {
                                     <div className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{act.option}</div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-green-400 font-bold">{act.points} pts</span>
+                                    <span className="text-green-400 font-bold">
+                                        {act.points} {isSimple ? 'vez' : 'pts'}
+                                    </span>
                                 </div>
                             </div>
                         ))}

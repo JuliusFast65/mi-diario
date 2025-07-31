@@ -38,6 +38,7 @@ import useSubscription from './hooks/useSubscription';
 import useTheme from './hooks/useTheme';
 import { useAppSecurity } from './hooks/useAppSecurity';
 import SubscriptionStatus from './components/SubscriptionStatus';
+import { APP_VERSION } from './config/version';
 
 
 // --- Configuración de Firebase ---
@@ -107,7 +108,9 @@ const DiaryApp = ({ user }) => {
             activitiesCount: Object.keys(currentEntry?.tracked || {}).length
         });
     }, [currentEntry]);
-    const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints, getActivityLimits, isSimpleActivity, getActivityPoints } = useActivities(db, user, appId, subscription);
+    const { activities, handleSaveActivity, handleDeleteActivity, handleAddOptionToActivity, 
+        handleDeleteOptionFromActivity, handleSaveGoal, handleUpdatePoints, 
+        getActivityLimits, isSimpleActivity, getActivityPoints, getActivityCount, usesCountInsteadOfPoints } = useActivities(db, user, appId, subscription);
 
     // Manejo de errores para límite de actividades
     const handleSaveActivityWithLimit = async (activityData) => {
@@ -601,14 +604,11 @@ const DiaryApp = ({ user }) => {
                         <img src={user.photoURL} alt="Foto de perfil" className="w-10 h-10 rounded-full" />
                         <div>
                             <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Mi Diario</h1>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-500 dark:text-gray-400">V {APP_VERSION}</span>
-                                <SubscriptionStatus 
-                                    subscription={subscription} 
-                                    isSubscriptionActive={isSubscriptionActive} 
-                                    onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
-                                />
-                            </div>
+                            <SubscriptionStatus 
+                                subscription={subscription} 
+                                isSubscriptionActive={isSubscriptionActive} 
+                                onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
+                            />
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -672,19 +672,6 @@ const DiaryApp = ({ user }) => {
                                 🔒
                             </button>
                             
-                            {/* Botón de cambio de tema temporal para testing */}
-                            <button 
-                                onClick={() => {
-                                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                                    setTheme(newTheme);
-                                    handleUpdateUserPrefs({ ...userPrefs, theme: newTheme });
-                                }}
-                                className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-lg transition-colors text-sm"
-                                title={`Cambiar a modo ${currentTheme === 'dark' ? 'claro' : 'oscuro'}`}
-                            >
-                                {currentTheme === 'dark' ? '☀️' : '🌙'}
-                            </button>
-                            
                             <button 
                                 onClick={handleLogout}
                                 className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
@@ -739,6 +726,8 @@ const DiaryApp = ({ user }) => {
                             onDeleteEntry={handleDeleteEntry}
                             isSimpleActivity={isSimpleActivity}
                             getActivityPoints={getActivityPoints}
+                            getActivityCount={getActivityCount}
+                            usesCountInsteadOfPoints={usesCountInsteadOfPoints}
                             currentTheme={currentTheme}
                         />
                     ) : view === 'archive' ? (
@@ -976,6 +965,6 @@ export default function App() {
 
 
 
-const APP_VERSION = '1.68'; // Cambia este valor en cada iteración
+// APP_VERSION ahora se importa desde ./config/version.js
 
 

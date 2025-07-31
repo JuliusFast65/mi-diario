@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { APP_VERSION } from '../config/version';
 
 export default function HamburgerMenu({ 
     onAdvancedIntrospectiveAssistant,
@@ -268,6 +269,18 @@ export default function HamburgerMenu({
                                 <div className="font-medium">Tutorial</div>
                             </div>
                         </button>
+
+                        <div className={`w-full flex items-center gap-3 px-3 py-2 text-left ${
+                            currentTheme === 'dark' 
+                                ? 'text-gray-400' 
+                                : 'text-gray-500'
+                        }`}>
+                            <span className="text-gray-400">ℹ️</span>
+                            <div>
+                                <div className="font-medium">Versión</div>
+                                <div className="text-xs">V {APP_VERSION}</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

@@ -15,7 +15,7 @@ const selectStyles = `
     }
 `;
 
-const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack, autoFocus, isSimpleActivity, getActivityPoints, currentTheme = 'dark' }) => {
+const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack, autoFocus, isSimpleActivity, getActivityPoints, getActivityCount, usesCountInsteadOfPoints, currentTheme = 'dark' }) => {
     const selectRef = React.useRef();
     React.useEffect(() => {
         if (autoFocus && selectRef.current) {
@@ -26,8 +26,10 @@ const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack
     const hasOptions = Array.isArray(activity.options) && activity.options.length > 0;
     const isSimple = isSimpleActivity ? isSimpleActivity(activity.id) : false;
     const selectedPoints = getActivityPoints ? getActivityPoints(activity.id, selectedValue) : (activity.points?.[selectedValue] || 0);
+    const selectedCount = getActivityCount ? getActivityCount(activity.id, selectedValue) : 0;
+    const usesCount = usesCountInsteadOfPoints ? usesCountInsteadOfPoints(activity.id) : false;
     
-    // Para actividades simples, mostrar solo el nombre y puntos
+    // Para actividades simples, mostrar solo el nombre y conteo de veces
     if (isSimple) {
         const isRegistered = !!selectedValue;
         
@@ -41,7 +43,7 @@ const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack
                         <span className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{activity.name}</span>
                         {isRegistered && (
                             <div className="bg-green-600 text-white px-2 py-1 rounded text-sm font-semibold">
-                                1 pt
+                                1 vez
                             </div>
                         )}
                     </div>

@@ -69,69 +69,85 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
                                 <p className="text-sm mt-2">Crea tu primera actividad para comenzar a registrar tus hábitos.</p>
                             </div>
                         ) : (
-                            sortedActivities.map(activity => (
-                                <div key={activity.id} className={`${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded-lg border ${currentTheme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex-grow">
-                                            <div className="flex items-center gap-3">
-                                                <span className={`font-bold text-lg ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{activity.name}</span>
-                                                {isFreePlan && (
-                                                    <span className={`text-xs px-2 py-1 rounded ${
-                                                        currentTheme === 'dark' 
-                                                            ? 'bg-gray-600 text-gray-300' 
-                                                            : 'bg-gray-300 text-gray-700'
-                                                    }`}>
-                                                        +1 punto
-                                                    </span>
-                                                )}
-                                            </div>
-                                            
-                                            {/* Información adicional para premium */}
-                                            {!isFreePlan && (
-                                                <div className="mt-2 space-y-1">
-                                                    {/* Subniveles */}
-                                                    {activity.options && activity.options.length > 0 && (
-                                                        <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                            <span className={`${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Subniveles:</span> {activity.options.length}
-                                                        </div>
+                            sortedActivities.map(activity => {
+                                const isSimple = !activity.options || activity.options.length === 0;
+                                
+                                return (
+                                    <div key={activity.id} className={`${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded-lg border ${currentTheme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex-grow">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`font-bold text-lg ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{activity.name}</span>
+                                                    {isFreePlan && (
+                                                        <span className={`text-xs px-2 py-1 rounded ${
+                                                            currentTheme === 'dark' 
+                                                                ? 'bg-gray-600 text-gray-300' 
+                                                                : 'bg-gray-300 text-gray-700'
+                                                        }`}>
+                                                            +1 vez
+                                                        </span>
                                                     )}
-                                                    
-                                                    {/* Meta */}
-                                                    {activity.goal && (
+                                                </div>
+                                                
+                                                {/* Información adicional para premium */}
+                                                {!isFreePlan && (
+                                                    <div className="mt-2 space-y-1">
+                                                        {/* Subniveles */}
+                                                        {activity.options && activity.options.length > 0 && (
+                                                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                                <span className={`${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Subniveles:</span> {activity.options.length}
+                                                            </div>
+                                                        )}
+                                                        
+                                                        {/* Meta */}
+                                                        {activity.goal && (
+                                                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-yellow-300' : 'text-yellow-600'}`}>
+                                                                <span className={`${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>🎯 Meta:</span> {activity.goal.target} {isSimple ? 'veces' : 'puntos'}
+                                                                {activity.goal.type === 'weekly' && ' (semanal)'}
+                                                                {activity.goal.type === 'monthly' && ' (mensual)'}
+                                                                {activity.goal.type === 'custom' && ` (${activity.goal.startDate} a ${activity.goal.endDate})`}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Información para usuarios gratuitos */}
+                                                {isFreePlan && activity.goal && (
+                                                    <div className="mt-2">
                                                         <div className={`text-sm ${currentTheme === 'dark' ? 'text-yellow-300' : 'text-yellow-600'}`}>
-                                                            <span className={`${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>🎯 Meta:</span> {activity.goal.target} puntos
+                                                            <span className={`${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>🎯 Meta:</span> {activity.goal.target} veces
                                                             {activity.goal.type === 'weekly' && ' (semanal)'}
                                                             {activity.goal.type === 'monthly' && ' (mensual)'}
                                                             {activity.goal.type === 'custom' && ` (${activity.goal.startDate} a ${activity.goal.endDate})`}
                                                         </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                        
-                                        <div className="flex items-center gap-2 ml-4">
-                                            <button 
-                                                onClick={() => handleEdit(activity)}
-                                                className="p-2 bg-blue-600 hover:bg-blue-700 rounded-full text-white"
-                                                title="Editar actividad"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
-                                            </button>
-                                            <button 
-                                                onClick={() => onDeleteActivity(activity.id)} 
-                                                className="p-2 bg-red-800 hover:bg-red-700 rounded-full text-white" 
-                                                aria-label={`Eliminar permanentemente ${activity.name}`}
-                                            >
-                                                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
-                                                </svg>
-                                            </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-2 ml-4">
+                                                <button 
+                                                    onClick={() => handleEdit(activity)}
+                                                    className="p-2 bg-blue-600 hover:bg-blue-700 rounded-full text-white"
+                                                    title="Editar actividad"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                                <button 
+                                                    onClick={() => onDeleteActivity(activity.id)} 
+                                                    className="p-2 bg-red-800 hover:bg-red-700 rounded-full text-white" 
+                                                    aria-label={`Eliminar permanentemente ${activity.name}`}
+                                                >
+                                                    <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </div>
                 </div>
