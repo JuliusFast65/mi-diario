@@ -14,6 +14,10 @@ import ImportModal from './components/ImportModal';
 import UserProfileModal from './components/UserProfileModal';
 import UpdateNotification from './components/UpdateNotification';
 
+// Security Components
+import AppLock from './components/AppLock';
+import SecuritySettings from './components/SecuritySettings';
+
 // Premium Components
 import AdvancedIntrospectiveAssistant from './components/AdvancedIntrospectiveAssistant';
 import TherapistReflection from './components/TherapistReflection';
@@ -32,6 +36,7 @@ import useActivities from './hooks/useActivities';
 import useDiary from './hooks/useDiary';
 import useSubscription from './hooks/useSubscription';
 import useTheme from './hooks/useTheme';
+import { useAppSecurity } from './hooks/useAppSecurity';
 import SubscriptionStatus from './components/SubscriptionStatus';
 
 
@@ -86,6 +91,9 @@ const DiaryApp = ({ user }) => {
     // Ref para evitar ciclos de navegación
     const isNavigatingFromDeleteRef = useRef(false);
     
+    // Security hook
+    const securityHook = useAppSecurity();
+    
     // Usar hook de suscripción real
     const { subscription, updateSubscription, hasFeature, isSubscriptionActive, isLoading: isLoadingSubscription } = useSubscription(db, user, appId);
     
@@ -134,6 +142,7 @@ const DiaryApp = ({ user }) => {
     const [isExportModalOpen, setExportModalOpen] = useState(false);
     const [isImportModalOpen, setImportModalOpen] = useState(false);
     const [isUserProfileModalOpen, setUserProfileModalOpen] = useState(false);
+    const [isSecuritySettingsOpen, setIsSecuritySettingsOpen] = useState(false);
     const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
     // Premium Modals State
@@ -576,9 +585,17 @@ const DiaryApp = ({ user }) => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen font-sans flex flex-col">
-            <UpdateNotification />
-            <div className="max-w-5xl mx-auto w-full flex flex-col flex-grow">
+        <AppLock
+            isLocked={securityHook.isLocked}
+            isPinSet={securityHook.isPinSet}
+            onUnlock={securityHook.unlockApp}
+            onSetupPin={securityHook.setupPin}
+            pinLength={securityHook.pinLength}
+            currentTheme={currentTheme}
+        >
+            <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen font-sans flex flex-col">
+                <UpdateNotification />
+                <div className="max-w-5xl mx-auto w-full flex flex-col flex-grow">
                 <header className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center flex-shrink-0 bg-gray-50 dark:bg-gray-800">
                     <div className="flex items-center gap-4">
                         <img src={user.photoURL} alt="Foto de perfil" className="w-10 h-10 rounded-full" />
@@ -646,6 +663,15 @@ const DiaryApp = ({ user }) => {
                         />
 
                         <div className="flex items-center gap-2">
+                            {/* Botón de configuración de seguridad */}
+                            <button 
+                                onClick={() => setIsSecuritySettingsOpen(true)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg transition-colors text-sm"
+                                title="Configuración de seguridad"
+                            >
+                                🔒
+                            </button>
+                            
                             {/* Botón de cambio de tema temporal para testing */}
                             <button 
                                 onClick={() => {
@@ -899,7 +925,17 @@ const DiaryApp = ({ user }) => {
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
                 currentTheme={currentTheme}
             />
+            
+            {/* Security Settings Modal */}
+            <SecuritySettings 
+                isOpen={isSecuritySettingsOpen} 
+                onClose={() => setIsSecuritySettingsOpen(false)} 
+                securityHook={securityHook}
+                onLockApp={securityHook.lockApp}
+                currentTheme={currentTheme}
+            />
         </div>
+        </AppLock>
     );
 };
 
