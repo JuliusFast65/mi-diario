@@ -1,0 +1,170 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "yes": "Oui",
+    "no": "Non",
+    "ok": "OK",
+    "error": "Erreur",
+    "success": "Succès",
+    "warning": "Avertissement",
+    "info": "Information",
+    "time": "fois",
+    "select": "Sélectionner une option",
+    "optional": "Optionnel",
+    "hide": "Masquer",
+    "show": "Afficher"
+  },
+  "diary": {
+    "entry": "Entrée",
+    "activities": "Activités",
+    "writeTitlePlaceholder": "Écrivez un titre dans la première ligne...",
+    "deleteEntry": "Supprimer l'entrée",
+    "noTitle": "Sans Titre",
+    "focusMode": "Mode focus",
+    "exitFocusMode": "Quitter le mode focus",
+    "helpTutorial": "Aide / Tutoriel",
+    "writingAssistant": "Recevez des suggestions pour améliorer votre écriture (Gratuit)",
+    "aiConsult": "Recevez une réflexion sur votre entrée et activités",
+    "noActivitiesRegistered": "Aucune activité enregistrée pour ce jour.",
+    "registerActivity": "+ Enregistrer une activité...",
+    "defineActivities": "Définir les Activités",
+    "completed": "Terminé"
+  },
+  "fonts": {
+    "sizes": {
+      "verySmall": "Très Petit",
+      "small": "Petit",
+      "medium": "Moyen",
+      "large": "Grand",
+      "extraLarge": "Très Grand"
+    },
+    "names": {
+      "patrickHand": "Patrick Hand",
+      "caveat": "Caveat",
+      "indieFlower": "Indie Flower",
+      "kalam": "Kalam",
+      "gochiHand": "Gochi Hand",
+      "lora": "Lora (Serif)",
+      "sans": "Nunito Sans (Simple)"
+    }
+  },
+  "activities": {
+    "addValuePlaceholder": "Ajoutez une valeur (ex: 30 min)",
+    "editActivity": "Modifier l'activité",
+    "createActivity": "Créer une Activité",
+    "activityNamePlaceholder": "Ex: Lecture, Exercice, Méditation...",
+    "optionPlaceholder": "Option {{index}}",
+    "pointsPlaceholder": "Points",
+    "goalPlaceholder": "Ex: {{example}}",
+    "goalPlaceholderFree": "Ex: 5",
+    "goalPlaceholderPremium": "Ex: 100",
+    "removeFromDay": "Retirer {{activity}} de ce jour",
+    "pleaseEnterName": "Veuillez entrer un nom pour l'activité.",
+    "countedByTimes": "Les activités seront comptées par fois effectuées",
+    "activityName": "Nom de l'Activité",
+    "addOption": "Ajouter une option",
+    "configureGoal": "Configurer l'Objectif",
+    "goalType": "Type d'Objectif",
+    "sublevels": "Sous-niveaux/Options",
+    "timesGoal": "Objectif de Fois *",
+    "pointsGoal": "Objectif de Points *",
+    "startDate": "Date de Début",
+    "endDate": "Date de Fin",
+    "saveChanges": "Enregistrer les Modifications",
+    "createActivity": "Créer l'Activité",
+    "startDateAfterEndDate": "La date de début ne peut pas être postérieure à la date de fin.",
+    "activityManager": "Gestionnaire d'Activités",
+    "newActivity": "Nouvelle Activité",
+    "noActivitiesDefined": "Aucune activité définie.",
+    "createFirstActivity": "Créez votre première activité pour commencer à suivre vos habitudes.",
+    "activity": "activité",
+    "activities": "activités",
+    "defined": "définie",
+    "definedPlural": "définies",
+    "sublevels": "Sous-niveaux",
+    "freePlan": "Plan Gratuit",
+    "goal": "Objectif",
+    "times": "fois",
+    "points": "points",
+    "weekly": "hebdomadaire",
+    "monthly": "mensuel",
+    "deletePermanently": "Supprimer définitivement",
+    "freePlanLabel": "Plan Gratuit:"
+  },
+  "writingAssistant": {
+    "suggestions": "Suggestions",
+    "preview": "Aperçu",
+    "comparison": "Comparaison",
+    "writingPrompts": "Prompts d'Écriture"
+  },
+  "subscription": {
+    "viewPlans": "Voir les plans d'abonnement"
+  },
+  "import": {
+    "selectAllVisible": "Sélectionner toutes les entrées visibles",
+    "loadDifferentFile": "Charger un fichier différent"
+  },
+  "navigation": {
+    "menu": "Menu d'options",
+    "diary": "Journal",
+    "archive": "Archive",
+    "statistics": "Statistiques"
+  },
+  "chat": {
+    "writeMessage": "Écrivez votre message...",
+    "clearConversation": "Effacer la conversation du {{date}}"
+  },
+  "security": {
+    "securitySettings": "Paramètres de sécurité",
+    "pinPlaceholder": "0000"
+  },
+  "archive": {
+    "deleteEntry": "Supprimer l'entrée"
+  },
+  "profile": {
+    "personal": "Personnel",
+    "regionalSettings": "Paramètres Régionaux",
+    "preferences": "Préférences",
+    "notifications": "Notifications",
+    "aiCustomization": "Personnalisation IA",
+    "security": "Sécurité",
+    "goals": "Objectifs",
+    "language": "Langue",
+    "dateFormat": "Format de Date",
+    "timeFormat": "Format d'Heure",
+    "writingPreferences": "Préférences d'Écriture",
+    "defaultFont": "Police par Défaut",
+    "defaultFontSize": "Taille de Police par Défaut",
+    "24h": "24 heures",
+    "12h": "12 heures"
+  },
+  "hamburgerMenu": {
+    "options": "Options",
+    "free": "Gratuit",
+    "premium": "Premium",
+    "changePlan": "Changer de plan",
+    "premiumFeatures": "Fonctionnalités Premium",
+    "advancedIntrospectiveAssistant": "Assistant Introspectif Avancé",
+    "advancedWritingAssistant": "Assistant d'Écriture Avancé",
+    "behaviorAnalysis": "Analyse Comportementale",
+    "twoFactorAuth": "Authentification à Deux Facteurs",
+    "tools": "Outils",
+    "exportEntries": "Exporter les Entrées",
+    "importEntries": "Importer les Entrées",
+    "inspirationalMessage": "Message Inspirant",
+    "myProfile": "Mon Profil",
+    "help": "Aide",
+    "sendFeedback": "Envoyer un Commentaire",
+    "tutorial": "Tutoriel",
+    "version": "Version"
+  }
+} 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { getFirestore, doc, onSnapshot, setDoc, collection, getDocs, getDoc, query, where, documentId, deleteDoc, updateDoc } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 
 import { auth, db } from './firebase';
 import DiaryEntryEditor from './components/DiaryEntryEditor';
@@ -85,6 +86,7 @@ const getLocalDateString = (date = new Date()) => {
 
 // --- Componente Principal de la App ---
 const DiaryApp = ({ user }) => {
+    const { t } = useTranslation();
     const [db, setDb] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null); // Inicializar como null para evitar parpadeo
     const [isInitializingDate, setIsInitializingDate] = useState(true); // Estado de carga inicial
@@ -664,9 +666,9 @@ const DiaryApp = ({ user }) => {
                 
                 <nav className="flex flex-wrap justify-between items-center p-2 bg-gray-100 dark:bg-gray-800 gap-2 flex-shrink-0 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-2">
-                        <button onClick={() => setView('diary')} className={`px-4 py-2 text-sm font-medium rounded-md diary-tab ${view === 'diary' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>Diario</button>
-                        <button onClick={() => setView('archive')} className={`px-4 py-2 text-sm font-medium rounded-md archive-tab ${view === 'archive' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>Archivo</button>
-                        <button onClick={() => setView('stats')} className={`px-4 py-2 text-sm font-medium rounded-md stats-tab ${view === 'stats' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>Estadísticas</button>
+                        <button onClick={() => setView('diary')} className={`px-4 py-2 text-sm font-medium rounded-md diary-tab ${view === 'diary' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>{t('navigation.diary')}</button>
+                        <button onClick={() => setView('archive')} className={`px-4 py-2 text-sm font-medium rounded-md archive-tab ${view === 'archive' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>{t('navigation.archive')}</button>
+                        <button onClick={() => setView('stats')} className={`px-4 py-2 text-sm font-medium rounded-md stats-tab ${view === 'stats' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>{t('navigation.statistics')}</button>
                     </div>
                 </nav>
 

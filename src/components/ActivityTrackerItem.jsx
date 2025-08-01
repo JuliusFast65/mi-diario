@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 // Estilos CSS para options en diferentes temas
 const selectStyles = `
@@ -16,6 +17,7 @@ const selectStyles = `
 `;
 
 const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack, autoFocus, isSimpleActivity, getActivityPoints, getActivityCount, usesCountInsteadOfPoints, currentTheme = 'dark' }) => {
+    const { t } = useTranslation();
     const selectRef = React.useRef();
     React.useEffect(() => {
         if (autoFocus && selectRef.current) {
@@ -43,7 +45,7 @@ const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack
                         <span className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{activity.name}</span>
                         {isRegistered && (
                             <div className="bg-green-600 text-white px-2 py-1 rounded text-sm font-semibold">
-                                1 vez
+                                1 {t('common.time')}
                             </div>
                         )}
                     </div>
@@ -56,7 +58,7 @@ const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack
                                 ? 'bg-gray-600 hover:bg-red-800 text-gray-300 hover:text-white' 
                                 : 'bg-gray-300 hover:bg-red-500 text-gray-600 hover:text-white'
                         }`}
-                        aria-label={`Quitar ${activity.name} de este día`}
+                        aria-label={t('activities.removeFromDay', { activity: activity.name })}
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -92,17 +94,17 @@ const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack
                                     : 'bg-white border-gray-300 text-gray-900'
                             }`}
                         >
-                            <option value="">Seleccionar opción...</option>
+                            <option value="">{t('common.select')}...</option>
                             {activity.options.map(opt => (
                                 <option key={opt} value={opt}>
-                                    {opt} {activity.points?.[opt] ? `(${activity.points[opt]} pts)` : ''}
+                                    {opt} {activity.points?.[opt] ? `(${activity.points[opt]} ${t('activities.points')})` : ''}
                                 </option>
                             ))}
                         </select>
                     ) : (
                         <input 
                             type="text" 
-                            placeholder="Añade un valor (ej: 30 mins)" 
+                            placeholder={t('activities.addValuePlaceholder')} 
                             value={selectedValue} 
                             onChange={(e) => onValueChange(e.target.value)} 
                             className={`w-full rounded-md p-2 border ${
@@ -118,7 +120,7 @@ const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack
                 <div className="flex items-center gap-2 flex-shrink-0">
                     {selectedPoints > 0 && (
                         <div className="bg-green-600 text-white px-2 py-1 rounded text-sm font-semibold">
-                            {selectedPoints} pts
+                            {selectedPoints} {t('activities.points')}
                         </div>
                     )}
                     <button 
@@ -128,7 +130,7 @@ const ActivityTrackerItem = ({ activity, selectedValue, onValueChange, onUntrack
                                 ? 'bg-gray-600 hover:bg-red-800 text-gray-300 hover:text-white' 
                                 : 'bg-gray-300 hover:bg-red-500 text-gray-600 hover:text-white'
                         }`}
-                        aria-label={`Quitar ${activity.name} de este día`}
+                        aria-label={t('activities.removeFromDay', { activity: activity.name })}
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

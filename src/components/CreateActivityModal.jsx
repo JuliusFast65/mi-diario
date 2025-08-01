@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // Estilos CSS para options en diferentes temas
 const selectStyles = `
@@ -16,6 +17,7 @@ const selectStyles = `
 `;
 
 const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, subscription, currentTheme = 'dark' }) => {
+    const { t } = useTranslation();
     const isEdit = !!initialData;
     const isFreePlan = subscription?.plan === 'free';
     
@@ -66,7 +68,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!activityName.trim()) {
-            alert('Por favor ingresa un nombre para la actividad.');
+            alert(t('activities.pleaseEnterName'));
             return;
         }
         
@@ -98,7 +100,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
             const goalData = { type: goalType, target: parseInt(goalTarget) };
             if (goalType === 'custom') {
                 if (goalStartDate > goalEndDate) {
-                    alert('La fecha de inicio no puede ser posterior a la fecha de fin.');
+                    alert(t('activities.startDateAfterEndDate'));
                     return;
                 }
                 goalData.startDate = goalStartDate;
@@ -125,7 +127,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
             <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] flex flex-col`}>
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className={`text-2xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{isEdit ? 'Editar Actividad' : 'Crear Nueva Actividad'}</h2>
+                    <h2 className={`text-2xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{isEdit ? t('activities.editActivity') : t('activities.createActivity')}</h2>
                     <button onClick={handleCancel} className={`p-1 rounded-full ${currentTheme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
                         <svg className={`w-6 h-6 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -137,8 +139,8 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                 {isFreePlan && (
                     <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-600/50 rounded-lg">
                         <div className="flex items-center gap-2 text-yellow-300 text-sm">
-                            <span>⚠️ Plan Gratuito:</span>
-                            <span>Las actividades se contarán por veces realizadas</span>
+                            <span>⚠️ {t('activities.freePlanLabel')}</span>
+                            <span>{t('activities.countedByTimes')}</span>
                         </div>
                     </div>
                 )}
@@ -147,14 +149,14 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                     {/* Nombre de la actividad */}
                     <div>
                         <label htmlFor="activity-name" className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                            Nombre de la Actividad *
+                            {t('activities.activityName')} *
                         </label>
                         <input
                             id="activity-name"
                             type="text"
                             value={activityName}
                             onChange={(e) => setActivityName(e.target.value)}
-                            placeholder="Ej: Leer, Ejercicio, Meditación..."
+                            placeholder={t('activities.activityNamePlaceholder')}
                             className={`w-full rounded-md p-3 border focus:ring-2 focus:ring-indigo-500 ${
                                 currentTheme === 'dark' 
                                     ? 'bg-gray-700 border-gray-600 text-white' 
@@ -168,7 +170,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                     {!isFreePlan && (
                         <div>
                             <label className={`block text-sm font-medium mb-3 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                                Subniveles/Opciones
+                                {t('activities.sublevels')}
                             </label>
                             <div className="space-y-3">
                                 {options.map((option, index) => (
@@ -177,7 +179,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                             type="text"
                                             value={option.desc}
                                             onChange={e => handleOptionChange(index, 'desc', e.target.value)}
-                                            placeholder={`Opción ${index + 1}`}
+                                            placeholder={t('activities.optionPlaceholder', { index: index + 1 })}
                                             className={`flex-grow min-w-0 rounded-md p-2 border ${
                                                 currentTheme === 'dark' 
                                                     ? 'bg-gray-700 border-gray-600 text-white' 
@@ -190,7 +192,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                             min="0"
                                             value={option.pts}
                                             onChange={e => handleOptionChange(index, 'pts', e.target.value)}
-                                            placeholder="Puntos"
+                                            placeholder={t('activities.pointsPlaceholder')}
                                             className={`rounded-md p-2 border text-center ${
                                                 currentTheme === 'dark' 
                                                     ? 'bg-gray-700 border-gray-600 text-white' 
@@ -218,7 +220,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                     </svg>
-                                    Añadir opción
+                                    {t('activities.addOption')}
                                 </button>
                             </div>
                         </div>
@@ -229,7 +231,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                         <div className={`border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'} pt-4`}>
                             <div className="flex items-center justify-between mb-3">
                                 <label className={`text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                                    Configurar Meta (Opcional)
+                                    {t('activities.configureGoal')} ({t('common.optional')})
                                 </label>
                                 <button
                                     type="button"
@@ -242,7 +244,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                     }`}
                                 >
-                                    {showGoalSection ? 'Ocultar' : 'Mostrar'}
+                                    {showGoalSection ? t('common.hide') : t('common.show')}
                                 </button>
                             </div>
                             {showGoalSection && (
@@ -250,7 +252,7 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                                                Tipo de Meta
+                                                {t('activities.goalType')}
                                             </label>
                                             <select
                                                 value={goalType}
@@ -261,21 +263,21 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                                         : 'bg-white border-gray-300 text-gray-900'
                                                 }`}
                                             >
-                                                <option value="weekly">Semanal</option>
-                                                <option value="monthly">Mensual</option>
-                                                <option value="custom">Personalizada</option>
+                                                <option value="weekly">{t('activities.weekly')}</option>
+                                                <option value="monthly">{t('activities.monthly')}</option>
+                                                <option value="custom">{t('activities.custom')}</option>
                                             </select>
                                         </div>
                                         <div>
                                             <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                                                {isFreePlan && options.length === 0 ? 'Veces Objetivo *' : 'Puntos Objetivo *'}
+                                                {isFreePlan && options.length === 0 ? t('activities.timesGoal') : t('activities.pointsGoal')}
                                             </label>
                                             <input
                                                 type="number"
                                                 min="1"
                                                 value={goalTarget}
                                                 onChange={(e) => setGoalTarget(e.target.value)}
-                                                placeholder={isFreePlan && options.length === 0 ? "Ej: 5" : "Ej: 100"}
+                                                placeholder={isFreePlan && options.length === 0 ? t('activities.goalPlaceholderFree') : t('activities.goalPlaceholderPremium')}
                                                 className={`w-full rounded-md p-2 border ${
                                                     currentTheme === 'dark' 
                                                         ? 'bg-gray-600 border-gray-500 text-white' 
@@ -288,9 +290,9 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                     {goalType === 'custom' && (
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                                                    Fecha de Inicio
-                                                </label>
+                                                                                            <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                                                {t('activities.startDate')}
+                                            </label>
                                                 <input
                                                     type="date"
                                                     value={goalStartDate}
@@ -303,9 +305,9 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                                 />
                                             </div>
                                             <div>
-                                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                                                    Fecha de Fin
-                                                </label>
+                                                                                            <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                                                {t('activities.endDate')}
+                                            </label>
                                                 <input
                                                     type="date"
                                                     value={goalEndDate}
@@ -335,13 +337,13 @@ const CreateActivityModal = ({ isOpen, onClose, onCreateActivity, initialData, s
                                     : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                             }`}
                         >
-                            Cancelar
+                            {t('common.cancel')}
                         </button>
                         <button
                             type="submit"
                             className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 font-bold rounded-lg text-white"
                         >
-                            {isEdit ? 'Guardar Cambios' : 'Crear Actividad'}
+                            {isEdit ? t('activities.saveChanges') : t('activities.createActivity')}
                         </button>
                     </div>
                 </form>

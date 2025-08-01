@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from './LanguageSelector';
 
 // Estilos CSS para ocultar scrollbar y temas
 const scrollbarHideStyles = `
@@ -24,6 +26,7 @@ const scrollbarHideStyles = `
 `;
 
 const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs, subscription, onUpgradeClick, currentTheme = 'dark' }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('personal');
     const [formData, setFormData] = useState({
         // Información Personal
@@ -136,25 +139,25 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             onClick={() => setActiveTab('personal')}
                             className={`${tabBaseStyle} ${activeTab === 'personal' ? tabActiveStyle : tabInactiveStyle} whitespace-nowrap`}
                         >
-                            Personal
+                            {t('profile.personal')}
                         </button>
                         <button
                             onClick={() => setActiveTab('regional')}
                             className={`${tabBaseStyle} ${activeTab === 'regional' ? tabActiveStyle : tabInactiveStyle} whitespace-nowrap`}
                         >
-                            Regional
+                            {t('profile.regionalSettings')}
                         </button>
                         <button
                             onClick={() => setActiveTab('preferences')}
                             className={`${tabBaseStyle} ${activeTab === 'preferences' ? tabActiveStyle : tabInactiveStyle} whitespace-nowrap`}
                         >
-                            Preferencias
+                            {t('profile.preferences')}
                         </button>
                         <button
                             onClick={() => setActiveTab('notifications')}
                             className={`${tabBaseStyle} ${activeTab === 'notifications' ? tabActiveStyle : tabInactiveStyle} whitespace-nowrap`}
                         >
-                            Notificaciones
+                            {t('profile.notifications')}
                         </button>
                         {isPremium && (
                             <>
@@ -162,19 +165,19 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                     onClick={() => setActiveTab('ai')}
                                     className={`${tabBaseStyle} ${activeTab === 'ai' ? tabActiveStyle : tabInactiveStyle} whitespace-nowrap`}
                                 >
-                                    IA Personalizada
+                                    {t('profile.aiCustomization')}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('security')}
                                     className={`${tabBaseStyle} ${activeTab === 'security' ? tabActiveStyle : tabInactiveStyle} whitespace-nowrap`}
                                 >
-                                    Seguridad
+                                    {t('profile.security')}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('goals')}
                                     className={`${tabBaseStyle} ${activeTab === 'goals' ? tabActiveStyle : tabInactiveStyle} whitespace-nowrap`}
                                 >
-                                    Metas
+                                    {t('profile.goals')}
                                 </button>
                             </>
                         )}
@@ -259,27 +262,20 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* Configuración Regional */}
                     {activeTab === 'regional' && (
                         <div className="space-y-4">
-                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Configuración Regional</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('profile.regionalSettings')}</h3>
                             
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Idioma</label>
-                                <select
-                                    value={formData.language}
-                                    onChange={(e) => handleInputChange('language', e.target.value)}
-                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
-                                        currentTheme === 'dark' 
-                                            ? 'bg-gray-700 border-gray-600 text-white' 
-                                            : 'bg-white border-gray-300 text-gray-900'
-                                    } border`}
-                                >
-                                    <option value="es">Español</option>
-                                    <option value="en">English</option>
-                                    <option value="pt">Português</option>
-                                </select>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.language')}</label>
+                                <LanguageSelector
+                                    userPrefs={userPrefs}
+                                    onUpdateUserPrefs={onUpdateUserPrefs}
+                                    currentTheme={currentTheme}
+                                    showFullNames={true}
+                                />
                             </div>
 
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Formato de Fecha</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.dateFormat')}</label>
                                 <select
                                     value={formData.dateFormat}
                                     onChange={(e) => handleInputChange('dateFormat', e.target.value)}
@@ -296,7 +292,7 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Formato de Hora</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.timeFormat')}</label>
                                 <select
                                     value={formData.timeFormat}
                                     onChange={(e) => handleInputChange('timeFormat', e.target.value)}
@@ -306,8 +302,8 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                             : 'bg-white border-gray-300 text-gray-900'
                                     } border`}
                                 >
-                                    <option value="24h">24 horas</option>
-                                    <option value="12h">12 horas</option>
+                                    <option value="24h">{t('profile.24h')}</option>
+                                    <option value="12h">{t('profile.12h')}</option>
                                 </select>
                             </div>
                         </div>
@@ -316,10 +312,10 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* Preferencias Básicas */}
                     {activeTab === 'preferences' && (
                         <div className="space-y-4">
-                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Preferencias de Escritura</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('profile.writingPreferences')}</h3>
                             
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Fuente Predeterminada</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.defaultFont')}</label>
                                 <select
                                     value={formData.defaultFont}
                                     onChange={(e) => handleInputChange('defaultFont', e.target.value)}
@@ -329,18 +325,18 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                             : 'bg-white border-gray-300 text-gray-900'
                                     } border`}
                                 >
-                                    <option value="patrick-hand">Patrick Hand</option>
-                                    <option value="caveat">Caveat</option>
-                                    <option value="indie-flower">Indie Flower</option>
-                                    <option value="kalam">Kalam</option>
-                                    <option value="gochi-hand">Gochi Hand</option>
-                                    <option value="lora">Lora (Serif)</option>
-                                    <option value="sans">Nunito Sans (Simple)</option>
+                                    <option value="patrick-hand">{t('fonts.names.patrickHand')}</option>
+                                    <option value="caveat">{t('fonts.names.caveat')}</option>
+                                    <option value="indie-flower">{t('fonts.names.indieFlower')}</option>
+                                    <option value="kalam">{t('fonts.names.kalam')}</option>
+                                    <option value="gochi-hand">{t('fonts.names.gochiHand')}</option>
+                                    <option value="lora">{t('fonts.names.lora')}</option>
+                                    <option value="sans">{t('fonts.names.sans')}</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Tamaño de Fuente Predeterminado</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.defaultFontSize')}</label>
                                 <select
                                     value={formData.defaultFontSize}
                                     onChange={(e) => handleInputChange('defaultFontSize', e.target.value)}
@@ -350,11 +346,11 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                             : 'bg-white border-gray-300 text-gray-900'
                                     } border`}
                                 >
-                                    <option value="text-lg">Muy Pequeño</option>
-                                    <option value="text-xl">Pequeño</option>
-                                    <option value="text-2xl">Mediano</option>
-                                    <option value="text-3xl">Grande</option>
-                                    <option value="text-4xl">Extra Grande</option>
+                                    <option value="text-lg">{t('fonts.sizes.verySmall')}</option>
+                                    <option value="text-xl">{t('fonts.sizes.small')}</option>
+                                    <option value="text-2xl">{t('fonts.sizes.medium')}</option>
+                                    <option value="text-3xl">{t('fonts.sizes.large')}</option>
+                                    <option value="text-4xl">{t('fonts.sizes.extraLarge')}</option>
                                 </select>
                             </div>
 
@@ -660,13 +656,13 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                 : 'text-gray-700 bg-gray-200 hover:bg-gray-300'
                         }`}
                     >
-                        Cancelar
+                        {t('common.cancel')}
                     </button>
                     <button
                         onClick={handleSave}
                         className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                     >
-                        Guardar Cambios
+                        {t('common.save')}
                     </button>
                 </div>
             </div>

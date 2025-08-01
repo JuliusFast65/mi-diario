@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
+import './i18n/index.js'
 
 // Función para manejar el registro y actualizaciones del Service Worker
 const registerServiceWorker = async () => {

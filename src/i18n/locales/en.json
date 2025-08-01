@@ -1,0 +1,170 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information",
+    "time": "time",
+    "select": "Select option",
+    "optional": "Optional",
+    "hide": "Hide",
+    "show": "Show"
+  },
+  "diary": {
+    "entry": "Entry",
+    "activities": "Activities",
+    "writeTitlePlaceholder": "Write a title in the first line...",
+    "deleteEntry": "Delete entry",
+    "noTitle": "No Title",
+    "focusMode": "Focus mode",
+    "exitFocusMode": "Exit focus mode",
+    "helpTutorial": "Help / Tutorial",
+    "writingAssistant": "Get suggestions to improve your writing (Free)",
+    "aiConsult": "Get a reflection on your entry and activities",
+    "noActivitiesRegistered": "No activities registered for this day.",
+    "registerActivity": "+ Register an activity...",
+    "defineActivities": "Define Activities",
+    "completed": "Completed"
+  },
+  "fonts": {
+    "sizes": {
+      "verySmall": "Very Small",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "extraLarge": "Extra Large"
+    },
+    "names": {
+      "patrickHand": "Patrick Hand",
+      "caveat": "Caveat",
+      "indieFlower": "Indie Flower",
+      "kalam": "Kalam",
+      "gochiHand": "Gochi Hand",
+      "lora": "Lora (Serif)",
+      "sans": "Nunito Sans (Simple)"
+    }
+  },
+  "activities": {
+    "addValuePlaceholder": "Add a value (e.g., 30 mins)",
+    "editActivity": "Edit activity",
+    "createActivity": "Create Activity",
+    "activityNamePlaceholder": "E.g., Reading, Exercise, Meditation...",
+    "optionPlaceholder": "Option {{index}}",
+    "pointsPlaceholder": "Points",
+    "goalPlaceholder": "E.g., {{example}}",
+    "goalPlaceholderFree": "E.g., 5",
+    "goalPlaceholderPremium": "E.g., 100",
+    "removeFromDay": "Remove {{activity}} from this day",
+    "pleaseEnterName": "Please enter a name for the activity.",
+    "countedByTimes": "Activities will be counted by times performed",
+    "activityName": "Activity Name",
+    "addOption": "Add option",
+    "configureGoal": "Configure Goal",
+    "goalType": "Goal Type",
+    "sublevels": "Sublevels/Options",
+    "timesGoal": "Times Goal *",
+    "pointsGoal": "Points Goal *",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "saveChanges": "Save Changes",
+    "createActivity": "Create Activity",
+    "startDateAfterEndDate": "Start date cannot be after end date.",
+    "activityManager": "Activity Manager",
+    "newActivity": "New Activity",
+    "noActivitiesDefined": "No activities defined.",
+    "createFirstActivity": "Create your first activity to start tracking your habits.",
+    "activity": "activity",
+    "activities": "activities",
+    "defined": "defined",
+    "definedPlural": "defined",
+    "sublevels": "Sublevels",
+    "freePlan": "Free Plan",
+    "goal": "Goal",
+    "times": "times",
+    "points": "points",
+    "weekly": "weekly",
+    "monthly": "monthly",
+    "deletePermanently": "Delete permanently",
+    "freePlanLabel": "Free Plan:"
+  },
+  "writingAssistant": {
+    "suggestions": "Suggestions",
+    "preview": "Preview",
+    "comparison": "Comparison",
+    "writingPrompts": "Writing Prompts"
+  },
+  "subscription": {
+    "viewPlans": "View subscription plans"
+  },
+  "import": {
+    "selectAllVisible": "Select all visible entries",
+    "loadDifferentFile": "Load a different file"
+  },
+  "navigation": {
+    "menu": "Options menu",
+    "diary": "Diary",
+    "archive": "Archive",
+    "statistics": "Statistics"
+  },
+  "chat": {
+    "writeMessage": "Write your message...",
+    "clearConversation": "Clear conversation from {{date}}"
+  },
+  "security": {
+    "securitySettings": "Security settings",
+    "pinPlaceholder": "0000"
+  },
+  "archive": {
+    "deleteEntry": "Delete entry"
+  },
+  "profile": {
+    "personal": "Personal",
+    "regionalSettings": "Regional Settings",
+    "preferences": "Preferences",
+    "notifications": "Notifications",
+    "aiCustomization": "AI Customization",
+    "security": "Security",
+    "goals": "Goals",
+    "language": "Language",
+    "dateFormat": "Date Format",
+    "timeFormat": "Time Format",
+    "writingPreferences": "Writing Preferences",
+    "defaultFont": "Default Font",
+    "defaultFontSize": "Default Font Size",
+    "24h": "24 hours",
+    "12h": "12 hours"
+  },
+  "hamburgerMenu": {
+    "options": "Options",
+    "free": "Free",
+    "premium": "Premium",
+    "changePlan": "Change plan",
+    "premiumFeatures": "Premium Features",
+    "advancedIntrospectiveAssistant": "Advanced Introspective Assistant",
+    "advancedWritingAssistant": "Advanced Writing Assistant",
+    "behaviorAnalysis": "Behavior Analysis",
+    "twoFactorAuth": "Two-Factor Authentication",
+    "tools": "Tools",
+    "exportEntries": "Export Entries",
+    "importEntries": "Import Entries",
+    "inspirationalMessage": "Inspirational Message",
+    "myProfile": "My Profile",
+    "help": "Help",
+    "sendFeedback": "Send Feedback",
+    "tutorial": "Tutorial",
+    "version": "Version"
+  }
+} 

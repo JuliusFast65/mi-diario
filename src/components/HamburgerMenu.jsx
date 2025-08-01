@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { APP_VERSION } from '../config/version';
 
 export default function HamburgerMenu({ 
@@ -15,6 +16,7 @@ export default function HamburgerMenu({
     subscription,
     currentTheme = 'dark'
 }) {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
 
@@ -61,7 +63,7 @@ export default function HamburgerMenu({
             <button
                 onClick={handleMenuToggle}
                 className={`${currentTheme === 'dark' ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'} transition-colors p-2 rounded-lg`}
-                title="Menú de opciones"
+                title={t('navigation.menu')}
             >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -78,7 +80,7 @@ export default function HamburgerMenu({
                     {/* Header del menú */}
                     <div className={`p-4 border-b ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                         <div className="flex items-center justify-between">
-                            <h3 className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Opciones</h3>
+                            <h3 className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('hamburgerMenu.options')}</h3>
                             <button
                                 onClick={handleMenuToggle}
                                 className={`${currentTheme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
@@ -92,13 +94,13 @@ export default function HamburgerMenu({
                         {/* Estado de suscripción */}
                         <div className="mt-2 flex items-center gap-2">
                             <span className={`text-sm ${getPlanColor(subscription.plan)}`}>
-                                {getPlanIcon(subscription.plan)} {subscription.plan === 'free' ? 'Gratuito' : 'Premium'}
+                                {getPlanIcon(subscription.plan)} {subscription.plan === 'free' ? t('hamburgerMenu.free') : t('hamburgerMenu.premium')}
                             </span>
                             <button
                                 onClick={() => handleMenuItemClick(onSubscriptionModal)}
                                 className="text-xs text-blue-400 hover:text-blue-300 underline"
                             >
-                                Cambiar plan
+                                {t('hamburgerMenu.changePlan')}
                             </button>
                         </div>
                     </div>
@@ -106,7 +108,7 @@ export default function HamburgerMenu({
                     {/* Sección Premium */}
                     <div className="p-2">
                         <h4 className={`text-xs font-medium uppercase tracking-wider px-3 py-2 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Características Premium
+                            {t('hamburgerMenu.premiumFeatures')}
                         </h4>
                         
                         <button
@@ -118,7 +120,7 @@ export default function HamburgerMenu({
                             }`}
                         >
                             <span className="text-gradient-to-r from-blue-500 to-purple-600">🧠</span>
-                            <div className="font-medium">Asistente Introspectivo Avanzado</div>
+                            <div className="font-medium">{t('hamburgerMenu.advancedIntrospectiveAssistant')}</div>
                         </button>
 
 
@@ -132,7 +134,7 @@ export default function HamburgerMenu({
                             }`}
                         >
                             <span className="text-purple-400">✍️</span>
-                            <div className="font-medium">Asistente de Escritura Avanzado</div>
+                            <div className="font-medium">{t('hamburgerMenu.advancedWritingAssistant')}</div>
                         </button>
 
                         <button
@@ -145,7 +147,7 @@ export default function HamburgerMenu({
                         >
                             <span className="text-indigo-400">📊</span>
                             <div>
-                                <div className="font-medium">Análisis de Comportamiento</div>
+                                <div className="font-medium">{t('hamburgerMenu.behaviorAnalysis')}</div>
                             </div>
                         </button>
 
@@ -159,7 +161,7 @@ export default function HamburgerMenu({
                         >
                             <span className="text-red-400">🔒</span>
                             <div>
-                                <div className="font-medium">Autenticación 2FA</div>
+                                <div className="font-medium">{t('hamburgerMenu.twoFactorAuth')}</div>
                             </div>
                         </button>
                     </div>
@@ -167,7 +169,7 @@ export default function HamburgerMenu({
                     {/* Sección Herramientas */}
                     <div className={`p-2 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                         <h4 className={`text-xs font-medium uppercase tracking-wider px-3 py-2 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Herramientas
+                            {t('hamburgerMenu.tools')}
                         </h4>
                         
                         <button
@@ -180,7 +182,7 @@ export default function HamburgerMenu({
                         >
                             <span className="text-blue-400">📤</span>
                             <div>
-                                <div className="font-medium">Exportar Entradas</div>
+                                <div className="font-medium">{t('hamburgerMenu.exportEntries')}</div>
                             </div>
                         </button>
 
@@ -194,7 +196,7 @@ export default function HamburgerMenu({
                         >
                             <span className="text-green-400">📥</span>
                             <div>
-                                <div className="font-medium">Importar Entradas</div>
+                                <div className="font-medium">{t('hamburgerMenu.importEntries')}</div>
                             </div>
                         </button>
 
@@ -208,7 +210,7 @@ export default function HamburgerMenu({
                         >
                             <span className="text-yellow-400">✨</span>
                             <div>
-                                <div className="font-medium">Mensaje Inspirador</div>
+                                <div className="font-medium">{t('hamburgerMenu.inspirationalMessage')}</div>
                             </div>
                         </button>
 
@@ -222,7 +224,7 @@ export default function HamburgerMenu({
                         >
                             <span className="text-blue-400">👤</span>
                             <div>
-                                <div className="font-medium">Mi Perfil</div>
+                                <div className="font-medium">{t('hamburgerMenu.myProfile')}</div>
                             </div>
                         </button>
                     </div>
@@ -230,7 +232,7 @@ export default function HamburgerMenu({
                     {/* Sección Ayuda */}
                     <div className={`p-2 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                         <h4 className={`text-xs font-medium uppercase tracking-wider px-3 py-2 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Ayuda
+                            {t('hamburgerMenu.help')}
                         </h4>
                         
                         <a
@@ -243,7 +245,7 @@ export default function HamburgerMenu({
                         >
                             <span className="text-gray-400">📧</span>
                             <div>
-                                <div className="font-medium">Enviar Feedback</div>
+                                <div className="font-medium">{t('hamburgerMenu.sendFeedback')}</div>
                             </div>
                         </a>
 
@@ -260,7 +262,7 @@ export default function HamburgerMenu({
                         >
                             <span className="text-gray-400">❓</span>
                             <div>
-                                <div className="font-medium">Tutorial</div>
+                                <div className="font-medium">{t('hamburgerMenu.tutorial')}</div>
                             </div>
                         </button>
 
@@ -271,7 +273,7 @@ export default function HamburgerMenu({
                         }`}>
                             <span className="text-gray-400">ℹ️</span>
                             <div>
-                                <div className="font-medium">Versión</div>
+                                <div className="font-medium">{t('hamburgerMenu.version')}</div>
                                 <div className="text-xs">V {APP_VERSION}</div>
                             </div>
                         </div>
