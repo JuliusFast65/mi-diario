@@ -28,6 +28,13 @@ const WritingAssistant = ({
         analysisCount: 0
     });
     const [isAILoading, setIsAILoading] = useState(false);
+    
+    // Nuevos estados para visualización de mejoras
+    const [previewMode, setPreviewMode] = useState('suggestions'); // 'suggestions', 'preview', 'comparison'
+    const [previewText, setPreviewText] = useState('');
+    const [appliedSuggestions, setAppliedSuggestions] = useState([]);
+    const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+    const [showChanges, setShowChanges] = useState(false);
 
     // Function to generate hash of the entry
     const generateEntryHash = (entry) => {
@@ -427,6 +434,27 @@ Responde solo con el JSON válido.`;
         await generateAIPrompts();
     };
 
+    // Nuevas funciones para visualización de mejoras
+    const generatePreviewText = () => {
+        if (!currentEntry?.text || suggestions.length === 0) {
+            setPreviewText(currentEntry?.text || '');
+            return;
+        }
+
+        let text = currentEntry.text;
+        const applied = [];
+
+        suggestions.forEach((suggestion, index) => {
+            if (text.includes(suggestion.original)) {
+                text = text.replace(suggestion.original, suggestion.improved);
+                applied.push(index);
+            }
+        });
+
+        setPreviewText(text);
+        setAppliedSuggestions(applied);
+    };
+
     const applySuggestion = (suggestion) => {
         if (!currentEntry?.text) return;
         
@@ -439,6 +467,38 @@ Responde solo con el JSON válido.`;
             ...currentEntry,
             text: updatedText
         });
+    };
+
+    const applyAllSuggestions = () => {
+        if (!currentEntry?.text) return;
+        
+        let updatedText = currentEntry.text;
+        
+        suggestions.forEach(suggestion => {
+            if (updatedText.includes(suggestion.original)) {
+                updatedText = updatedText.replace(suggestion.original, suggestion.improved);
+            }
+        });
+        
+        onUpdateEntry({
+            ...currentEntry,
+            text: updatedText
+        });
+        
+        // Cerrar el modal después de aplicar todos los cambios
+        onClose();
+    };
+
+    const applySingleSuggestion = (suggestionIndex) => {
+        const suggestion = suggestions[suggestionIndex];
+        if (!suggestion) return;
+        
+        applySuggestion(suggestion);
+        
+        // Actualizar la vista previa
+        setTimeout(() => {
+            generatePreviewText();
+        }, 100);
     };
 
     const usePrompt = (prompt) => {
@@ -506,6 +566,13 @@ Responde solo con el JSON válido.`;
         }
     }, [activeTab, isOpen, isLoading, writingAssistantData.suggestions, writingAssistantData.prompts]);
 
+    // Generar vista previa cuando cambian las sugerencias
+    useEffect(() => {
+        if (suggestions.length > 0 && previewMode === 'preview') {
+            generatePreviewText();
+        }
+    }, [suggestions, previewMode]);
+
     if (!isOpen) return null;
 
     if (!hasFeature('writing_assistant')) {
@@ -523,7 +590,7 @@ Responde solo con el JSON válido.`;
 
     return (
         <div className={`fixed inset-0 ${currentTheme === 'dark' ? 'bg-black bg-opacity-70' : 'bg-black bg-opacity-50'} flex items-center justify-center z-50 p-4`}>
-            <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col`}>
+            <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col`}>
                 {/* Header */}
                 <div className={`flex items-center justify-between p-4 border-b ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
                     <div className="flex items-center gap-3">
@@ -532,11 +599,8 @@ Responde solo con el JSON válido.`;
                         </div>
                         <div>
                             <h2 className={`text-xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                Asistente de Escritura
+                                Asistente de Escritura Avanzado
                             </h2>
-                            <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'} font-medium`}>
-                                Mejora tu escritura con IA - {selectedDate}
-                            </p>
                         </div>
                     </div>
                     <button
@@ -552,24 +616,73 @@ Responde solo con el JSON válido.`;
                 {/* Tabs */}
                 <div className={`flex border-b ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
                     <button
-                        onClick={() => setActiveTab('suggestions')}
-                        className={`px-4 py-2 font-medium ${
+                        onClick={() => {
+                            setActiveTab('suggestions');
+                            setPreviewMode('suggestions');
+                        }}
+                        className={`px-3 py-2 font-medium flex items-center gap-2 ${
                             activeTab === 'suggestions'
                                 ? `${currentTheme === 'dark' ? 'text-purple-300 border-purple-300' : 'text-purple-600 border-purple-600'} border-b-2`
                                 : `${currentTheme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
                         }`}
+                        title="Sugerencias"
                     >
-                        Sugerencias
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                        <span className="hidden sm:inline">Sugerencias</span>
                     </button>
                     <button
-                        onClick={() => setActiveTab('prompts')}
-                        className={`px-4 py-2 font-medium ${
+                        onClick={() => {
+                            setActiveTab('preview');
+                            setPreviewMode('preview');
+                        }}
+                        className={`px-3 py-2 font-medium flex items-center gap-2 ${
+                            activeTab === 'preview'
+                                ? `${currentTheme === 'dark' ? 'text-purple-300 border-purple-300' : 'text-purple-600 border-purple-600'} border-b-2`
+                                : `${currentTheme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
+                        }`}
+                        title="Vista Previa"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span className="hidden sm:inline">Vista Previa</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab('comparison');
+                            setPreviewMode('comparison');
+                        }}
+                        className={`px-3 py-2 font-medium flex items-center gap-2 ${
+                            activeTab === 'comparison'
+                                ? `${currentTheme === 'dark' ? 'text-purple-300 border-purple-300' : 'text-purple-600 border-purple-600'} border-b-2`
+                                : `${currentTheme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
+                        }`}
+                        title="Comparación"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="hidden sm:inline">Comparación</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab('prompts');
+                            setPreviewMode('prompts');
+                        }}
+                        className={`px-3 py-2 font-medium flex items-center gap-2 ${
                             activeTab === 'prompts'
                                 ? `${currentTheme === 'dark' ? 'text-purple-300 border-purple-300' : 'text-purple-600 border-purple-600'} border-b-2`
                                 : `${currentTheme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`
                         }`}
+                        title="Prompts de Escritura"
                     >
-                        Prompts de Escritura
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <span className="hidden sm:inline">Prompts</span>
                     </button>
                 </div>
 
@@ -592,7 +705,7 @@ Responde solo con el JSON válido.`;
                                     <p className="text-sm mt-2">Escribe más contenido para recibir sugerencias de mejora.</p>
                                 </div>
                             ) : (
-                                suggestions.map((suggestion) => (
+                                suggestions.map((suggestion, index) => (
                                     <div key={suggestion.id} className={`border rounded-lg p-4 ${currentTheme === 'dark' ? 'border-gray-700 bg-gray-700' : 'border-gray-300 bg-white'}`}>
                                         <div className="flex items-start justify-between mb-2">
                                             <h3 className={`font-semibold text-lg ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{suggestion.title}</h3>
@@ -612,14 +725,177 @@ Responde solo con el JSON válido.`;
                                             <p className={`text-xs font-semibold mb-1 mt-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Mejorado:</p>
                                             <p className={`text-sm font-semibold leading-relaxed ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>{suggestion.improved}</p>
                                         </div>
-                                        <button
-                                            onClick={() => applySuggestion(suggestion)}
-                                            className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors"
-                                        >
-                                            Aplicar Sugerencia
-                                        </button>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => applySuggestion(suggestion)}
+                                                className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors"
+                                            >
+                                                Aplicar Sugerencia
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedSuggestionIndex(index);
+                                                    setActiveTab('comparison');
+                                                    setPreviewMode('comparison');
+                                                }}
+                                                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                                            >
+                                                Ver Comparación
+                                            </button>
+                                        </div>
                                     </div>
                                 ))
+                            )}
+                        </div>
+                    ) : activeTab === 'preview' ? (
+                        <div className="space-y-4">
+                            {suggestions.length === 0 ? (
+                                <div className={`text-center ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'} py-8`}>
+                                    <p>No hay sugerencias para generar vista previa.</p>
+                                    <p className="text-sm mt-2">Ve a la pestaña "Sugerencias" para generar mejoras.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className={`text-lg font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                            Vista Previa con Todas las Mejoras
+                                        </h3>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={generatePreviewText}
+                                                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                                            >
+                                                Actualizar Vista Previa
+                                            </button>
+                                            <button
+                                                onClick={applyAllSuggestions}
+                                                className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
+                                            >
+                                                Aplicar Todas las Mejoras
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className={`border rounded-lg p-4 ${currentTheme === 'dark' ? 'border-gray-700 bg-gray-700' : 'border-gray-300 bg-white'}`}>
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <span className="text-green-500">✓</span>
+                                            <span className={`text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Texto Mejorado ({appliedSuggestions.length} sugerencias aplicadas)
+                                            </span>
+                                        </div>
+                                        <div className={`prose max-w-none ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
+                                            <pre className={`whitespace-pre-wrap font-sans text-sm leading-relaxed ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
+                                                {previewText || currentEntry?.text || 'No hay contenido para mostrar.'}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    
+                                    {appliedSuggestions.length > 0 && (
+                                        <div className={`border rounded-lg p-4 ${currentTheme === 'dark' ? 'border-gray-700 bg-gray-700' : 'border-gray-300 bg-white'}`}>
+                                            <h4 className={`font-semibold mb-3 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                                Sugerencias Aplicadas:
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {appliedSuggestions.map((index) => (
+                                                    <div key={index} className={`text-sm p-2 rounded ${currentTheme === 'dark' ? 'bg-gray-600' : 'bg-gray-100'}`}>
+                                                        <span className="font-medium">• {suggestions[index]?.title}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    ) : activeTab === 'comparison' ? (
+                        <div className="space-y-4">
+                            {suggestions.length === 0 ? (
+                                <div className={`text-center ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'} py-8`}>
+                                    <p>No hay sugerencias para comparar.</p>
+                                    <p className="text-sm mt-2">Ve a la pestaña "Sugerencias" para generar mejoras.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className={`text-lg font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                            Comparación Side-by-Side
+                                        </h3>
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setSelectedSuggestionIndex(Math.max(0, selectedSuggestionIndex - 1))}
+                                                    disabled={selectedSuggestionIndex === 0}
+                                                    className={`px-2 py-1 rounded ${selectedSuggestionIndex === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white text-sm`}
+                                                >
+                                                    ←
+                                                </button>
+                                                <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                    {selectedSuggestionIndex + 1} de {suggestions.length}
+                                                </span>
+                                                <button
+                                                    onClick={() => setSelectedSuggestionIndex(Math.min(suggestions.length - 1, selectedSuggestionIndex + 1))}
+                                                    disabled={selectedSuggestionIndex === suggestions.length - 1}
+                                                    className={`px-2 py-1 rounded ${selectedSuggestionIndex === suggestions.length - 1 ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white text-sm`}
+                                                >
+                                                    →
+                                                </button>
+                                            </div>
+                                            <button
+                                                onClick={() => applySingleSuggestion(selectedSuggestionIndex)}
+                                                className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
+                                            >
+                                                Aplicar Esta Mejora
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                        <div className={`border rounded-lg p-4 ${currentTheme === 'dark' ? 'border-gray-700 bg-gray-700' : 'border-gray-300 bg-white'}`}>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <span className="text-red-500">✗</span>
+                                                <span className={`text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                    Texto Original
+                                                </span>
+                                            </div>
+                                            <div className={`prose max-w-none ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
+                                                <pre className={`whitespace-pre-wrap font-sans text-sm leading-relaxed ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
+                                                    {currentEntry?.text || 'No hay contenido.'}
+                                                </pre>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className={`border rounded-lg p-4 ${currentTheme === 'dark' ? 'border-gray-700 bg-gray-700' : 'border-gray-300 bg-white'}`}>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <span className="text-green-500">✓</span>
+                                                <span className={`text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                    Con Mejora: {suggestions[selectedSuggestionIndex]?.title}
+                                                </span>
+                                            </div>
+                                            <div className={`prose max-w-none ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
+                                                <pre className={`whitespace-pre-wrap font-sans text-sm leading-relaxed ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
+                                                    {currentEntry?.text?.replace(
+                                                        suggestions[selectedSuggestionIndex]?.original || '',
+                                                        suggestions[selectedSuggestionIndex]?.improved || ''
+                                                    ) || 'No hay contenido.'}
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className={`border rounded-lg p-4 ${currentTheme === 'dark' ? 'border-gray-700 bg-gray-700' : 'border-gray-300 bg-white'}`}>
+                                        <h4 className={`font-semibold mb-3 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                            Detalles de la Mejora:
+                                        </h4>
+                                        <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
+                                            <p className="mb-2"><strong>Problema:</strong> {suggestions[selectedSuggestionIndex]?.suggestion}</p>
+                                            <div className={`rounded p-3 ${currentTheme === 'dark' ? 'bg-gray-600' : 'bg-gray-50'}`}>
+                                                <p className="mb-1"><strong>Cambio específico:</strong></p>
+                                                <p className="text-red-500">- {suggestions[selectedSuggestionIndex]?.original}</p>
+                                                <p className="text-green-500">+ {suggestions[selectedSuggestionIndex]?.improved}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
                             )}
                         </div>
                     ) : (
@@ -653,12 +929,21 @@ Responde solo con el JSON válido.`;
                     </div>
                     
                     <div className="flex gap-3">
-                        {!isLoading && !isAILoading && writingAssistantData.analysisCount < 5 && (
+                        {!isLoading && !isAILoading && writingAssistantData.analysisCount < 5 && activeTab === 'suggestions' && (
                             <button 
-                                onClick={activeTab === 'suggestions' ? handleRegenerateSuggestions : handleRegeneratePrompts}
+                                onClick={handleRegenerateSuggestions}
                                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
                             >
-                                Regenerar {activeTab === 'suggestions' ? 'Sugerencias' : 'Prompts'}
+                                Regenerar Sugerencias
+                            </button>
+                        )}
+                        
+                        {!isLoading && !isAILoading && activeTab === 'prompts' && (
+                            <button 
+                                onClick={handleRegeneratePrompts}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+                            >
+                                Regenerar Prompts
                             </button>
                         )}
                         

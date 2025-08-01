@@ -132,7 +132,7 @@ export default function HamburgerMenu({
                             }`}
                         >
                             <span className="text-purple-400">✍️</span>
-                            <div className="font-medium">Asistente de Escritura</div>
+                            <div className="font-medium">Asistente de Escritura Avanzado</div>
                         </button>
 
                         <button

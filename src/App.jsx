@@ -582,7 +582,16 @@ const DiaryApp = ({ user }) => {
                             }}
 
                             onWritingAssistant={() => {
-                                setIsBasicWritingAssistantOpen(true);
+                                if (subscription?.plan === 'premium') {
+                                    setIsWritingAssistantOpen(true);
+                                } else {
+                                    setPremiumFeatureInfo({
+                                        name: 'Asistente de Escritura Avanzado',
+                                        description: 'Obtén análisis detallado de tu escritura, sugerencias de mejora y prompts personalizados para desarrollar tu estilo.',
+                                        icon: '✍️'
+                                    });
+                                    setIsPremiumFeatureModalOpen(true);
+                                }
                             }}
                             onBehaviorAnalysis={() => {
                                 if (subscription?.plan === 'premium') {
