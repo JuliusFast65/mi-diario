@@ -118,10 +118,7 @@ export default function HamburgerMenu({
                             }`}
                         >
                             <span className="text-gradient-to-r from-blue-500 to-purple-600">🧠</span>
-                            <div>
-                                <div className="font-medium">Asistente Introspectivo Avanzado</div>
-                                <div className="text-xs text-gray-500">Chat terapéutico + Asistencia de escritura</div>
-                            </div>
+                            <div className="font-medium">Asistente Introspectivo Avanzado</div>
                         </button>
 
 
@@ -135,10 +132,7 @@ export default function HamburgerMenu({
                             }`}
                         >
                             <span className="text-purple-400">✍️</span>
-                            <div>
-                                <div className="font-medium">Asistente de Escritura</div>
-                                <div className="text-xs text-gray-500">Versión original</div>
-                            </div>
+                            <div className="font-medium">Asistente de Escritura</div>
                         </button>
 
                         <button

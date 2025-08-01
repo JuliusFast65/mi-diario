@@ -1000,13 +1000,11 @@ Analiza de manera terapéutica:`;
                         </div>
                         <div>
                             <h2 className={`text-xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Asistente Introspectivo</h2>
-                            <p className={`text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Terapeuta + Ayuda para escribir</p>
                             <p className="text-xs text-blue-600 font-medium">
-                                📅 {new Date(selectedDate).toLocaleDateString('es-ES', { 
-                                    weekday: 'long', 
-                                    year: 'numeric', 
-                                    month: 'long', 
-                                    day: 'numeric' 
+                                📅 {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { 
+                                    day: 'numeric', 
+                                    month: 'short', 
+                                    year: 'numeric' 
                                 })}
                             </p>
                         </div>
@@ -1014,7 +1012,7 @@ Analiza de manera terapéutica:`;
                     <div className="flex items-center gap-2">
                         <button
                             onClick={async () => {
-                                if (confirm(`¿Estás seguro de que quieres limpiar la conversación del ${new Date(selectedDate).toLocaleDateString('es-ES')}?`)) {
+                                if (confirm(`¿Estás seguro de que quieres limpiar la conversación del ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES')}?`)) {
                                     console.log('Clearing session for date:', selectedDate);
                                     setMessages([]);
                                     setCurrentStep('initial');
@@ -1029,7 +1027,7 @@ Analiza de manera terapéutica:`;
                                 }
                             }}
                             className={`text-red-600 hover:text-red-900 p-2 rounded-lg transition-colors text-xs ${currentTheme === 'dark' ? 'hover:bg-red-900 hover:bg-opacity-20' : 'hover:bg-red-100'}`}
-                            title={`Limpiar conversación del ${new Date(selectedDate).toLocaleDateString('es-ES')}`}
+                            title={`Limpiar conversación del ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES')}`}
                         >
                             🗑️
                         </button>
@@ -1054,7 +1052,7 @@ Analiza de manera terapéutica:`;
                                     <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                                     <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                                 </div>
-                                <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Cargando conversación del {new Date(selectedDate).toLocaleDateString('es-ES')}...</p>
+                                <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Cargando conversación del {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES')}...</p>
                             </div>
                         </div>
                     )}

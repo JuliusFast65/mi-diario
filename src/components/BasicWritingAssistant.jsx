@@ -80,57 +80,31 @@ const BasicWritingAssistant = ({
 
     return (
         <div className={`fixed inset-0 ${currentTheme === 'dark' ? 'bg-black bg-opacity-70' : 'bg-black bg-opacity-50'} flex items-center justify-center z-50 p-4`}>
-            <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col`}>
-                {/* Header */}
-                <div className={`flex items-center justify-between p-4`}>
-                    <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 ${currentTheme === 'dark' ? 'bg-cyan-900' : 'bg-cyan-100'} rounded-full flex items-center justify-center`}>
-                            <span className={`${currentTheme === 'dark' ? 'text-cyan-300' : 'text-cyan-600'} font-semibold`}>✍️</span>
-                        </div>
-                        <div>
-                            <h2 className={`text-xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                Sugerencias del Asistente
-                            </h2>
-                        </div>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className={`${currentTheme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'} p-2 rounded-lg transition-colors`}
-                    >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+            <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-6 w-full max-w-lg flex flex-col`}>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className={`text-2xl font-bold ${currentTheme === 'dark' ? 'text-cyan-300' : 'text-cyan-600'}`}>
+                        Sugerencias del Asistente
+                    </h2>
                 </div>
-
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-4">
+                
+                <div className="overflow-y-auto max-h-[60vh] pr-2">
                     {isLoading ? (
-                        <div className="flex items-center justify-center h-full">
-                            <div className="text-center">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto mb-2"></div>
-                                <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
-                                    Analizando tu texto...
-                                </p>
-                            </div>
+                        <div className="text-center py-10">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto"></div>
+                            <p className={`mt-4 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Analizando tu texto...</p>
                         </div>
                     ) : (
-                        <div className={`prose ${currentTheme === 'dark' ? 'prose-invert' : ''} max-w-none`}>
-                            <div 
-                                className={`text-sm leading-relaxed ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} whitespace-pre-wrap`}
-                                dangerouslySetInnerHTML={{ 
-                                    __html: aiResponse
-                                        .replace(/@@@(.*?)@@@/s, `<blockquote class="${currentTheme === 'dark' ? 'border-l-4 border-cyan-400 bg-gray-800' : 'border-l-4 border-cyan-400 bg-gray-100'} pl-4 py-2 my-3 italic">$1</blockquote>`)
-                                        .replace(/\n\n/g, '<br><br>')
-                                        .replace(/\n/g, '<br>')
-                                }}
-                            />
-                        </div>
+                        <div className={`${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} whitespace-pre-wrap prose ${currentTheme === 'dark' ? 'prose-invert' : ''} max-w-none`} 
+                             dangerouslySetInnerHTML={{ 
+                                 __html: aiResponse
+                                     .replace(/@@@(.*?)@@@/s, `<blockquote class="${currentTheme === 'dark' ? 'border-l-4 border-cyan-400 bg-gray-800' : 'border-l-4 border-cyan-400 bg-gray-100'} pl-4 py-2 my-3 italic">$1</blockquote>`)
+                                     .replace(/\n\n/g, '<br><br>')
+                                     .replace(/\n/g, '<br>')
+                             }} />
                     )}
                 </div>
-
-                {/* Footer */}
-                <div className={`flex justify-end items-center p-4 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
+                
+                <div className={`flex justify-end mt-6 pt-4 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
                     <button 
                         onClick={onClose} 
                         className={`px-4 py-2 rounded-lg transition-colors ${

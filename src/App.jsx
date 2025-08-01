@@ -210,6 +210,8 @@ const DiaryApp = ({ user }) => {
         return lastVisitedDate;
     };
 
+
+
     useEffect(() => {
         if (!db || !user?.uid) return;
         const prefsDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'preferences', 'settings');
@@ -219,26 +221,14 @@ const DiaryApp = ({ user }) => {
                 console.log('Preferences loaded:', prefsData);
                 setUserPrefs(prev => ({ ...prev, ...prefsData }));
                 
-                // Determinar la fecha inicial solo si aún no se ha establecido
+                // Determinar la fecha inicial SOLO si aún no se ha establecido
                 if (selectedDate === null) {
                     const initialDate = getInitialDate(prefsData.lastVisitedDate);
                     console.log('Initial date determined:', initialDate);
                     setSelectedDate(initialDate);
                     setIsInitializingDate(false);
-                } else {
-                    // Si ya hay una fecha seleccionada, solo actualizar si es necesario
-                    const initialDate = getInitialDate(prefsData.lastVisitedDate);
-                    console.log('Initial date determined:', initialDate, 'Current selectedDate:', selectedDate);
-                    
-                    if (selectedDate !== initialDate && !isNavigatingFromDeleteRef.current) {
-                        console.log('Setting new selectedDate:', initialDate);
-                        setSelectedDate(initialDate);
-                    } else if (isNavigatingFromDeleteRef.current) {
-                        console.log('Skipping date change due to delete navigation');
-                    } else {
-                        console.log('No date change needed - already on correct date');
-                    }
                 }
+                // Si ya hay una fecha seleccionada, NO hacer nada
             } else {
                 // Si no existen preferencias, establecer fecha de hoy y terminar inicialización
                 if (selectedDate === null) {
@@ -270,24 +260,19 @@ const DiaryApp = ({ user }) => {
     };
 
     // Función para manejar el cambio de fecha
-    const handleDateChange = (newDate) => {
-        console.log('handleDateChange called with:', newDate);
+    const handleDateChange = (newDate, fromArchive = false) => {
+        console.log('handleDateChange called with:', newDate, 'fromArchive:', fromArchive);
+        
         setSelectedDate(newDate);
-        // Solo guardar la fecha si no estamos navegando desde una eliminación
-        if (!isNavigatingFromDeleteRef.current) {
+        // Solo guardar la fecha si no estamos navegando desde una eliminación Y no viene del archivo
+        if (!isNavigatingFromDeleteRef.current && !fromArchive) {
             saveLastVisitedDate(newDate);
         } else {
-            console.log('Skipping save in handleDateChange due to delete navigation');
+            console.log('Skipping save in handleDateChange due to delete navigation or archive navigation');
         }
     };
 
-    // Guardar la fecha actual como última visitada cuando cambie
-    useEffect(() => {
-        if (selectedDate && userPrefs.lastVisitedDate !== null) {
-            // Solo guardar si ya se han cargado las preferencias iniciales
-            saveLastVisitedDate(selectedDate);
-        }
-    }, [selectedDate]);
+
 
     // Onboarding automático en primera vez
     useEffect(() => {
@@ -325,37 +310,7 @@ const DiaryApp = ({ user }) => {
         return () => unsubscribe();
     }, [db, user]);
 
-    useEffect(() => {
-        if (!db || !user?.uid || !selectedDate) return;
-        let isMounted = true;
-        const fetchEntry = async () => {
-            const entryDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate);
-            try {
-                const docSnap = await getDoc(entryDocRef);
-                if (isMounted) {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        const [decryptedTitle, decryptedText] = await Promise.all([
-                            decryptText(data.title || '', user.uid),
-                            decryptText(data.text || '', user.uid)
-                        ]);
-                        // Combinar título y texto solo si el texto no empieza con el título
-                        let combinedText = decryptedText;
-                        if (decryptedTitle && !decryptedText.startsWith(decryptedTitle)) {
-                            combinedText = decryptedTitle + (decryptedText ? '\n' + decryptedText : '');
-                        }
-                        setCurrentEntry({ text: combinedText, tracked: data.tracked || {} });
-                    } else {
-                        setCurrentEntry({ text: '', tracked: {} });
-                    }
-                }
-            } catch (error) {
-                if (isMounted) console.error("Error fetching entry:", error);
-            }
-        };
-        fetchEntry();
-        return () => { isMounted = false; };
-    }, [db, user, selectedDate, setCurrentEntry]);
+
 
     // Manejadores de eventos y lógica de la aplicación
     const handleUpdateUserPrefs = async (newPrefs) => {
@@ -731,14 +686,14 @@ const DiaryApp = ({ user }) => {
                             currentTheme={currentTheme}
                         />
                     ) : view === 'archive' ? (
-                        <ArchiveView 
-                            allEntries={allEntries} 
-                            onSelectEntry={(date) => { handleDateChange(date); setView('diary'); }} 
-                            onDeleteEntry={(date, nextDate) => handleDeleteEntry(date, nextDate)} 
-                            user={user}
-                            selectedDate={selectedDate}
-                            currentTheme={currentTheme}
-                        />
+                                                 <ArchiveView 
+                             allEntries={allEntries} 
+                             onSelectEntry={(date) => { handleDateChange(date, true); setView('diary'); }} 
+                             onDeleteEntry={(date, nextDate) => handleDeleteEntry(date, nextDate)} 
+                             user={user}
+                             selectedDate={selectedDate}
+                             currentTheme={currentTheme}
+                         />
                     ) : (
                        <StatisticsPanel 
                            db={db} 
