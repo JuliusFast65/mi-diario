@@ -13,7 +13,7 @@ export default function SecuritySettings({
     const [showPins, setShowPins] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [activeTab, setActiveTab] = useState('settings');
+    const [activeTab, setActiveTab] = useState('lock'); // Cambio: 'lock' como tab por defecto
 
     const {
         isPinSet,
@@ -122,7 +122,7 @@ export default function SecuritySettings({
                             <span className={`${currentTheme === 'dark' ? 'text-blue-300' : 'text-blue-600'} font-semibold`}>🔒</span>
                         </div>
                         <div>
-                            <h2 className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Configuración de Seguridad</h2>
+                            <h2 className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Seguridad</h2>
                             <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Protege tu diario personal</p>
                         </div>
                     </div>
@@ -136,61 +136,86 @@ export default function SecuritySettings({
                     </button>
                 </div>
 
-                {/* Tabs */}
+                {/* Tabs simplificados */}
                 <div className={`flex border-b ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                     <button
+                        onClick={() => setActiveTab('lock')}
+                        className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                            activeTab === 'lock' 
+                                ? `${currentTheme === 'dark' ? 'text-blue-400 border-blue-400' : 'text-blue-600 border-blue-600'} border-b-2` 
+                                : `${currentTheme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`
+                        }`}
+                    >
+                        🔒 Bloquear
+                    </button>
+                    <button
                         onClick={() => setActiveTab('settings')}
-                        className={`flex-1 px-4 py-2 text-sm font-medium ${
+                        className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
                             activeTab === 'settings' 
                                 ? `${currentTheme === 'dark' ? 'text-blue-400 border-blue-400' : 'text-blue-600 border-blue-600'} border-b-2` 
                                 : `${currentTheme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`
                         }`}
                     >
-                        Configuración
+                        ⚙️ Configuración
                     </button>
                     <button
                         onClick={() => setActiveTab('pin')}
-                        className={`flex-1 px-4 py-2 text-sm font-medium ${
+                        className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
                             activeTab === 'pin' 
                                 ? `${currentTheme === 'dark' ? 'text-blue-400 border-blue-400' : 'text-blue-600 border-blue-600'} border-b-2` 
                                 : `${currentTheme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`
                         }`}
                     >
-                        PIN
+                        🔐 PIN
                     </button>
                 </div>
 
                 {/* Content */}
                 <div className="p-4">
-                    {activeTab === 'settings' ? (
+                    {activeTab === 'lock' ? (
                         <div className="space-y-6">
-                            {/* Estado actual */}
+                            {/* Bloqueo inmediato - Acción principal */}
+                            <div className="text-center">
+                                <div className={`w-16 h-16 ${currentTheme === 'dark' ? 'bg-red-900' : 'bg-red-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                                    <span className="text-2xl">🔒</span>
+                                </div>
+                                <h3 className={`font-semibold text-lg ${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'} mb-2`}>
+                                    Bloquear Diario
+                                </h3>
+                                <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
+                                    Bloquea inmediatamente tu diario. Necesitarás tu PIN para acceder de nuevo.
+                                </p>
+                                <button
+                                    onClick={handleLockApp}
+                                    className="w-full px-6 py-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-lg"
+                                >
+                                    🔒 Bloquear Ahora
+                                </button>
+                            </div>
+
+                            {/* Estado actual simplificado */}
                             <div className={`${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4`}>
-                                <h3 className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'} mb-2`}>Estado Actual</h3>
+                                <h4 className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'} mb-3`}>Estado Actual</h4>
                                 <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>PIN configurado:</span>
-                                        <span className={isPinSet ? 'text-green-600' : 'text-red-600'}>
-                                            {isPinSet ? '✅ Sí' : '❌ No'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Auto-bloqueo:</span>
-                                        <span className={`${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
-                                            {config.autoLockDelay === 0 ? 'Deshabilitado' : `${config.autoLockDelay / 60000} min`}
+                                    <div className="flex justify-between items-center">
+                                        <span className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Protección:</span>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${isPinSet ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                            {isPinSet ? 'Activada' : 'Desactivada'}
                                         </span>
                                     </div>
                                     {isPinSet && (
-                                        <div className="flex justify-between">
+                                        <div className="flex justify-between items-center">
                                             <span className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Bloqueo en:</span>
-                                            <span className={`${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${currentTheme === 'dark' ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>
                                                 {getFormattedTimeUntilLock()}
                                             </span>
                                         </div>
                                     )}
                                 </div>
                             </div>
-
+                        </div>
+                    ) : activeTab === 'settings' ? (
+                        <div className="space-y-6">
                             {/* Configuración de auto-bloqueo */}
                             <div>
                                 <h3 className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'} mb-3`}>Auto-bloqueo</h3>
@@ -213,19 +238,6 @@ export default function SecuritySettings({
                                 </select>
                             </div>
 
-                            {/* Acciones rápidas */}
-                            <div>
-                                <h3 className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'} mb-3`}>Acciones Rápidas</h3>
-                                <div className="space-y-2">
-                                    <button
-                                        onClick={handleLockApp}
-                                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                    >
-                                        🔒 Bloquear Ahora
-                                    </button>
-                                </div>
-                            </div>
-
                             {/* Información de seguridad */}
                             <div className={`${currentTheme === 'dark' ? 'bg-blue-900 border-blue-700' : 'bg-blue-50 border-blue-200'} border rounded-lg p-4`}>
                                 <h4 className={`font-medium ${currentTheme === 'dark' ? 'text-blue-300' : 'text-blue-800'} mb-2`}>¿Cómo funciona?</h4>
@@ -239,13 +251,37 @@ export default function SecuritySettings({
                         </div>
                     ) : (
                         <div className="space-y-6">
+                            {/* Configurar PIN por primera vez */}
+                            {!isPinSet && (
+                                <div className="text-center">
+                                    <div className={`w-16 h-16 ${currentTheme === 'dark' ? 'bg-blue-900' : 'bg-blue-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                                        <span className="text-2xl">🔐</span>
+                                    </div>
+                                    <h3 className={`font-semibold text-lg ${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'} mb-2`}>
+                                        Configurar PIN
+                                    </h3>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
+                                        Crea un PIN para proteger tu diario personal.
+                                    </p>
+                                    <button
+                                        onClick={() => {
+                                            onClose();
+                                            // Aquí se mostraría el AppLock en modo setup
+                                        }}
+                                        className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                    >
+                                        🔐 Configurar PIN
+                                    </button>
+                                </div>
+                            )}
+
                             {/* Cambiar PIN */}
                             {isPinSet && (
                                 <div>
-                                    <h3 className="font-medium text-gray-800 mb-3">Cambiar PIN</h3>
+                                    <h3 className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'} mb-3`}>Cambiar PIN</h3>
                                     <div className="space-y-3">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
                                                 PIN actual
                                             </label>
                                             <div className="relative">
@@ -253,48 +289,48 @@ export default function SecuritySettings({
                                                     type={showPins ? "text" : "password"}
                                                     value={currentPin}
                                                     onChange={(e) => setCurrentPin(e.target.value)}
-                                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${currentTheme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300 bg-white text-gray-800'}`}
                                                     placeholder="0000"
                                                     maxLength={pinLength}
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPins(!showPins)}
-                                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}
                                                 >
                                                     {showPins ? "🙈" : "👁️"}
                                                 </button>
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
                                                 Nuevo PIN
                                             </label>
                                             <input
                                                 type={showPins ? "text" : "password"}
                                                 value={newPin}
                                                 onChange={(e) => setNewPin(e.target.value)}
-                                                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${currentTheme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300 bg-white text-gray-800'}`}
                                                 placeholder="0000"
                                                 maxLength={pinLength}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
                                                 Confirmar nuevo PIN
                                             </label>
                                             <input
                                                 type={showPins ? "text" : "password"}
                                                 value={confirmNewPin}
                                                 onChange={(e) => setConfirmNewPin(e.target.value)}
-                                                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${currentTheme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300 bg-white text-gray-800'}`}
                                                 placeholder="0000"
                                                 maxLength={pinLength}
                                             />
                                         </div>
                                         <button
                                             onClick={handleChangePin}
-                                            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                                         >
                                             Cambiar PIN
                                         </button>
@@ -304,52 +340,32 @@ export default function SecuritySettings({
 
                             {/* Deshabilitar PIN */}
                             {isPinSet && (
-                                <div>
-                                    <h3 className="font-medium text-gray-800 mb-3">Deshabilitar PIN</h3>
-                                    <p className="text-sm text-gray-600 mb-3">
+                                <div className={`${currentTheme === 'dark' ? 'bg-red-900 border-red-700' : 'bg-red-50 border-red-200'} border rounded-lg p-4`}>
+                                    <h3 className={`font-medium ${currentTheme === 'dark' ? 'text-red-300' : 'text-red-800'} mb-2`}>Deshabilitar PIN</h3>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-red-200' : 'text-red-700'} mb-3`}>
                                         Esto eliminará la protección de PIN de tu diario.
                                     </p>
                                     <div className="space-y-3">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-red-300' : 'text-red-700'} mb-1`}>
                                                 PIN actual
                                             </label>
                                             <input
                                                 type={showPins ? "text" : "password"}
                                                 value={currentPin}
                                                 onChange={(e) => setCurrentPin(e.target.value)}
-                                                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${currentTheme === 'dark' ? 'border-red-600 bg-red-800 text-white' : 'border-red-300 bg-white text-gray-800'}`}
                                                 placeholder="0000"
                                                 maxLength={pinLength}
                                             />
                                         </div>
                                         <button
                                             onClick={handleDisablePin}
-                                            className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                                            className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                                         >
                                             Deshabilitar PIN
                                         </button>
                                     </div>
-                                </div>
-                            )}
-
-                            {/* Configurar PIN por primera vez */}
-                            {!isPinSet && (
-                                <div>
-                                    <h3 className="font-medium text-gray-800 mb-3">Configurar PIN</h3>
-                                    <p className="text-sm text-gray-600 mb-3">
-                                        Crea un PIN para proteger tu diario personal.
-                                    </p>
-                                    <button
-                                        onClick={() => {
-                                            // Esto activaría el setup de PIN
-                                            onClose();
-                                            // Aquí se mostraría el AppLock en modo setup
-                                        }}
-                                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                    >
-                                        Configurar PIN
-                                    </button>
                                 </div>
                             )}
                         </div>
@@ -357,12 +373,12 @@ export default function SecuritySettings({
 
                     {/* Mensajes de error/éxito */}
                     {error && (
-                        <div className={`${currentTheme === 'dark' ? 'bg-red-900 border-red-700' : 'bg-red-50 border-red-200'} border rounded-lg p-3`}>
+                        <div className={`${currentTheme === 'dark' ? 'bg-red-900 border-red-700' : 'bg-red-50 border-red-200'} border rounded-lg p-3 mt-4`}>
                             <p className={`${currentTheme === 'dark' ? 'text-red-300' : 'text-red-600'} text-sm`}>{error}</p>
                         </div>
                     )}
                     {success && (
-                        <div className={`${currentTheme === 'dark' ? 'bg-green-900 border-green-700' : 'bg-green-50 border-green-200'} border rounded-lg p-3`}>
+                        <div className={`${currentTheme === 'dark' ? 'bg-green-900 border-green-700' : 'bg-green-50 border-green-200'} border rounded-lg p-3 mt-4`}>
                             <p className={`${currentTheme === 'dark' ? 'text-green-300' : 'text-green-600'} text-sm`}>{success}</p>
                         </div>
                     )}

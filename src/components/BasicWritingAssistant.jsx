@@ -36,10 +36,44 @@ const BasicWritingAssistant = ({
     const handleWritingAssistant = async () => {
         // Verificar si el texto está vacío
         if (!currentEntry?.text || currentEntry.text.trim() === '') {
-            setAiResponse("No hay texto para analizar. Escribe algo en tu diario para recibir sugerencias de mejora.");
+            // Sugerir qué y cómo escribir cuando la entrada está vacía
+            const prompt = `Eres un asistente de escritura creativa especializado en diarios personales. El usuario tiene una entrada de diario vacía y necesita ayuda para comenzar a escribir.
+
+Proporciona sugerencias útiles y motivadoras que incluyan:
+
+1. **Preguntas reflexivas** (3-4 preguntas) que ayuden al usuario a explorar sus pensamientos y sentimientos del día
+2. **Temas de escritura** (2-3 ideas) que puedan servir como punto de partida
+3. **Técnicas de escritura** (2-3 consejos prácticos) para superar el bloqueo del escritor
+4. **Un ejemplo breve** de cómo podría comenzar una entrada de diario
+
+Mantén un tono cálido, empático y motivador. No uses formato especial, solo texto natural y conversacional.
+
+Ejemplo de estructura:
+"¡Hola! Veo que tienes una página en blanco esperando tus pensamientos. Aquí tienes algunas ideas para comenzar:
+
+**Preguntas para reflexionar:**
+- ¿Qué momento del día te hizo sonreír hoy?
+- ¿Hay algo que te preocupa y quieres explorar?
+- ¿Qué logro, por pequeño que sea, te gustaría celebrar?
+
+**Temas para escribir:**
+- Un momento especial del día
+- Algo que aprendiste sobre ti mismo
+- Un desafío que enfrentaste
+
+**Consejos para comenzar:**
+- No te preocupes por la perfección, solo escribe lo que sientes
+- Comienza con una frase simple como "Hoy fue..."
+- Si no sabes qué escribir, describe tu día paso a paso
+
+**Ejemplo de inicio:**
+"Hoy fue un día interesante. Me desperté pensando en..."`;
+
+            await callAI(prompt, "Sugerencias para Comenzar");
             return;
         }
 
+        // Comportamiento actual para texto existente
         const currentText = currentEntry.text.trim();
         const prompt = `Eres un editor de texto. Revisa la siguiente entrada de diario. - Corrige gramática y ortografía y mejora el flujo. - No cambies la voz del autor. - Ofrece tus explicaciones o comentarios si lo deseas. - Al final, presenta la versión mejorada del texto envuelta entre tres arrobas. Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dentro.@@@" - Si el texto de entrada está vacío, devuelve un mensaje indicándolo.\n\n**Texto Original:**\n"${currentText}"`;
         
@@ -64,9 +98,15 @@ const BasicWritingAssistant = ({
         }
     };
 
-    // Verificar si hay una sugerencia aplicable
+    // Verificar si hay una sugerencia aplicable (solo para texto existente)
     const hasApplicableSuggestion = () => {
-        return extractImprovedText(aiResponse) !== null && !isLoading;
+        const hasText = currentEntry?.text && currentEntry.text.trim() !== '';
+        return hasText && extractImprovedText(aiResponse) !== null && !isLoading;
+    };
+
+    // Verificar si la entrada está vacía
+    const isEntryEmpty = () => {
+        return !currentEntry?.text || currentEntry.text.trim() === '';
     };
 
     // Ejecutar automáticamente cuando se abre el modal
@@ -83,7 +123,7 @@ const BasicWritingAssistant = ({
             <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-6 w-full max-w-lg flex flex-col`}>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className={`text-2xl font-bold ${currentTheme === 'dark' ? 'text-cyan-300' : 'text-cyan-600'}`}>
-                        Sugerencias del Asistente
+                        {isEntryEmpty() ? 'Sugerencias para Comenzar' : 'Sugerencias del Asistente'}
                     </h2>
                 </div>
                 
@@ -91,7 +131,9 @@ const BasicWritingAssistant = ({
                     {isLoading ? (
                         <div className="text-center py-10">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto"></div>
-                            <p className={`mt-4 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Analizando tu texto...</p>
+                            <p className={`mt-4 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                {isEntryEmpty() ? 'Generando sugerencias...' : 'Analizando tu texto...'}
+                            </p>
                         </div>
                     ) : (
                         <div className={`${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} whitespace-pre-wrap prose ${currentTheme === 'dark' ? 'prose-invert' : ''} max-w-none`} 
