@@ -14,7 +14,8 @@ export default function AdvancedIntrospectiveAssistant({
     selectedDate,
     textareaRef,
     activities,
-    currentTheme = 'dark'
+    currentTheme = 'dark',
+    userPrefs = {} // Agregar userPrefs como prop
 }) {
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
@@ -25,6 +26,52 @@ export default function AdvancedIntrospectiveAssistant({
     const [userContext, setUserContext] = useState({});
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
+
+    // Función para obtener el estilo del terapeuta basado en las preferencias
+    const getTherapistStyle = () => {
+        const style = userPrefs.therapistStyle || 'empatico';
+        
+        const styleConfigs = {
+            'empatico': {
+                tone: 'empático y comprensivo',
+                approach: 'enfocado en la validación emocional y el apoyo',
+                personality: 'cálido, comprensivo y validante',
+                techniques: 'escucha activa y validación emocional'
+            },
+            'directo': {
+                tone: 'directo y analítico',
+                approach: 'enfocado en el análisis objetivo y la claridad',
+                personality: 'directo, analítico y claro',
+                techniques: 'análisis objetivo y clarificación'
+            },
+            'motivacional': {
+                tone: 'motivacional y alentador',
+                approach: 'enfocado en el empoderamiento y la motivación',
+                personality: 'energético, motivacional y alentador',
+                techniques: 'refuerzo positivo y empoderamiento'
+            },
+            'cognitivo': {
+                tone: 'cognitivo-conductual',
+                approach: 'enfocado en patrones de pensamiento y comportamiento',
+                personality: 'analítico, estructurado y orientado a soluciones',
+                techniques: 'identificación de patrones y reestructuración cognitiva'
+            },
+            'psicodinamico': {
+                tone: 'psicodinámico',
+                approach: 'enfocado en exploración profunda y autoconocimiento',
+                personality: 'reflexivo, explorador y orientado al insight',
+                techniques: 'exploración profunda y autoconocimiento'
+            },
+            'mindfulness': {
+                tone: 'mindfulness y meditación',
+                approach: 'enfocado en la presencia y la conciencia plena',
+                personality: 'tranquilo, presente y consciente',
+                techniques: 'mindfulness y técnicas de presencia'
+            }
+        };
+        
+        return styleConfigs[style] || styleConfigs['empatico'];
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -721,6 +768,7 @@ Sugiere qué escribir:`;
         try {
             // Usar IA real para respuestas de conversación
             if (import.meta.env.VITE_GEMINI_API_KEY) {
+                const styleConfig = getTherapistStyle();
                 const emotionNames = {
                     sadness: 'tristeza',
                     anxiety: 'ansiedad', 
@@ -740,7 +788,7 @@ Sugiere qué escribir:`;
                     .map(msg => `${msg.type === 'user' ? 'Usuario' : 'Terapeuta'}: ${msg.content}`)
                     .join('\n');
                 
-                const prompt = `Eres un terapeuta empático. Responde de manera natural y conversacional.
+                const prompt = `Eres un terapeuta con estilo ${styleConfig.tone} y personalidad ${styleConfig.personality}. Tu enfoque es ${styleConfig.approach} y utilizas técnicas de ${styleConfig.techniques}.
 
 **Contexto:**
 - Nombre: ${context.userName}
@@ -753,15 +801,16 @@ ${conversationHistory}
 **Usuario dice:** "${userInput}"
 
 **Instrucciones importantes:**
+- Mantén tu estilo ${styleConfig.tone} y personalidad ${styleConfig.personality}
+- Utiliza técnicas de ${styleConfig.techniques}
 - NO saludes ni uses frases como "te entiendo" repetitivamente
 - Responde de manera natural, como en una conversación real
 - Mantén respuestas CONCISAS (máximo 2-3 frases)
 - Haz preguntas abiertas que inviten a la reflexión
-- Sé empático pero no terminante
 - Mantén continuidad con la conversación anterior
 - No uses lenguaje formal o terapéutico excesivo
 
-Responde de manera natural:`;
+Responde de manera natural manteniendo tu estilo terapéutico:`;
 
                 const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
@@ -886,9 +935,10 @@ Responde de manera natural:`;
         try {
             // Usar directamente la API de IA para análisis profundo
             if (import.meta.env.VITE_GEMINI_API_KEY) {
+                const styleConfig = getTherapistStyle();
                 const trackedActivitiesSummary = Object.entries(currentEntry?.tracked || {}).map(([activityId, option]) => `- ${activities[activityId]?.name || 'Actividad'}: ${option}`).join('\n');
                 
-                const prompt = `Analiza esta entrada de diario de manera terapéutica y concisa.
+                const prompt = `Analiza esta entrada de diario con tu estilo terapéutico ${styleConfig.tone} y enfoque ${styleConfig.approach}.
 
 **Entrada:**
 "${text || 'No se escribió nada.'}"
@@ -899,13 +949,15 @@ ${trackedActivitiesSummary || 'No se registraron actividades.'}
 **Usuario:** ${userContext.userName}
 
 **Instrucciones:**
+- Mantén tu personalidad ${styleConfig.personality}
+- Utiliza técnicas de ${styleConfig.techniques}
 - Ofrece una reflexión amable y concisa
 - Identifica patrones o sentimientos importantes
 - Proporciona 1-2 sugerencias constructivas
 - Mantén un tono natural y de apoyo
 - No uses lenguaje formal excesivo
 
-Analiza de manera terapéutica:`;
+Analiza de manera terapéutica con tu estilo:`;
 
                 const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {

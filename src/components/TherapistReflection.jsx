@@ -10,7 +10,8 @@ const TherapistReflection = ({
     selectedDate, 
     currentEntry, 
     activities,
-    currentTheme 
+    currentTheme,
+    userPrefs = {} // Agregar userPrefs como prop
 }) => {
     const [therapistReflection, setTherapistReflection] = useState('');
     const [reflectionAnalysisCount, setReflectionAnalysisCount] = useState(0);
@@ -20,6 +21,52 @@ const TherapistReflection = ({
     const [aiResponse, setAiResponse] = useState('');
     const [isAILoading, setIsAILoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+
+    // Función para obtener el estilo del terapeuta basado en las preferencias
+    const getTherapistStyle = () => {
+        const style = userPrefs.therapistStyle || 'empatico';
+        
+        const styleConfigs = {
+            'empatico': {
+                tone: 'empático y comprensivo',
+                approach: 'enfocado en la validación emocional y el apoyo',
+                personality: 'cálido, comprensivo y validante',
+                techniques: 'escucha activa y validación emocional'
+            },
+            'directo': {
+                tone: 'directo y analítico',
+                approach: 'enfocado en el análisis objetivo y la claridad',
+                personality: 'directo, analítico y claro',
+                techniques: 'análisis objetivo y clarificación'
+            },
+            'motivacional': {
+                tone: 'motivacional y alentador',
+                approach: 'enfocado en el empoderamiento y la motivación',
+                personality: 'energético, motivacional y alentador',
+                techniques: 'refuerzo positivo y empoderamiento'
+            },
+            'cognitivo': {
+                tone: 'cognitivo-conductual',
+                approach: 'enfocado en patrones de pensamiento y comportamiento',
+                personality: 'analítico, estructurado y orientado a soluciones',
+                techniques: 'identificación de patrones y reestructuración cognitiva'
+            },
+            'psicodinamico': {
+                tone: 'psicodinámico',
+                approach: 'enfocado en exploración profunda y autoconocimiento',
+                personality: 'reflexivo, explorador y orientado al insight',
+                techniques: 'exploración profunda y autoconocimiento'
+            },
+            'mindfulness': {
+                tone: 'mindfulness y meditación',
+                approach: 'enfocado en la presencia y la conciencia plena',
+                personality: 'tranquilo, presente y consciente',
+                techniques: 'mindfulness y técnicas de presencia'
+            }
+        };
+        
+        return styleConfigs[style] || styleConfigs['empatico'];
+    };
 
     // Debug: Solo mostrar log cuando el modal esté abierto
     useEffect(() => {
@@ -268,7 +315,7 @@ const TherapistReflection = ({
         console.log('✅ Generando nuevo análisis...');
         
         const trackedActivitiesSummary = Object.entries(currentEntry?.tracked || {}).map(([activityId, option]) => `- ${activities[activityId]?.name || 'Actividad'}: ${option}`).join('\n');
-        const prompt = `Actúa como un terapeuta empático y perspicaz. Analiza la siguiente entrada de diario y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.\n\n**Entrada del Diario:**\n"${currentEntry?.text || 'No se escribió nada.'}"\n\n**Actividades Registradas:**\n${trackedActivitiesSummary || 'No se registraron actividades.'}`;
+        const prompt = `Actúa como un terapeuta ${getTherapistStyle().tone}. Analiza la siguiente entrada de diario y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.\n\n**Entrada del Diario:**\n"${currentEntry?.text || 'No se escribió nada.'}"\n\n**Actividades Registradas:**\n${trackedActivitiesSummary || 'No se registraron actividades.'}`;
         
         const response = await callAI(prompt);
         if (response) {

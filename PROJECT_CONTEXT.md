@@ -66,6 +66,7 @@ mi-diario/
 - ✅ Análisis de comportamiento avanzado
 - ✅ Autenticación de dos factores
 - ✅ Estadísticas avanzadas
+- ✅ Personalización de IA (estilos terapéuticos, asistentes de escritura, tonos motivacionales)
 
 ## 📊 Estructura de Datos
 
@@ -115,6 +116,7 @@ artifacts/{appId}/
 - `ActivityTrackerItem` - Rastreador de actividades
 - `CreateActivityModal` - Crear/editar actividades
 - `StatisticsPanel` - Panel de estadísticas
+- `BasicWritingAssistant` - Asistente de escritura básico con sugerencias inteligentes
 
 ### Premium Components
 - `TherapistChat` - Chat con IA terapéutica
@@ -209,9 +211,56 @@ Para evitar duplicaciones y mantener consistencia, la versión se define en un s
 - **Premium:** Análisis avanzado de patrones
 
 ### IA y Asistencia
-- **Chat Terapéutico:** IA para apoyo emocional
-- **Asistente de Escritura:** Sugerencias de escritura
+- **Chat Terapéutico:** IA para apoyo emocional con estilos personalizables
+- **Asistente de Escritura Básico:** 
+  - **Entradas vacías:** Sugerencias motivadoras para comenzar a escribir, preguntas reflexivas, temas de escritura y técnicas para superar el bloqueo
+  - **Entradas con contenido:** Mejora gramática, ortografía y flujo del texto
+  - **Estilos personalizables:** Adapta sugerencias según el estilo preferido del usuario
+- **Asistente de Escritura Avanzado:** Funcionalidades premium de escritura con personalización
 - **Análisis de Comportamiento:** Patrones y insights
+- **Reflexión Terapéutica:** Análisis de entradas con estilo terapéutico personalizable
+- **Mensajes Inspiracionales:** Generación de mensajes motivacionales con tonos personalizables
+
+### 🤖 Personalización de IA (Premium)
+
+El sistema de IA personalizable permite a los usuarios adaptar la experiencia de IA según sus preferencias personales:
+
+#### **Estilos Terapéuticos** (`therapistStyle`)
+- **Empático:** Enfoque cálido y comprensivo, prioriza la validación emocional
+- **Directo:** Comunicación clara y orientada a soluciones prácticas
+- **Analítico:** Análisis profundo de patrones y comportamientos
+- **Mindfulness:** Enfoque en presencia, respiración y conciencia plena
+- **Cognitivo:** Trabajo con pensamientos, creencias y reestructuración cognitiva
+- **Sistémico:** Considera el contexto familiar y relacional
+- **Humanista:** Enfoque en el crecimiento personal y la autorrealización
+
+#### **Estilos de Asistente de Escritura** (`writingAssistantStyle`)
+- **Creativo:** Sugerencias artísticas y expresivas, fomenta la creatividad
+- **Estructurado:** Enfoque organizado y metódico, mejora la claridad
+- **Emocional:** Prioriza la expresión de sentimientos y experiencias personales
+- **Analítico:** Análisis reflexivo y pensamiento crítico
+- **Narrativo:** Desarrollo de historias y secuencias temporales
+- **Descriptivo:** Enfoque en detalles sensoriales y observaciones
+- **Filosófico:** Reflexiones profundas y contemplativas
+
+#### **Tonos Motivacionales** (`motivationalTone`)
+- **Espiritual:** Sabiduría trascendental y conexión con lo divino
+- **Filosófico:** Reflexión profunda y pensamiento crítico
+- **Motivacional:** Energía y empuje para la acción
+- **Mindfulness:** Presencia y conciencia del momento actual
+- **Científico:** Enfoque racional y basado en evidencia
+- **Poético:** Belleza artística y expresión creativa
+- **Práctico:** Consejos aplicables y orientados a resultados
+
+#### **Componentes que Utilizan la Personalización**
+- **`AdvancedIntrospectiveAssistant`:** Adapta el estilo terapéutico del chat
+- **`TherapistReflection`:** Personaliza el análisis de entradas
+- **`BasicWritingAssistant`:** Ajusta sugerencias según el estilo de escritura
+- **`WritingAssistant`:** Personaliza prompts y sugerencias avanzadas
+- **`handleInspirationalMessage`:** Genera mensajes con el tono motivacional preferido
+
+#### **Almacenamiento de Preferencias**
+Las preferencias se almacenan en el perfil del usuario en Firestore y se pasan como props a todos los componentes de IA para asegurar consistencia en la experiencia del usuario.
 
 ## 🚀 Scripts Disponibles
 
@@ -320,6 +369,7 @@ VITE_FIREBASE_APP_ID=
 - ✅ Sistema de suscripciones con Stripe
 - ✅ Encriptación de datos
 - ✅ Export/Import de entradas
+- ✅ Asistente de escritura básico mejorado con sugerencias inteligentes
 
 ## 🎨 UI/UX
 
@@ -347,7 +397,54 @@ VITE_FIREBASE_APP_ID=
 - Arquitectura modular con hooks personalizados
 - Soporte completo para modo offline
 
+## 🆕 Mejoras Recientes
+
+### Sistema de Personalización de IA (Diciembre 2024)
+Implementación completa de personalización de IA que permite a los usuarios adaptar todas las funcionalidades de IA según sus preferencias personales:
+
+#### **Características Implementadas:**
+- **3 Tipos de Personalización:** Estilos terapéuticos, estilos de escritura y tonos motivacionales
+- **7 Opciones por Categoría:** Cada tipo ofrece 7 estilos diferentes para máxima personalización
+- **Integración Completa:** Todos los componentes de IA adaptan su comportamiento según las preferencias
+- **Experiencia Consistente:** Las preferencias se aplican uniformemente en toda la aplicación
+
+#### **Componentes Actualizados:**
+- **`AdvancedIntrospectiveAssistant`:** Chat terapéutico con estilos personalizables
+- **`TherapistReflection`:** Análisis de entradas con enfoque terapéutico adaptativo
+- **`BasicWritingAssistant`:** Sugerencias de escritura según el estilo preferido
+- **`WritingAssistant`:** Funcionalidades avanzadas con personalización
+- **`handleInspirationalMessage`:** Mensajes motivacionales con tonos personalizables
+
+#### **Beneficios de la Personalización:**
+- **Experiencia Única:** Cada usuario puede adaptar la IA a su estilo personal
+- **Mayor Engagement:** La IA se siente más personal y relevante
+- **Flexibilidad Terapéutica:** Diferentes enfoques para diferentes necesidades
+- **Escritura Personalizada:** Sugerencias que se alinean con el estilo del usuario
+
+### Asistente de Escritura Básico Mejorado (Diciembre 2024)
+El asistente de escritura básico ahora proporciona ayuda inteligente según el estado de la entrada:
+
+#### **Para Entradas Vacías:**
+- **Sugerencias motivadoras** para comenzar a escribir
+- **Preguntas reflexivas** (3-4) que ayudan a explorar pensamientos y sentimientos
+- **Temas de escritura** (2-3 ideas) como punto de partida
+- **Técnicas de escritura** (2-3 consejos) para superar el bloqueo del escritor
+- **Ejemplo breve** de cómo comenzar una entrada de diario
+- **Tono cálido y empático** para motivar al usuario
+
+#### **Para Entradas con Contenido:**
+- **Corrección de gramática y ortografía**
+- **Mejora del flujo del texto**
+- **Mantenimiento de la voz del autor**
+- **Versión mejorada aplicable** con botón "Aplicar Sugerencia"
+
+#### **Beneficios de la Mejora:**
+- **Experiencia adaptativa:** Diferentes tipos de ayuda según el contexto
+- **Reducción del bloqueo:** Ayuda específica para usuarios que no saben por dónde empezar
+- **Mejora continua:** Mantiene la funcionalidad de mejora para usuarios experimentados
+- **Interfaz clara:** Títulos y mensajes que cambian según el estado de la entrada
+
 ---
 
 **Última actualización:** Diciembre 2024  
-**Versión del documento:** 1.1 
+**Versión del documento:** 1.3 

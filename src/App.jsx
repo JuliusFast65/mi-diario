@@ -397,7 +397,22 @@ const DiaryApp = ({ user }) => {
     };
 
     const handleInspirationalMessage = () => {
-        const prompt = "Actúa como un sabio filósofo. Escribe una frase inspiradora, corta y única para empezar el día. Sé profundo pero conciso. No añadas introducciones, saludos, ni comillas, solo la frase.";
+        // Obtener el tono motivacional basado en las preferencias del usuario
+        const motivationalTone = userPrefs.motivationalTone || 'espiritual';
+        
+        const toneConfigs = {
+            'espiritual': 'sabio espiritual y trascendental',
+            'filosofico': 'filósofo reflexivo y profundo',
+            'motivacional': 'entrenador motivacional y energético',
+            'mindfulness': 'maestro de mindfulness y presencia',
+            'cientifico': 'científico racional y analítico',
+            'poetico': 'poeta artístico y creativo',
+            'practico': 'mentor práctico y aplicable'
+        };
+        
+        const selectedTone = toneConfigs[motivationalTone] || toneConfigs['espiritual'];
+        
+        const prompt = `Actúa como un ${selectedTone}. Escribe una frase inspiradora, corta y única para empezar el día. Sé profundo pero conciso. No añadas introducciones, saludos, ni comillas, solo la frase.`;
         callAI(prompt, "Mensaje del Día");
     };
     
@@ -795,6 +810,7 @@ const DiaryApp = ({ user }) => {
                 textareaRef={textareaRef}
                 activities={activities}
                 currentTheme={currentTheme}
+                userPrefs={userPrefs}
             />
 
             <TherapistReflection 
@@ -807,6 +823,7 @@ const DiaryApp = ({ user }) => {
                 currentEntry={currentEntry}
                 activities={activities}
                 currentTheme={currentTheme}
+                userPrefs={userPrefs}
             />
 
             <BasicWritingAssistant 
@@ -815,6 +832,7 @@ const DiaryApp = ({ user }) => {
                 currentEntry={currentEntry}
                 onUpdateEntry={setCurrentEntry}
                 currentTheme={currentTheme}
+                userPrefs={userPrefs}
             />
             <WritingAssistant 
                 isOpen={isWritingAssistantOpen} 
@@ -829,6 +847,7 @@ const DiaryApp = ({ user }) => {
                 appId={appId}
                 selectedDate={selectedDate}
                 currentTheme={currentTheme}
+                userPrefs={userPrefs}
             />
             <BehaviorAnalysis 
                 isOpen={isBehaviorAnalysisOpen} 

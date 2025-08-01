@@ -14,7 +14,8 @@ const WritingAssistant = ({
     user,
     appId,
     selectedDate,
-    currentTheme
+    currentTheme,
+    userPrefs = {} // Agregar userPrefs como prop
 }) => {
     const [suggestions, setSuggestions] = useState([]);
     const [prompts, setPrompts] = useState([]);
@@ -35,6 +36,46 @@ const WritingAssistant = ({
     const [appliedSuggestions, setAppliedSuggestions] = useState([]);
     const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
     const [showChanges, setShowChanges] = useState(false);
+
+    // Función para obtener el estilo del asistente basado en las preferencias
+    const getWritingAssistantStyle = () => {
+        const style = userPrefs.writingAssistantStyle || 'creativo';
+        
+        const styleConfigs = {
+            'formal': {
+                tone: 'formal y académico',
+                approach: 'enfocado en la estructura y claridad del texto',
+                suggestions: 'sugerencias para mejorar la coherencia y el flujo académico',
+                prompts: 'prompts para desarrollar ideas de manera estructurada'
+            },
+            'creativo': {
+                tone: 'creativo y expresivo',
+                approach: 'enfocado en la expresión emocional y la creatividad',
+                suggestions: 'sugerencias para enriquecer la expresión y la creatividad',
+                prompts: 'prompts para despertar la creatividad y la imaginación'
+            },
+            'simple': {
+                tone: 'simple y claro',
+                approach: 'enfocado en la claridad y simplicidad del mensaje',
+                suggestions: 'sugerencias para simplificar y clarificar el texto',
+                prompts: 'prompts para expresar ideas de manera simple y directa'
+            },
+            'detallado': {
+                tone: 'detallado y descriptivo',
+                approach: 'enfocado en agregar detalles y descripciones',
+                suggestions: 'sugerencias para enriquecer con detalles y descripciones',
+                prompts: 'prompts para desarrollar descripciones detalladas'
+            },
+            'conciso': {
+                tone: 'conciso y directo',
+                approach: 'enfocado en la brevedad y precisión',
+                suggestions: 'sugerencias para hacer el texto más conciso y directo',
+                prompts: 'prompts para expresar ideas de manera concisa'
+            }
+        };
+        
+        return styleConfigs[style] || styleConfigs['creativo'];
+    };
 
     // Function to generate hash of the entry
     const generateEntryHash = (entry) => {
@@ -174,7 +215,8 @@ const WritingAssistant = ({
         setIsLoading(true);
         
         try {
-            const prompt = `Actúa como un asistente de escritura experto. Analiza la siguiente entrada de diario y proporciona 3-4 sugerencias específicas para mejorar la escritura. Considera:
+            const styleConfig = getWritingAssistantStyle();
+            const prompt = `Actúa como un asistente de escritura experto con estilo ${styleConfig.tone} y enfoque ${styleConfig.approach}. Analiza la siguiente entrada de diario y proporciona 3-4 sugerencias específicas para mejorar la escritura. Considera:
 
 1. Estructura y organización
 2. Claridad y expresividad
@@ -185,6 +227,8 @@ Para cada sugerencia, proporciona:
 - Título corto
 - Descripción del problema
 - Ejemplo de mejora específica
+
+Mantén tu estilo ${styleConfig.tone} y enfócate en ${styleConfig.suggestions}.
 
 Formato de respuesta (JSON):
 {
@@ -315,9 +359,12 @@ Responde solo con el JSON válido.`;
         setIsLoading(true);
         
         try {
-            const prompt = `Actúa como un asistente de escritura creativo. Basándote en el contenido de esta entrada de diario, genera 6 prompts específicos y personalizados para ayudar al usuario a expandir su reflexión.
+            const styleConfig = getWritingAssistantStyle();
+            const prompt = `Actúa como un asistente de escritura creativo con estilo ${styleConfig.tone} y enfoque ${styleConfig.approach}. Basándote en el contenido de esta entrada de diario, genera 6 prompts específicos y personalizados para ayudar al usuario a expandir su reflexión.
 
 Considera el contexto emocional y temático de la entrada para crear prompts relevantes.
+
+Mantén tu estilo ${styleConfig.tone} y enfócate en ${styleConfig.prompts}.
 
 Formato de respuesta (JSON):
 {

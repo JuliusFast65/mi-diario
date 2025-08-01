@@ -5,10 +5,46 @@ const BasicWritingAssistant = ({
     onClose, 
     currentEntry, 
     onUpdateEntry,
-    currentTheme = 'dark'
+    currentTheme = 'dark',
+    userPrefs = {} // Agregar userPrefs como prop
 }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [aiResponse, setAiResponse] = useState('');
+
+    // Función para obtener el estilo del asistente basado en las preferencias
+    const getWritingAssistantStyle = () => {
+        const style = userPrefs.writingAssistantStyle || 'creativo';
+        
+        const styleConfigs = {
+            'formal': {
+                tone: 'formal y académico',
+                approach: 'enfocado en la estructura y claridad del texto',
+                suggestions: 'sugerencias para mejorar la coherencia y el flujo académico'
+            },
+            'creativo': {
+                tone: 'creativo y expresivo',
+                approach: 'enfocado en la expresión emocional y la creatividad',
+                suggestions: 'sugerencias para enriquecer la expresión y la creatividad'
+            },
+            'simple': {
+                tone: 'simple y claro',
+                approach: 'enfocado en la claridad y simplicidad del mensaje',
+                suggestions: 'sugerencias para simplificar y clarificar el texto'
+            },
+            'detallado': {
+                tone: 'detallado y descriptivo',
+                approach: 'enfocado en agregar detalles y descripciones',
+                suggestions: 'sugerencias para enriquecer con detalles y descripciones'
+            },
+            'conciso': {
+                tone: 'conciso y directo',
+                approach: 'enfocado en la brevedad y precisión',
+                suggestions: 'sugerencias para hacer el texto más conciso y directo'
+            }
+        };
+        
+        return styleConfigs[style] || styleConfigs['creativo'];
+    };
 
     const callAI = async (prompt, title) => {
         setIsLoading(true);
@@ -34,10 +70,12 @@ const BasicWritingAssistant = ({
     };
 
     const handleWritingAssistant = async () => {
+        const styleConfig = getWritingAssistantStyle();
+        
         // Verificar si el texto está vacío
         if (!currentEntry?.text || currentEntry.text.trim() === '') {
             // Sugerir qué y cómo escribir cuando la entrada está vacía
-            const prompt = `Eres un asistente de escritura creativa especializado en diarios personales. El usuario tiene una entrada de diario vacía y necesita ayuda para comenzar a escribir.
+            const prompt = `Eres un asistente de escritura creativa especializado en diarios personales con un estilo ${styleConfig.tone}. El usuario tiene una entrada de diario vacía y necesita ayuda para comenzar a escribir.
 
 Proporciona sugerencias útiles y motivadoras que incluyan:
 
@@ -46,7 +84,7 @@ Proporciona sugerencias útiles y motivadoras que incluyan:
 3. **Técnicas de escritura** (2-3 consejos prácticos) para superar el bloqueo del escritor
 4. **Un ejemplo breve** de cómo podría comenzar una entrada de diario
 
-Mantén un tono cálido, empático y motivador. No uses formato especial, solo texto natural y conversacional.
+Mantén un tono ${styleConfig.tone} y un enfoque ${styleConfig.approach}. No uses formato especial, solo texto natural y conversacional.
 
 Ejemplo de estructura:
 "¡Hola! Veo que tienes una página en blanco esperando tus pensamientos. Aquí tienes algunas ideas para comenzar:
@@ -73,9 +111,21 @@ Ejemplo de estructura:
             return;
         }
 
-        // Comportamiento actual para texto existente
+        // Comportamiento actual para texto existente con estilo personalizado
         const currentText = currentEntry.text.trim();
-        const prompt = `Eres un editor de texto. Revisa la siguiente entrada de diario. - Corrige gramática y ortografía y mejora el flujo. - No cambies la voz del autor. - Ofrece tus explicaciones o comentarios si lo deseas. - Al final, presenta la versión mejorada del texto envuelta entre tres arrobas. Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dentro.@@@" - Si el texto de entrada está vacío, devuelve un mensaje indicándolo.\n\n**Texto Original:**\n"${currentText}"`;
+        const prompt = `Eres un editor de texto con estilo ${styleConfig.tone}. Revisa la siguiente entrada de diario con un enfoque ${styleConfig.approach}. 
+
+- Corrige gramática y ortografía
+- Mejora el flujo del texto manteniendo el estilo ${styleConfig.tone}
+- Ofrece ${styleConfig.suggestions}
+- No cambies la voz del autor
+- Ofrece tus explicaciones o comentarios si lo deseas
+- Al final, presenta la versión mejorada del texto envuelta entre tres arrobas
+
+Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dentro.@@@"
+
+**Texto Original:**
+"${currentText}"`;
         
         await callAI(prompt, "Sugerencias del Asistente");
     };
