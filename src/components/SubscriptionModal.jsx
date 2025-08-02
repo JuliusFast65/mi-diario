@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 import PaymentGateway from './PaymentGateway';
 
 export default function SubscriptionModal({ isOpen, onClose, db, user, subscription, updateSubscription }) {
+    const { t } = useTranslation();
     const [selectedPlan, setSelectedPlan] = useState(subscription?.plan || 'premium');
     const [isProcessing, setIsProcessing] = useState(false);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -19,39 +21,39 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
     const plans = [
         {
             id: 'free',
-            name: 'Gratis',
+            name: t('subscription.free'),
             price: 0,
-            period: 'para siempre',
+            period: t('subscription.forever'),
             features: [
-                'Entradas de diario ilimitadas',
-                'Actividades básicas (3 máximo por día)',
-                'Asistente de escritura IA',
-                'Consejo del Terapeuta IA',
-                'Estadísticas básicas',
-                'Importación desde txt o css',
-                'Exportación básica',
-                'Sincronización entre dispositivos'
+                t('subscription.unlimitedEntries'),
+                t('subscription.basicActivities'),
+                t('subscription.aiWritingAssistant'),
+                t('subscription.aiTherapistAdvice'),
+                t('subscription.basicStatistics'),
+                t('subscription.importFromTxtCsv'),
+                t('subscription.basicExport'),
+                t('subscription.syncBetweenDevices')
             ],
             color: 'gray',
             popular: false
         },
         {
             id: 'premium',
-            name: 'Premium',
+            name: t('subscription.premium'),
             price: 4.99,
-            period: 'por mes',
+            period: t('subscription.perMonth'),
             features: [
-                'Todo del plan Gratis',
-                'Actividades ilimitadas',
-                'Estadísticas detalladas',
-                'Chat con terapeuta virtual',
-                'Asistente avanzado de escritura con IA',
-                'Análisis de patrones de comportamiento',
-                'Autenticación de dos factores',
-                'Exportación avanzada (PDF, Word)',
-                'Temas personalizados',
-                'Soporte prioritario',
-                'Acceso anticipado a nuevas funciones'
+                t('subscription.everythingFromFree'),
+                t('subscription.unlimitedActivities'),
+                t('subscription.detailedStatistics'),
+                t('subscription.virtualTherapistChat'),
+                t('subscription.advancedWritingAssistant'),
+                t('subscription.behaviorPatternAnalysis'),
+                t('subscription.twoFactorAuth'),
+                t('subscription.advancedExport'),
+                t('subscription.customThemes'),
+                t('subscription.prioritySupport'),
+                t('subscription.earlyAccess')
             ],
             color: 'blue',
             popular: true
@@ -60,7 +62,7 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
 
     const handleUpgrade = async () => {
         if (selectedPlan === subscription.plan) {
-            alert('Ya tienes este plan activo');
+            alert(t('subscription.alreadyHaveThisPlan'));
             return;
         }
         
@@ -78,10 +80,10 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                 
                 await updateSubscription(newSubscription);
                 onClose();
-                alert('Plan gratuito activado exitosamente');
+                alert(t('subscription.freePlanActivated'));
             } catch (error) {
                 console.error('Error al actualizar suscripción:', error);
-                alert('Error al actualizar la suscripción. Inténtalo de nuevo.');
+                alert(t('subscription.updateError'));
             } finally {
                 setIsProcessing(false);
             }
@@ -106,10 +108,10 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
             
             setIsPaymentModalOpen(false);
             onClose();
-            alert(`¡Plan ${selectedPlan} activado exitosamente!`);
+            alert(t('subscription.planActivatedSuccessfully', { plan: selectedPlan }));
         } catch (error) {
             console.error('Error al actualizar suscripción después del pago:', error);
-            alert('Error al activar el plan. El pago fue exitoso pero hubo un problema al actualizar tu suscripción.');
+            alert(t('subscription.activationError'));
         } finally {
             setIsProcessing(false);
         }
@@ -154,7 +156,7 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-300">
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-900">Planes de Suscripción</h2>
+                        <h2 className="text-2xl font-bold text-gray-900">{t('subscription.subscriptionPlans')}</h2>
                     </div>
                     <button
                         onClick={onClose}
@@ -170,16 +172,16 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                 <div className="p-6 bg-blue-50 border-b">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="font-semibold text-blue-800">Plan Actual</h3>
+                            <h3 className="font-semibold text-blue-800">{t('subscription.currentPlan')}</h3>
                             <p className="text-blue-600">{getCurrentPlan().name}</p>
                         </div>
                         <div className="text-right">
                             <p className="text-sm text-blue-600">
-                                {subscription.isPremium ? 'Premium activo' : 'Plan gratuito'}
+                                {subscription.isPremium ? t('subscription.premiumActive') : t('subscription.freePlan')}
                             </p>
                             {subscription.expiresAt && (
                                 <p className="text-xs text-blue-500">
-                                    Expira: {subscription.expiresAt.toLocaleDateString()}
+                                    {t('subscription.expires')}: {subscription.expiresAt.toLocaleDateString()}
                                 </p>
                             )}
                         </div>
@@ -201,7 +203,7 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                                 {plan.popular && (
                                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                                         <span className="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-medium">
-                                            Más Popular
+                                            {t('subscription.mostPopular')}
                                         </span>
                                     </div>
                                 )}
@@ -226,10 +228,10 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                                         }`}
                                     >
                                         {selectedPlan === plan.id 
-                                            ? (subscription.plan === plan.id ? 'Plan Actual' : 'Seleccionado')
+                                            ? (subscription.plan === plan.id ? t('subscription.currentPlan') : t('subscription.selected'))
                                             : subscription.plan === plan.id 
-                                            ? 'Plan Actual' 
-                                            : (subscription.plan === 'free' && plan.id !== 'free' ? 'Actualizar' : 'Seleccionar')
+                                            ? t('subscription.currentPlan') 
+                                            : (subscription.plan === 'free' && plan.id !== 'free' ? t('subscription.upgrade') : t('subscription.select'))
                                         }
                                     </button>
                                 </div>
@@ -254,11 +256,11 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-600">
-                                Plan seleccionado: <span className="font-medium">{plans.find(p => p.id === selectedPlan)?.name}</span>
+                                {t('subscription.selectedPlan')}: <span className="font-medium">{plans.find(p => p.id === selectedPlan)?.name}</span>
                             </p>
                             {selectedPlan !== 'free' && (
                                 <p className="text-xs text-gray-500">
-                                    Se te cobrará ${plans.find(p => p.id === selectedPlan)?.price} al confirmar
+                                    {t('subscription.youWillBeCharged', { price: plans.find(p => p.id === selectedPlan)?.price })}
                                 </p>
                             )}
                         </div>
@@ -267,7 +269,7 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                                 onClick={onClose}
                                 className="px-4 py-2 text-gray-600 hover:text-gray-800"
                             >
-                                Cancelar
+                                {t('common.cancel')}
                             </button>
                             <button
                                 onClick={handleUpgrade}
@@ -281,10 +283,10 @@ export default function SubscriptionModal({ isOpen, onClose, db, user, subscript
                                 {isProcessing ? (
                                     <div className="flex items-center">
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                        Procesando...
+                                        {t('subscription.processing')}
                                     </div>
                                 ) : (
-                                    selectedPlan === subscription.plan ? 'Plan Actual' : 'Confirmar Actualización'
+                                    selectedPlan === subscription.plan ? t('subscription.currentPlan') : t('subscription.confirmUpgrade')
                                 )}
                             </button>
 

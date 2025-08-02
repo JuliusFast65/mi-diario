@@ -415,7 +415,7 @@ const DiaryApp = ({ user }) => {
         const selectedTone = toneConfigs[motivationalTone] || toneConfigs['espiritual'];
         
         const prompt = `Actúa como un ${selectedTone}. Escribe una frase inspiradora, corta y única para empezar el día. Sé profundo pero conciso. No añadas introducciones, saludos, ni comillas, solo la frase.`;
-        callAI(prompt, "Mensaje del Día");
+        callAI(prompt, t('inspirationalMessage.title'));
     };
     
     const handleImportEntries = async (date, title, content, activities, conflictMode = 'overwrite') => {

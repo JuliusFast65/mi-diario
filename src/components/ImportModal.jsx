@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function ImportModal({ isOpen, onClose, onImportEntries, user, db, appId, currentTheme = 'dark' }) {
+    const { t } = useTranslation();
     const [isProcessing, setIsProcessing] = useState(false);
     const [dragActive, setDragActive] = useState(false);
     const [fileInfo, setFileInfo] = useState(null);
@@ -284,7 +286,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
             const structure = detectFileStructure(content);
 
             if (!structure) {
-                throw new Error('No se pudo detectar la estructura del archivo');
+                throw new Error(t('import.structureError'));
             }
 
             setFileInfo({
@@ -301,7 +303,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
 
         } catch (error) {
             console.error('Error procesando archivo:', error);
-            alert('Error al procesar el archivo: ' + error.message);
+            alert(t('import.processingError') + ' ' + error.message);
         } finally {
             setIsProcessing(false);
         }
@@ -423,13 +425,13 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                 }
             }
 
-            alert(`Importación completada:\n✅ ${importedCount} entradas importadas\n⏭️ ${skippedCount} entradas omitidas`);
+            alert(`${t('import.importCompleted')}\n${t('import.entriesImported', { count: importedCount })}\n${t('import.entriesSkipped', { count: skippedCount })}`);
             // No cerrar el modal, solo resetear la selección
             setSelectedEntries([]);
 
         } catch (error) {
             console.error('Error importando entradas:', error);
-            alert('Error durante la importación: ' + error.message);
+            alert(t('import.importError') + ' ' + error.message);
         } finally {
             setIsProcessing(false);
         }
@@ -481,13 +483,13 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                 }
             }
 
-            alert(`Importación completada:\n✅ ${importedCount} entradas importadas\n⏭️ ${skippedCount} entradas omitidas`);
+            alert(`${t('import.importCompleted')}\n${t('import.entriesImported', { count: importedCount })}\n${t('import.entriesSkipped', { count: skippedCount })}`);
             // No cerrar el modal, solo resetear la selección
             setSelectedEntries([]);
 
         } catch (error) {
             console.error('Error importando entradas:', error);
-            alert('Error durante la importación: ' + error.message);
+            alert(t('import.importError') + ' ' + error.message);
         } finally {
             setIsProcessing(false);
         }
@@ -514,7 +516,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
             if (file.type === 'text/plain' || file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
                 processFile(file);
             } else {
-                alert('Por favor, selecciona un archivo TXT o CSV');
+                alert(t('import.pleaseSelectFile'));
             }
         }
     };
@@ -532,7 +534,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
         <div className={`fixed inset-0 ${currentTheme === 'dark' ? 'bg-black bg-opacity-50' : 'bg-black bg-opacity-50'} flex items-center justify-center z-50`}>
             <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto`}>
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className={`text-2xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Importar Entradas</h2>
+                    <h2 className={`text-2xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('import.title')}</h2>
                     <button
                         onClick={onClose}
                         className={`${currentTheme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
@@ -545,13 +547,13 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
 
                 {/* Instrucciones */}
                 <div className={`mb-6 p-4 ${currentTheme === 'dark' ? 'bg-blue-900 bg-opacity-20' : 'bg-blue-50'} rounded-lg`}>
-                    <h3 className={`font-semibold ${currentTheme === 'dark' ? 'text-blue-200' : 'text-blue-900'} mb-2`}>📋 Instrucciones:</h3>
+                    <h3 className={`font-semibold ${currentTheme === 'dark' ? 'text-blue-200' : 'text-blue-900'} mb-2`}>📋 {t('import.instructions')}</h3>
                     <ul className={`text-sm ${currentTheme === 'dark' ? 'text-blue-100' : 'text-blue-800'} space-y-1`}>
-                        <li>• <strong>TXT Simple:</strong> Una fecha por línea, seguida del contenido</li>
-                        <li>• <strong>TXT Estructurado:</strong> ##### DATE: YYYY-MM-DD ########## seguido del contenido y ##### END #######################</li>
-                        <li>• <strong>CSV:</strong> Columnas: fecha, título, contenido, actividades</li>
-                        <li>• <strong>Formatos de fecha:</strong> YYYY-MM-DD, DD/MM/YYYY, MM/DD/YYYY</li>
-                        <li>• <strong>⚠️ Advertencia:</strong> Las entradas existentes serán sobrescritas</li>
+                        <li>• <strong>{t('import.txtSimple')}</strong></li>
+                        <li>• <strong>{t('import.txtStructured')}</strong></li>
+                        <li>• <strong>{t('import.csv')}</strong></li>
+                        <li>• <strong>{t('import.dateFormats')}</strong></li>
+                        <li>• <strong>{t('import.warning')}</strong></li>
                     </ul>
                 </div>
 
@@ -581,16 +583,16 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                 <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                             <p className={`text-lg ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-2`}>
-                                Arrastra tu archivo aquí o
+                                {t('import.dragDropText')}
                             </p>
                             <button
                                 onClick={() => fileInputRef.current?.click()}
                                 className="text-blue-600 hover:text-blue-800 font-medium"
                             >
-                                selecciona un archivo
+                                {t('import.selectFile')}
                             </button>
                             <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-2`}>
-                                Soporta archivos TXT y CSV
+                                {t('import.supportedFormats')}
                             </p>
                         </div>
                     ) : (
@@ -613,32 +615,32 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                 {/* Resultados de detección */}
                                             {detectionResult && (
                                 <div className={`mt-4 p-3 ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg`}>
-                                    <h3 className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} text-sm mb-3`}>🔍 Análisis del Archivo</h3>
+                                    <h3 className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} text-sm mb-3`}>🔍 {t('import.fileAnalysis')}</h3>
                                     {previewData && (
                                         <button
                                             onClick={() => setShowPreview(!showPreview)}
                                             className="w-full mb-3 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                                         >
-                                            {showPreview ? 'Ocultar' : 'Mostrar'} Previsualización
+                                            {showPreview ? t('import.hidePreview') : t('import.showPreview')}
                                         </button>
                                     )}
                         <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}><strong>Tipo:</strong> {detectionResult.type.toUpperCase()}</div>
-                            <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}><strong>Formato:</strong> {detectionResult.dateFormat || 'No detectado'}</div>
-                            <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}><strong>Entradas:</strong> {detectionResult.totalLines}</div>
+                            <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}><strong>{t('import.type')}:</strong> {detectionResult.type.toUpperCase()}</div>
+                            <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}><strong>{t('import.format')}:</strong> {detectionResult.dateFormat || t('import.notDetected')}</div>
+                            <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}><strong>{t('import.entries')}:</strong> {detectionResult.totalLines}</div>
                             
                             {detectionResult.type === 'csv' && (
-                                <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}><strong>Separador:</strong> {detectionResult.separator}</div>
+                                <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}><strong>{t('import.separator')}:</strong> {detectionResult.separator}</div>
                             )}
                         </div>
                         
                         {detectionResult.type === 'csv' && (
                             <div className={`mt-2 pt-2 border-t ${currentTheme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
-                                <div className={`text-xs ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}><strong>Columnas:</strong></div>
+                                <div className={`text-xs ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}><strong>{t('import.columns')}:</strong></div>
                                 <div className={`grid grid-cols-2 gap-1 text-xs ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                                     {Object.entries(detectionResult.columnMapping).map(([key, index]) => (
                                         <div key={key}>
-                                            • {key}: {index !== null ? detectionResult.headers[index] : 'No detectado'}
+                                            • {key}: {index !== null ? detectionResult.headers[index] : t('import.notDetected')}
                                         </div>
                                     ))}
                                 </div>
@@ -650,32 +652,32 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                 {/* Previsualización de entradas */}
                 {showPreview && previewData && (
                     <div className={`mt-6 p-4 ${currentTheme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'} border rounded-lg`}>
-                        <h3 className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} mb-4`}>📋 Previsualización de Entradas</h3>
+                        <h3 className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} mb-4`}>📋 {t('import.previewTitle')}</h3>
                         
                         {/* Estadísticas */}
                         <div className={`mb-4 p-3 ${currentTheme === 'dark' ? 'bg-blue-900 bg-opacity-20' : 'bg-blue-50'} rounded-lg`}>
                             <div className="grid grid-cols-3 gap-4 text-sm">
                                 <div className="text-center">
                                     <div className="font-bold text-blue-600">{previewData.total}</div>
-                                    <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Total</div>
+                                    <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>{t('import.total')}</div>
                                 </div>
                                 <div className="text-center">
                                     <div className="font-bold text-green-600">{previewData.valid}</div>
-                                    <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Válidas</div>
+                                    <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>{t('import.valid')}</div>
                                 </div>
                                 <div className="text-center">
                                     <div className="font-bold text-red-600">{previewData.invalid}</div>
-                                    <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Inválidas</div>
+                                    <div className={currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>{t('import.invalid')}</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Filtros */}
                         <div className={`mb-4 p-3 ${currentTheme === 'dark' ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg`}>
-                            <h4 className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Filtros</h4>
+                            <h4 className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>{t('import.filters')}</h4>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-1`}>Desde:</label>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-1`}>{t('import.from')}:</label>
                                     <input
                                         type="date"
                                         value={dateFilter.start}
@@ -684,7 +686,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                     />
                                 </div>
                                 <div>
-                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-1`}>Hasta:</label>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-1`}>{t('import.to')}:</label>
                                     <input
                                         type="date"
                                         value={dateFilter.end}
@@ -697,7 +699,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
 
                         {/* Opciones de conflicto */}
                         <div className={`mb-4 p-3 ${currentTheme === 'dark' ? 'bg-yellow-900 bg-opacity-20' : 'bg-yellow-50'} rounded-lg`}>
-                            <h4 className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>Modo de Conflicto</h4>
+                            <h4 className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>{t('import.conflictMode')}</h4>
                             <div className="space-y-2">
                                 <label className="flex items-center">
                                     <input
@@ -707,7 +709,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                         onChange={(e) => setConflictMode(e.target.value)}
                                         className="mr-2"
                                     />
-                                    <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} font-medium`}>Sobrescribir entradas existentes</span>
+                                    <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} font-medium`}>{t('import.overwriteExisting')}</span>
                                 </label>
                                 <label className="flex items-center">
                                     <input
@@ -717,7 +719,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                         onChange={(e) => setConflictMode(e.target.value)}
                                         className="mr-2"
                                     />
-                                    <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} font-medium`}>Saltar entradas existentes</span>
+                                    <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} font-medium`}>{t('import.skipExisting')}</span>
                                 </label>
                                 <label className="flex items-center">
                                     <input
@@ -727,7 +729,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                         onChange={(e) => setConflictMode(e.target.value)}
                                         className="mr-2"
                                     />
-                                    <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} font-medium`}>Crear nueva versión (agregar sufijo)</span>
+                                    <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} font-medium`}>{t('import.createNewVersion')}</span>
                                 </label>
                             </div>
                         </div>
@@ -735,7 +737,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                         {/* Contador de selección */}
                         <div className="mb-4 flex justify-end">
                             <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
-                                {selectedEntries.length} de {getFilteredEntries().length} seleccionadas
+                                {t('import.selectedOf', { selected: selectedEntries.length, total: getFilteredEntries().length })}
                             </span>
                         </div>
 
@@ -761,13 +763,13 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                                     }
                                                 }}
                                                 className="mr-2"
-                                                title="Seleccionar todas las entradas visibles"
+                                                title={t('import.selectAllVisible')}
                                             />
                                         </th>
-                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Fecha</th>
-                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Título</th>
-                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Contenido</th>
-                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Estado</th>
+                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('import.date')}</th>
+                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('import.title')}</th>
+                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('import.content')}</th>
+                                        <th className={`px-2 py-2 text-left font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('import.status')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -797,7 +799,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                                         ? 'bg-green-100 text-green-800' 
                                                         : 'bg-red-100 text-red-800'
                                                 }`}>
-                                                    {entry.isValid ? 'Válida' : 'Inválida'}
+                                                    {entry.isValid ? t('import.valid') : t('import.invalid')}
                                                 </span>
                                             </td>
                                         </tr>
@@ -819,9 +821,9 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                     : 'text-blue-700 bg-blue-100 hover:bg-blue-200'
                             }`}
                             disabled={isProcessing}
-                            title="Cargar un archivo diferente"
+                            title={t('import.loadDifferentFile')}
                         >
-                            Nuevo Archivo
+                            {t('import.newFile')}
                         </button>
                     )}
                     <button
@@ -833,7 +835,7 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                         }`}
                         disabled={isProcessing}
                     >
-                        Cancelar
+                        {t('common.cancel')}
                     </button>
                     
                     {showPreview && previewData ? (
@@ -848,10 +850,10 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Importando...
+                                    {t('import.importing')}
                                 </span>
                             ) : (
-                                `Importar ${selectedEntries.length} Seleccionadas`
+                                t('import.importSelected', { count: selectedEntries.length })
                             )}
                         </button>
                     ) : (
@@ -866,10 +868,10 @@ export default function ImportModal({ isOpen, onClose, onImportEntries, user, db
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Importando...
+                                    {t('import.importing')}
                                 </span>
                             ) : (
-                                'Importar Todas las Entradas'
+                                t('import.importAllEntries')
                             )}
                         </button>
                     )}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { loadStripe } from '@stripe/stripe-js';
 import { PAYMENT_CONFIG, createMockCheckoutSession } from '../utils/paymentConfig';
 
@@ -13,6 +14,7 @@ export default function PaymentGateway({
     onPaymentError,
     user 
 }) {
+    const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [stripe, setStripe] = useState(null);
@@ -30,13 +32,13 @@ export default function PaymentGateway({
             setStripe(stripeInstance);
         } catch (error) {
             console.error('Error al cargar Stripe:', error);
-            setError('Error al cargar el sistema de pagos');
+            setError(t('payment.loadError'));
         }
     };
 
     const handlePayment = async () => {
         if (!user) {
-            setError('Usuario no autenticado');
+            setError(t('payment.userNotAuthenticated'));
             return;
         }
 
@@ -54,7 +56,7 @@ export default function PaymentGateway({
 
         } catch (error) {
             console.error('Error en el pago:', error);
-            setError('Error al procesar el pago. Inténtalo de nuevo.');
+            setError(t('payment.processingError'));
             onPaymentError?.(error);
         } finally {
             setIsLoading(false);
@@ -64,20 +66,20 @@ export default function PaymentGateway({
     const getPlanDetails = (planId) => {
         const plans = {
             premium: {
-                name: 'Premium',
+                name: t('subscription.premium'),
                 price: 4.99,
-                period: 'mes',
+                period: t('subscription.perMonth'),
                 features: [
-                    'Actividades ilimitadas',
-                    'Exportación avanzada',
-                    'Temas personalizados',
-                    'Estadísticas detalladas',
-                    'Chat con terapeuta virtual',
-                    'Asistente de escritura con IA',
-                    'Análisis de patrones de comportamiento',
-                    'Autenticación de dos factores',
-                    'Soporte prioritario',
-                    'Acceso anticipado a nuevas funciones'
+                    t('subscription.unlimitedActivities'),
+                    t('subscription.advancedExport'),
+                    t('subscription.customThemes'),
+                    t('subscription.detailedStatistics'),
+                    t('subscription.virtualTherapistChat'),
+                    t('subscription.advancedWritingAssistant'),
+                    t('subscription.behaviorPatternAnalysis'),
+                    t('subscription.twoFactorAuth'),
+                    t('subscription.prioritySupport'),
+                    t('subscription.earlyAccess')
                 ]
             }
         };
@@ -94,8 +96,8 @@ export default function PaymentGateway({
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">Confirmar Pago</h2>
-                        <p className="text-sm text-gray-600">Plan {planDetails.name}</p>
+                        <h2 className="text-xl font-bold text-gray-900">{t('payment.confirmPayment')}</h2>
+                        <p className="text-sm text-gray-600">{t('payment.plan', { plan: planDetails.name })}</p>
                     </div>
                     <button
                         onClick={onClose}
@@ -114,10 +116,10 @@ export default function PaymentGateway({
                         <span className="font-semibold text-gray-900">{planDetails.name}</span>
                         <span className="text-2xl font-bold text-gray-900">${planDetails.price}</span>
                     </div>
-                    <p className="text-sm text-gray-600">por {planDetails.period}</p>
+                    <p className="text-sm text-gray-600">{t('payment.per', { period: planDetails.period })}</p>
                     
                     <div className="mt-4">
-                        <h4 className="font-medium text-gray-900 mb-2">Incluye:</h4>
+                        <h4 className="font-medium text-gray-900 mb-2">{t('payment.includes')}:</h4>
                         <ul className="space-y-1">
                             {planDetails.features.map((feature, index) => (
                                 <li key={index} className="flex items-center text-sm text-gray-700">
@@ -134,16 +136,16 @@ export default function PaymentGateway({
                 {/* Payment Info */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">Subtotal:</span>
+                        <span className="text-sm text-gray-600">{t('payment.subtotal')}:</span>
                         <span className="text-sm text-gray-900">${planDetails.price}</span>
                     </div>
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">Impuestos:</span>
+                        <span className="text-sm text-gray-600">{t('payment.taxes')}:</span>
                         <span className="text-sm text-gray-900">$0.00</span>
                     </div>
                     <div className="border-t pt-2">
                         <div className="flex items-center justify-between">
-                            <span className="font-semibold text-gray-900">Total:</span>
+                            <span className="font-semibold text-gray-900">{t('payment.total')}:</span>
                             <span className="text-xl font-bold text-gray-900">${planDetails.price}</span>
                         </div>
                     </div>
@@ -163,7 +165,7 @@ export default function PaymentGateway({
                         className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                         disabled={isLoading}
                     >
-                        Cancelar
+                        {t('common.cancel')}
                     </button>
                     <button
                         onClick={handlePayment}
@@ -173,10 +175,10 @@ export default function PaymentGateway({
                         {isLoading ? (
                             <div className="flex items-center justify-center">
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                Procesando...
+                                {t('payment.processing')}
                             </div>
                         ) : (
-                            `Pagar $${planDetails.price}`
+                            t('payment.payAmount', { amount: planDetails.price })
                         )}
                     </button>
                 </div>
@@ -184,7 +186,7 @@ export default function PaymentGateway({
                 {/* Security Notice */}
                 <div className="mt-4 text-center">
                     <p className="text-xs text-gray-500">
-                        🔒 Pago seguro procesado por Stripe
+                        🔒 {t('payment.securePayment')}
                     </p>
                 </div>
             </div>

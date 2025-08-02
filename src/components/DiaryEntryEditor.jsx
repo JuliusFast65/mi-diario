@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 // Importar ActivityTrackerItem desde el mismo directorio temporalmente
 import ActivityTrackerItem from './ActivityTrackerItem';
 import DeleteConfirmModal from './DeleteConfirmModal';
-import LanguageSelector from './LanguageSelector';
 
 // Estilos CSS para options en diferentes temas
 const selectStyles = `
@@ -239,11 +238,6 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                                         </select>
                                     </div>
                                     <div className="flex-grow"></div>
-                                    <LanguageSelector 
-                                        userPrefs={userPrefs} 
-                                        onUpdateUserPrefs={onUpdateUserPrefs} 
-                                        currentTheme={currentTheme} 
-                                    />
                                     <button 
                                         onClick={() => window.dispatchEvent(new CustomEvent('openOnboarding'))} 
                                         title={t('diary.helpTutorial')} 
