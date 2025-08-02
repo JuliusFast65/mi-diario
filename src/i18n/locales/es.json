@@ -417,7 +417,8 @@
     "errorProcessing": "No se pudo procesar la respuesta.",
     "connectionError": "Error al conectar con la IA.",
     "noEntryWritten": "No se escribió nada.",
-    "noActivitiesRegistered": "No se registraron actividades."
+    "noActivitiesRegistered": "No se registraron actividades.",
+    "noContentToAnalyze": "No se puede realizar el análisis sin contenido. Por favor, escribe algo en tu entrada o selecciona un texto específico para analizar."
   },
   "export": {
     "title": "Exportar Entradas",

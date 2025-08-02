@@ -15,7 +15,8 @@ const WritingAssistant = ({
     appId,
     selectedDate,
     currentTheme,
-    userPrefs = {} // Agregar userPrefs como prop
+    userPrefs = {}, // Agregar userPrefs como prop
+    selectedTextForAI = null // Texto seleccionado por el usuario
 }) => {
     const [suggestions, setSuggestions] = useState([]);
     const [prompts, setPrompts] = useState([]);
@@ -193,7 +194,22 @@ const WritingAssistant = ({
 
     // Function to generate AI-powered suggestions
     const generateAISuggestions = async () => {
-        if (!currentEntry?.text || currentEntry.text.length < 20) {
+        // Si hay texto seleccionado, usarlo en lugar del texto completo
+        let textToAnalyze = currentEntry?.text || '';
+        let analysisContext = 'entrada de diario';
+        let minLength = 20;
+        
+        if (selectedTextForAI && selectedTextForAI.trim() !== '') {
+            textToAnalyze = selectedTextForAI.trim();
+            analysisContext = 'fragmento de texto seleccionado';
+            minLength = 10; // Menor longitud mínima para texto seleccionado
+            console.log('✍️ Analizando texto seleccionado para sugerencias:', {
+                selectedTextLength: selectedTextForAI.length,
+                selectedTextPreview: selectedTextForAI.substring(0, 100) + '...'
+            });
+        }
+        
+        if (!textToAnalyze || textToAnalyze.length < minLength) {
             setSuggestions([]);
             return;
         }
@@ -216,7 +232,7 @@ const WritingAssistant = ({
         
         try {
             const styleConfig = getWritingAssistantStyle();
-            const prompt = `Actúa como un asistente de escritura experto con estilo ${styleConfig.tone} y enfoque ${styleConfig.approach}. Analiza la siguiente entrada de diario y proporciona 3-4 sugerencias específicas para mejorar la escritura. Considera:
+            const prompt = `Actúa como un asistente de escritura experto con estilo ${styleConfig.tone} y enfoque ${styleConfig.approach}. Analiza el siguiente ${analysisContext} y proporciona 3-4 sugerencias específicas para mejorar la escritura. Considera:
 
 1. Estructura y organización
 2. Claridad y expresividad
@@ -244,8 +260,8 @@ Formato de respuesta (JSON):
   ]
 }
 
-Entrada del diario:
-"${currentEntry.text}"
+${analysisContext.charAt(0).toUpperCase() + analysisContext.slice(1)}:
+"${textToAnalyze}"
 
 Responde solo con el JSON válido.`;
             

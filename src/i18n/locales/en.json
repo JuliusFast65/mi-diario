@@ -417,7 +417,8 @@
     "errorProcessing": "Could not process the response.",
     "connectionError": "Error connecting to AI.",
     "noEntryWritten": "Nothing was written.",
-    "noActivitiesRegistered": "No activities were registered."
+    "noActivitiesRegistered": "No activities were registered.",
+    "noContentToAnalyze": "Analysis cannot be performed without content. Please write something in your entry or select specific text to analyze."
   },
   "export": {
     "title": "Export Entries",

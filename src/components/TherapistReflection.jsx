@@ -12,7 +12,8 @@ const TherapistReflection = ({
     currentEntry, 
     activities,
     currentTheme,
-    userPrefs = {} // Agregar userPrefs como prop
+    userPrefs = {}, // Agregar userPrefs como prop
+    selectedTextForAI = null // Texto seleccionado por el usuario
 }) => {
     const { t } = useTranslation();
     const [therapistReflection, setTherapistReflection] = useState('');
@@ -301,8 +302,10 @@ const TherapistReflection = ({
 
     // Función para generar análisis (simplificada)
     const generateAnalysis = async (forceNewAnalysis = false) => {
-        console.log('🔄 Generando análisis con currentEntry:', {
-            textLength: (currentEntry?.text || '').length,
+        console.log('🔄 Generando análisis con:', {
+            hasSelectedText: !!selectedTextForAI,
+            selectedTextLength: selectedTextForAI?.length || 0,
+            currentEntryTextLength: (currentEntry?.text || '').length,
             activitiesCount: Object.keys(currentEntry?.tracked || {}).length
         });
         
@@ -313,11 +316,35 @@ const TherapistReflection = ({
             return;
         }
         
+        // Determinar qué texto analizar
+        let textToAnalyze = '';
+        let analysisContext = 'entrada de diario';
+        
+        if (selectedTextForAI && selectedTextForAI.trim() !== '') {
+            textToAnalyze = selectedTextForAI.trim();
+            analysisContext = 'fragmento de texto seleccionado';
+            console.log('🎯 Analizando texto seleccionado:', {
+                selectedTextLength: selectedTextForAI.length,
+                selectedTextPreview: selectedTextForAI.substring(0, 100) + '...'
+            });
+        } else {
+            textToAnalyze = currentEntry?.text || '';
+            analysisContext = 'entrada de diario';
+        }
+        
+        // Verificar si hay contenido para analizar
+        if (!textToAnalyze || textToAnalyze.trim() === '') {
+            console.log('❌ No hay contenido para analizar');
+            setAiResponse(t('therapistReflection.noContentToAnalyze'));
+            return;
+        }
+        
         // Hacer nuevo análisis
         console.log('✅ Generando nuevo análisis...');
         
         const trackedActivitiesSummary = Object.entries(currentEntry?.tracked || {}).map(([activityId, option]) => `- ${activities[activityId]?.name || 'Actividad'}: ${option}`).join('\n');
-        const prompt = `Actúa como un terapeuta ${getTherapistStyle().tone}. Analiza la siguiente entrada de diario y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.\n\n**Entrada del Diario:**\n"${currentEntry?.text || t('therapistReflection.noEntryWritten')}"\n\n**Actividades Registradas:**\n${trackedActivitiesSummary || t('therapistReflection.noActivitiesRegistered')}`;
+        
+        const prompt = `Actúa como un terapeuta ${getTherapistStyle().tone}. Analiza el siguiente ${analysisContext} y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.\n\n**${analysisContext.charAt(0).toUpperCase() + analysisContext.slice(1)}:**\n"${textToAnalyze}"\n\n**Actividades Registradas:**\n${trackedActivitiesSummary || t('therapistReflection.noActivitiesRegistered')}`;
         
         const response = await callAI(prompt);
         if (response) {

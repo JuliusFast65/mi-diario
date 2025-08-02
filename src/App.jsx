@@ -166,6 +166,7 @@ const DiaryApp = ({ user }) => {
     const [aiResponse, setAiResponse] = useState('');
     const [isAILoading, setAILoading] = useState(false);
     const [aiModalTitle, setAIModalTitle] = useState('');
+    const [selectedTextForAI, setSelectedTextForAI] = useState(null);
     const textareaRef = useRef();
 
     useEffect(() => {
@@ -375,9 +376,41 @@ const DiaryApp = ({ user }) => {
             setAILoading(false); 
         }
     };
+    // Función para obtener el texto seleccionado del textarea
+    const getSelectedText = () => {
+        if (typeof window !== 'undefined') {
+            const textarea = document.querySelector('textarea[data-testid="diary-textarea"]') || 
+                            document.querySelector('textarea') ||
+                            document.querySelector('.diary-textarea');
+            
+            if (textarea) {
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                
+                // Si hay texto seleccionado, devolverlo
+                if (start !== end && start >= 0 && end >= 0) {
+                    const selectedText = textarea.value.substring(start, end).trim();
+                    console.log('📝 Texto seleccionado:', {
+                        selectedText: selectedText,
+                        length: selectedText.length,
+                        start: start,
+                        end: end
+                    });
+                    return selectedText;
+                }
+            }
+        }
+        return null;
+    };
+
     const handleConsultAI = () => {
-        console.log('🔍 Abriendo reflexión del terapeuta con currentEntry:', {
-            textLength: (currentEntry?.text || '').length,
+        const selectedText = getSelectedText();
+        setSelectedTextForAI(selectedText);
+        
+        console.log('🔍 Abriendo reflexión del terapeuta con:', {
+            hasSelectedText: !!selectedText,
+            selectedTextLength: selectedText?.length || 0,
+            currentEntryTextLength: (currentEntry?.text || '').length,
             textPreview: (currentEntry?.text || '').substring(0, 100) + '...',
             activitiesCount: Object.keys(currentEntry?.tracked || {}).length
         });
@@ -601,6 +634,14 @@ const DiaryApp = ({ user }) => {
                             }}
 
                             onWritingAssistant={() => {
+                                const selectedText = getSelectedText();
+                                setSelectedTextForAI(selectedText);
+                                console.log('✍️ Abriendo asistente de escritura con:', {
+                                    hasSelectedText: !!selectedText,
+                                    selectedTextLength: selectedText?.length || 0,
+                                    currentEntryTextLength: (currentEntry?.text || '').length
+                                });
+                                
                                 if (subscription?.plan === 'premium') {
                                     setIsWritingAssistantOpen(true);
                                 } else {
@@ -699,7 +740,16 @@ const DiaryApp = ({ user }) => {
                             onAddOption={handleAddOptionToActivity} 
                             onOpenDefineActivitiesModal={() => setDefineActivitiesModalOpen(true)} 
                             onConsultAI={handleConsultAI} 
-                            onWritingAssistant={() => setIsBasicWritingAssistantOpen(true)} 
+                            onWritingAssistant={() => {
+                                const selectedText = getSelectedText();
+                                setSelectedTextForAI(selectedText);
+                                console.log('✍️ Abriendo asistente de escritura básico con:', {
+                                    hasSelectedText: !!selectedText,
+                                    selectedTextLength: selectedText?.length || 0,
+                                    currentEntryTextLength: (currentEntry?.text || '').length
+                                });
+                                setIsBasicWritingAssistantOpen(true);
+                            }} 
                             onUntrackActivity={handleUntrackActivity} 
                             userPrefs={userPrefs} 
                             onUpdateUserPrefs={handleUpdateUserPrefs} 
@@ -819,7 +869,10 @@ const DiaryApp = ({ user }) => {
 
             <TherapistReflection 
                 isOpen={isTherapistReflectionOpen} 
-                onClose={() => setIsTherapistReflectionOpen(false)} 
+                onClose={() => {
+                    setIsTherapistReflectionOpen(false);
+                    setSelectedTextForAI(null);
+                }} 
                 db={db} 
                 user={user} 
                 appId={appId}
@@ -828,19 +881,27 @@ const DiaryApp = ({ user }) => {
                 activities={activities}
                 currentTheme={currentTheme}
                 userPrefs={userPrefs}
+                selectedTextForAI={selectedTextForAI}
             />
 
             <BasicWritingAssistant 
                 isOpen={isBasicWritingAssistantOpen} 
-                onClose={() => setIsBasicWritingAssistantOpen(false)} 
+                onClose={() => {
+                    setIsBasicWritingAssistantOpen(false);
+                    setSelectedTextForAI(null);
+                }} 
                 currentEntry={currentEntry}
                 onUpdateEntry={setCurrentEntry}
                 currentTheme={currentTheme}
                 userPrefs={userPrefs}
+                selectedTextForAI={selectedTextForAI}
             />
             <WritingAssistant 
                 isOpen={isWritingAssistantOpen} 
-                onClose={() => setIsWritingAssistantOpen(false)} 
+                onClose={() => {
+                    setIsWritingAssistantOpen(false);
+                    setSelectedTextForAI(null);
+                }} 
                 currentEntry={currentEntry}
                 onUpdateEntry={setCurrentEntry}
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
@@ -852,6 +913,7 @@ const DiaryApp = ({ user }) => {
                 selectedDate={selectedDate}
                 currentTheme={currentTheme}
                 userPrefs={userPrefs}
+                selectedTextForAI={selectedTextForAI}
             />
             <BehaviorAnalysis 
                 isOpen={isBehaviorAnalysisOpen} 

@@ -7,7 +7,8 @@ const BasicWritingAssistant = ({
     currentEntry, 
     onUpdateEntry,
     currentTheme = 'dark',
-    userPrefs = {} // Agregar userPrefs como prop
+    userPrefs = {}, // Agregar userPrefs como prop
+    selectedTextForAI = null // Texto seleccionado por el usuario
 }) => {
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
@@ -73,6 +74,31 @@ const BasicWritingAssistant = ({
 
     const handleWritingAssistant = async () => {
         const styleConfig = getWritingAssistantStyle();
+        
+        // Si hay texto seleccionado, usarlo en lugar del texto completo
+        if (selectedTextForAI && selectedTextForAI.trim() !== '') {
+            console.log('✍️ Usando texto seleccionado para asistente de escritura:', {
+                selectedTextLength: selectedTextForAI.length,
+                selectedTextPreview: selectedTextForAI.substring(0, 100) + '...'
+            });
+            
+            const prompt = `Eres un editor de texto con estilo ${styleConfig.tone}. Revisa el siguiente fragmento de texto seleccionado con un enfoque ${styleConfig.approach}. 
+
+- Corrige gramática y ortografía
+- Mejora el flujo del texto manteniendo el estilo ${styleConfig.tone}
+- Ofrece ${styleConfig.suggestions}
+- No cambies la voz del autor
+- Ofrece tus explicaciones o comentarios si lo deseas
+- Al final, presenta la versión mejorada del texto envuelta entre tres arrobas
+
+Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dentro.@@@"
+
+**Texto Seleccionado:**
+"${selectedTextForAI.trim()}"`;
+            
+            await callAI(prompt, t('basicWritingAssistant.assistantSuggestions'));
+            return;
+        }
         
         // Verificar si el texto está vacío
         if (!currentEntry?.text || currentEntry.text.trim() === '') {
@@ -142,17 +168,53 @@ Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dent
     const handleApplySuggestion = () => {
         const improvedText = extractImprovedText(aiResponse);
         if (improvedText && currentEntry) {
-            onUpdateEntry({
-                ...currentEntry,
-                text: improvedText
-            });
+            // Si hay texto seleccionado, reemplazar solo esa parte
+            if (selectedTextForAI && selectedTextForAI.trim() !== '') {
+                // Obtener el textarea para encontrar las posiciones de selección
+                const textarea = document.querySelector('textarea[data-testid="diary-textarea"]') || 
+                                document.querySelector('textarea') ||
+                                document.querySelector('.diary-textarea');
+                
+                if (textarea) {
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    
+                    // Reemplazar solo el texto seleccionado
+                    const currentText = currentEntry.text;
+                    const newText = currentText.substring(0, start) + improvedText + currentText.substring(end);
+                    
+                    onUpdateEntry({
+                        ...currentEntry,
+                        text: newText
+                    });
+                    
+                    console.log('✍️ Texto seleccionado reemplazado:', {
+                        originalLength: selectedTextForAI.length,
+                        newLength: improvedText.length,
+                        start: start,
+                        end: end
+                    });
+                } else {
+                    // Fallback: reemplazar todo el texto
+                    onUpdateEntry({
+                        ...currentEntry,
+                        text: improvedText
+                    });
+                }
+            } else {
+                // Comportamiento original: reemplazar todo el texto
+                onUpdateEntry({
+                    ...currentEntry,
+                    text: improvedText
+                });
+            }
             onClose();
         }
     };
 
     // Verificar si hay una sugerencia aplicable (solo para texto existente)
     const hasApplicableSuggestion = () => {
-        const hasText = currentEntry?.text && currentEntry.text.trim() !== '';
+        const hasText = (currentEntry?.text && currentEntry.text.trim() !== '') || (selectedTextForAI && selectedTextForAI.trim() !== '');
         return hasText && extractImprovedText(aiResponse) !== null && !isLoading;
     };
 

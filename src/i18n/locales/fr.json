@@ -417,7 +417,8 @@
     "errorProcessing": "Impossible de traiter la réponse.",
     "connectionError": "Erreur de connexion à l'IA.",
     "noEntryWritten": "Rien n'a été écrit.",
-    "noActivitiesRegistered": "Aucune activité n'a été enregistrée."
+    "noActivitiesRegistered": "Aucune activité n'a été enregistrée.",
+    "noContentToAnalyze": "L'analyse ne peut pas être effectuée sans contenu. Veuillez écrire quelque chose dans votre entrée ou sélectionner un texte spécifique à analyser."
   },
   "export": {
     "title": "Exporter les Entrées",
