@@ -100,7 +100,7 @@ const DiaryApp = ({ user }) => {
     // Usar hook de suscripción real
     const { subscription, updateSubscription, hasFeature, isSubscriptionActive, isLoading: isLoadingSubscription } = useSubscription(db, user, appId);
     
-    const { currentEntry, setCurrentEntry, isLoadingEntry, importEntry } = useDiary(db, user, appId, selectedDate);
+    const { currentEntry, setCurrentEntry, isLoadingEntry, importEntry, saveData } = useDiary(db, user, appId, selectedDate);
     
     // Debug: Verificar cambios en currentEntry
     useEffect(() => {
@@ -548,10 +548,11 @@ const DiaryApp = ({ user }) => {
     };
 
     const handleLogout = async () => {
-        let text = currentEntry?.text || '';
-        const entry = { ...currentEntry, text };
         try {
-            await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'entries', selectedDate), entry, { merge: true });
+            // Usar saveData del hook useDiary para guardar correctamente
+            if (currentEntry && currentEntry.text) {
+                await saveData(currentEntry);
+            }
             await signOut(auth);
         } catch (error) {
             console.error("Error en logout o guardado:", error);
