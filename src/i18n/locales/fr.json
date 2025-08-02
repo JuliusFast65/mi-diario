@@ -22,7 +22,16 @@
     "optional": "Optionnel",
     "hide": "Masquer",
     "show": "Afficher",
-    "cannotBeUndone": "Cette action ne peut pas être annulée"
+    "cannotBeUndone": "Cette action ne peut pas être annulée",
+    "saving": "Enregistrement...",
+    "exit": "Quitter",
+    "signInWithGoogle": "Se connecter avec Google"
+  },
+  "splash": {
+    "appName": "Introspect",
+    "tagline": "Votre Journal Personnel",
+    "description": "Sauvegardez vos pensées et suivez vos habitudes avec un objectif.",
+    "loadingDiary": "Chargement de votre journal..."
   },
   "diary": {
     "entry": "Entrée",

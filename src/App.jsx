@@ -55,26 +55,30 @@ const firebaseConfig = {
 const appId = firebaseConfig.projectId;
 
 // --- Componente de Login ---
-const LoginScreen = ({ onGoogleSignIn }) => (
-    <div className="bg-gray-900 dark:bg-gray-900 bg-white text-gray-900 dark:text-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="text-center flex flex-col items-center">
-            <div className="mb-8">
-                <img src="/favicon.svg" alt="Logo Diario Personal" className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-6" />
-                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">Introspect</h1>
-                <p className="text-gray-600 dark:text-gray-300 text-lg md:text-xl mb-2">Tu Diario Personal</p>
-                <p className="text-gray-600 dark:text-gray-300 text-lg md:text-xl">Guarda tus pensamientos y sigue tus hábitos con propósito.</p>
-                <span className="block mt-4 text-xs text-gray-500 dark:text-gray-400">V {APP_VERSION}</span>
+const LoginScreen = ({ onGoogleSignIn }) => {
+    const { t } = useTranslation();
+    
+    return (
+        <div className="bg-gray-900 dark:bg-gray-900 bg-white text-gray-900 dark:text-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+            <div className="text-center flex flex-col items-center">
+                <div className="mb-8">
+                    <img src="/favicon.svg" alt="Logo Diario Personal" className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-6" />
+                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">{t('splash.appName')}</h1>
+                    <p className="text-gray-600 dark:text-gray-300 text-lg md:text-xl mb-2">{t('splash.tagline')}</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-lg md:text-xl">{t('splash.description')}</p>
+                    <span className="block mt-4 text-xs text-gray-500 dark:text-gray-400">V {APP_VERSION}</span>
+                </div>
+                <button
+                    onClick={onGoogleSignIn}
+                    className="bg-indigo-600 dark:bg-white text-white dark:text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-indigo-700 dark:hover:bg-gray-200 transition-colors duration-300 inline-flex items-center gap-3 text-lg"
+                >
+                    <svg className="w-6 h-6" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
+                    {t('common.signInWithGoogle')}
+                </button>
             </div>
-            <button
-                onClick={onGoogleSignIn}
-                className="bg-indigo-600 dark:bg-white text-white dark:text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-indigo-700 dark:hover:bg-gray-200 transition-colors duration-300 inline-flex items-center gap-3 text-lg"
-            >
-                <svg className="w-6 h-6" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
-                Iniciar sesión con Google
-            </button>
         </div>
-    </div>
-);
+    );
+};
 
 // Función para obtener la fecha actual en zona horaria local
 const getLocalDateString = (date = new Date()) => {
@@ -700,8 +704,25 @@ const DiaryApp = ({ user }) => {
                                 onClick={handleLogout}
                                 className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
                                 disabled={isLoadingEntry}
+                                title={isLoadingEntry ? t('common.saving') : t('common.exit')}
                             >
-                                {isLoadingEntry ? 'Guardando...' : 'Salir'}
+                                {/* Icono para móvil, texto para desktop */}
+                                <span className="md:hidden">
+                                    {isLoadingEntry ? (
+                                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                        </svg>
+                                    )}
+                                </span>
+                                {/* Texto para desktop */}
+                                <span className="hidden md:inline">
+                                    {isLoadingEntry ? t('common.saving') : t('common.exit')}
+                                </span>
                             </button>
                         </div>
                     </div>
@@ -727,7 +748,7 @@ const DiaryApp = ({ user }) => {
                             <div className="text-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
                                 <p className={`text-lg ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                                    Cargando tu diario...
+                                    {t('splash.loadingDiary')}
                                 </p>
                             </div>
                         </div>

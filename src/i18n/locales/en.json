@@ -22,7 +22,16 @@
     "optional": "Optional",
     "hide": "Hide",
     "show": "Show",
-    "cannotBeUndone": "This action cannot be undone"
+    "cannotBeUndone": "This action cannot be undone",
+    "saving": "Saving...",
+    "exit": "Exit",
+    "signInWithGoogle": "Sign in with Google"
+  },
+  "splash": {
+    "appName": "Introspect",
+    "tagline": "Your Personal Diary",
+    "description": "Save your thoughts and track your habits with purpose.",
+    "loadingDiary": "Loading your diary..."
   },
   "diary": {
     "entry": "Entry",

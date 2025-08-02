@@ -22,7 +22,16 @@
     "optional": "Opcional",
     "hide": "Ocultar",
     "show": "Mostrar",
-    "cannotBeUndone": "Esta acción no se puede deshacer"
+    "cannotBeUndone": "Esta acción no se puede deshacer",
+    "saving": "Guardando...",
+    "exit": "Salir",
+    "signInWithGoogle": "Iniciar sesión con Google"
+  },
+  "splash": {
+    "appName": "Introspect",
+    "tagline": "Tu Diario Personal",
+    "description": "Guarda tus pensamientos y sigue tus hábitos con propósito.",
+    "loadingDiary": "Cargando tu diario..."
   },
   "diary": {
     "entry": "Entrada",
