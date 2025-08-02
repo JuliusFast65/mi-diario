@@ -1,6 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const PremiumFeatureModal = ({ isOpen, onClose, onUpgrade, featureName, featureDescription, featureIcon, currentTheme = 'dark' }) => {
+    const { t } = useTranslation();
+    
     if (!isOpen) return null;
 
     return (
@@ -12,10 +15,10 @@ const PremiumFeatureModal = ({ isOpen, onClose, onUpgrade, featureName, featureD
                         <span className="text-2xl">{featureIcon}</span>
                     </div>
                     <h2 className={`text-2xl font-bold mb-2 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        Característica Premium
+                        {t('premium.featureTitle')}
                     </h2>
                     <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                        Desbloquea todo el potencial de tu diario
+                        {t('premium.unlockPotential')}
                     </p>
                 </div>
 
@@ -32,28 +35,28 @@ const PremiumFeatureModal = ({ isOpen, onClose, onUpgrade, featureName, featureD
                 {/* Lista de beneficios */}
                 <div className={`${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gradient-to-r from-purple-50 to-blue-50'} rounded-lg p-4 mb-6`}>
                     <h4 className={`font-semibold mb-3 text-sm uppercase tracking-wide ${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
-                        Incluye con Premium:
+                        {t('premium.includesWithPremium')}
                     </h4>
                     <ul className={`space-y-2 text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                         <li className="flex items-center">
                             <span className="text-green-500 mr-2">✓</span>
-                            Chat con terapeuta virtual
+                            {t('premium.virtualTherapistChat')}
                         </li>
                         <li className="flex items-center">
                             <span className="text-green-500 mr-2">✓</span>
-                            Asistente de escritura avanzado
+                            {t('premium.advancedWritingAssistant')}
                         </li>
                         <li className="flex items-center">
                             <span className="text-green-500 mr-2">✓</span>
-                            Análisis de patrones de comportamiento
+                            {t('premium.behaviorPatternAnalysis')}
                         </li>
                         <li className="flex items-center">
                             <span className="text-green-500 mr-2">✓</span>
-                            Autenticación de dos factores
+                            {t('premium.twoFactorAuthentication')}
                         </li>
                         <li className="flex items-center">
                             <span className="text-green-500 mr-2">✓</span>
-                            Actividades ilimitadas
+                            {t('premium.unlimitedActivities')}
                         </li>
                     </ul>
                 </div>
@@ -68,7 +71,7 @@ const PremiumFeatureModal = ({ isOpen, onClose, onUpgrade, featureName, featureD
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                     >
-                        Cerrar
+                        {t('premium.close')}
                     </button>
                     <button
                         onClick={() => {
@@ -77,7 +80,7 @@ const PremiumFeatureModal = ({ isOpen, onClose, onUpgrade, featureName, featureD
                         }}
                         className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105"
                     >
-                        Actualizar a Premium
+                        {t('premium.upgradeToPremium')}
                     </button>
                 </div>
             </div>

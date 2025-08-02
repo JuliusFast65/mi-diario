@@ -21,7 +21,8 @@
     "select": "Sélectionner une option",
     "optional": "Optionnel",
     "hide": "Masquer",
-    "show": "Afficher"
+    "show": "Afficher",
+    "cannotBeUndone": "Cette action ne peut pas être annulée"
   },
   "diary": {
     "entry": "Entrée",
@@ -128,7 +129,65 @@
     "pinPlaceholder": "0000"
   },
   "archive": {
-    "deleteEntry": "Supprimer l'entrée"
+    "deleteEntry": "Supprimer l'entrée",
+    "loadingArchive": "Chargement de l'archive...",
+    "archiveTitle": "Archive des Entrées",
+    "noEntriesYet": "Vous n'avez pas encore écrit d'entrées.",
+    "deleteEntryTitle": "Supprimer l'entrée",
+    "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer l'entrée du {{date}} ?",
+    "deleteWarningMessage": "Cette action supprimera l'entrée et toutes les activités enregistrées pour ce jour."
+  },
+  "statistics": {
+    "loadingStatistics": "Chargement des statistiques...",
+    "errorLoadingStatistics": "Impossible de charger les statistiques.",
+    "performanceTitle": "Performance des Activités",
+    "noDataForRange": "Aucune donnée pour la plage de dates sélectionnée.",
+    "clickForDetails": "Cliquez pour voir les détails",
+    "clickForDetailsPremium": "💎 Cliquez pour voir les détails (Premium)",
+    "backToSummary": "Retour au résumé",
+    "detailedAnalysis": "Analyse Détaillée",
+    "totalTimes": "Total des Fois",
+    "totalPoints": "Total des Points",
+    "weeks": "Semaines",
+    "months": "Mois",
+    "periodGoal": "Objectif de Période",
+    "times": "fois",
+    "points": "points",
+    "noDataForActivity": "Aucune donnée pour cette activité dans la plage et période sélectionnées.",
+    "backToAnalysis": "Retour à l'analyse de",
+    "periodDetail": "Détail de Période",
+    "totalTimesPeriod": "Total des Fois",
+    "totalPointsPeriod": "Total des Points",
+    "registeredDays": "Jours Enregistrés",
+    "activities": "Activités",
+    "periodActivities": "Activités de Période",
+    "time": "fois",
+    "pts": "pts",
+    "dateRanges": {
+      "this_week": "Cette semaine",
+      "this_month": "Ce mois",
+      "this_year": "Cette année",
+      "last_year": "Année dernière",
+      "since_last_year": "Depuis l'année dernière"
+    },
+    "chartLabels": {
+      "totalTimes": "Total des Fois",
+      "totalPoints": "Total des Points",
+      "goal": "Objectif"
+    },
+    "tooltip": {
+      "timesPerformed": "Fois effectuées",
+      "totalPoints": "Points totaux",
+      "registeredDays": "Jours enregistrés",
+      "goal": "Objectif",
+      "times": "fois",
+      "points": "points",
+      "completed": "terminé",
+      "times": "Fois",
+      "points": "Points",
+      "days": "Jours"
+    },
+    "unknownActivity": "Activité Inconnue"
   },
   "profile": {
     "personal": "Personnel",
@@ -166,5 +225,82 @@
     "sendFeedback": "Envoyer un Commentaire",
     "tutorial": "Tutoriel",
     "version": "Version"
+  },
+  "premium": {
+    "featureTitle": "Fonctionnalité Premium",
+    "unlockPotential": "Débloquez tout le potentiel de votre journal",
+    "includesWithPremium": "Inclus avec Premium :",
+    "virtualTherapistChat": "Chat avec thérapeute virtuel",
+    "advancedWritingAssistant": "Assistant d'écriture avancé",
+    "behaviorPatternAnalysis": "Analyse des patterns de comportement",
+    "twoFactorAuthentication": "Authentification à deux facteurs",
+    "unlimitedActivities": "Activités illimitées",
+    "close": "Fermer",
+    "upgradeToPremium": "Passer à Premium"
+  },
+  "basicWritingAssistant": {
+    "suggestionsToStart": "Suggestions pour Commencer",
+    "assistantSuggestions": "Suggestions de l'Assistant",
+    "generatingSuggestions": "Génération de suggestions...",
+    "analyzingText": "Analyse de votre texte...",
+    "close": "Fermer",
+    "applySuggestion": "Appliquer la Suggestion",
+    "errorProcessing": "Impossible de traiter la réponse.",
+    "connectionError": "Erreur de connexion à l'IA."
+  },
+  "therapistReflection": {
+    "title": "Réflexion du Thérapeute IA",
+    "loading": "Chargement...",
+    "analyzing": "Analyse...",
+    "close": "Fermer",
+    "limitReached": "Vous avez atteint la limite de 3 analyses par entrée. Modifiez le contenu pour faire une nouvelle analyse.",
+    "errorProcessing": "Impossible de traiter la réponse.",
+    "connectionError": "Erreur de connexion à l'IA.",
+    "noEntryWritten": "Rien n'a été écrit.",
+    "noActivitiesRegistered": "Aucune activité n'a été enregistrée."
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Introspect",
+      "content": "Votre journal personnel pour sauvegarder vos pensées et cultiver vos habitudes avec un objectif."
+    },
+    "entry": {
+      "title": "Entrée",
+      "content": "Écrivez ici les réflexions et expériences de votre journée"
+    },
+    "writingAssistant": {
+      "title": "Assistant d'Écriture",
+      "content": "Améliorez votre rédaction avec des suggestions intelligentes"
+    },
+    "therapistAI": {
+      "title": "Thérapeute IA",
+      "content": "Laissez l'IA vous aider à réfléchir plus profondément"
+    },
+    "activities": {
+      "title": "Enregistrement d'Activités",
+      "content": "Enregistrez et suivez vos activités quotidiennes"
+    },
+    "statistics": {
+      "title": "Statistiques",
+      "content": "Évaluez les progrès vers vos objectifs et buts"
+    },
+    "archive": {
+      "title": "Archive",
+      "content": "Révisez et recherchez dans toutes vos entrées précédentes"
+    },
+    "export": {
+      "title": "Exporter",
+      "content": "Sauvegardez et partagez vos entrées dans différents formats"
+    },
+    "goodbye": {
+      "title": "Prêt à commencer !",
+      "content": "Profitez de votre introspection et croissance personnelle. Que chaque jour soit une opportunité de mieux vous connaître !"
+    },
+    "navigation": {
+      "previous": "Précédent",
+      "next": "Suivant",
+      "finish": "Terminer",
+      "skip": "Passer"
+    }
   }
 } 

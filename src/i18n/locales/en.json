@@ -21,7 +21,8 @@
     "select": "Select option",
     "optional": "Optional",
     "hide": "Hide",
-    "show": "Show"
+    "show": "Show",
+    "cannotBeUndone": "This action cannot be undone"
   },
   "diary": {
     "entry": "Entry",
@@ -128,7 +129,65 @@
     "pinPlaceholder": "0000"
   },
   "archive": {
-    "deleteEntry": "Delete entry"
+    "deleteEntry": "Delete entry",
+    "loadingArchive": "Loading archive...",
+    "archiveTitle": "Entry Archive",
+    "noEntriesYet": "You haven't written any entries yet.",
+    "deleteEntryTitle": "Delete entry",
+    "confirmDeleteMessage": "Are you sure you want to delete the entry from {{date}}?",
+    "deleteWarningMessage": "This action will delete the entry and all activities registered for this day."
+  },
+  "statistics": {
+    "loadingStatistics": "Loading statistics...",
+    "errorLoadingStatistics": "Could not load statistics.",
+    "performanceTitle": "Activity Performance",
+    "noDataForRange": "No data for the selected date range.",
+    "clickForDetails": "Click for details",
+    "clickForDetailsPremium": "💎 Click for details (Premium)",
+    "backToSummary": "Back to summary",
+    "detailedAnalysis": "Detailed Analysis",
+    "totalTimes": "Total Times",
+    "totalPoints": "Total Points",
+    "weeks": "Weeks",
+    "months": "Months",
+    "periodGoal": "Period Goal",
+    "times": "times",
+    "points": "points",
+    "noDataForActivity": "No data for this activity in the selected range and period.",
+    "backToAnalysis": "Back to analysis of",
+    "periodDetail": "Period Detail",
+    "totalTimesPeriod": "Total Times",
+    "totalPointsPeriod": "Total Points",
+    "registeredDays": "Registered Days",
+    "activities": "Activities",
+    "periodActivities": "Period Activities",
+    "time": "time",
+    "pts": "pts",
+    "dateRanges": {
+      "this_week": "This week",
+      "this_month": "This month",
+      "this_year": "This year",
+      "last_year": "Last year",
+      "since_last_year": "Since last year"
+    },
+    "chartLabels": {
+      "totalTimes": "Total Times",
+      "totalPoints": "Total Points",
+      "goal": "Goal"
+    },
+    "tooltip": {
+      "timesPerformed": "Times performed",
+      "totalPoints": "Total points",
+      "registeredDays": "Registered days",
+      "goal": "Goal",
+      "times": "times",
+      "points": "points",
+      "completed": "completed",
+      "times": "Times",
+      "points": "Points",
+      "days": "Days"
+    },
+    "unknownActivity": "Unknown Activity"
   },
   "profile": {
     "personal": "Personal",
@@ -166,5 +225,82 @@
     "sendFeedback": "Send Feedback",
     "tutorial": "Tutorial",
     "version": "Version"
+  },
+  "premium": {
+    "featureTitle": "Premium Feature",
+    "unlockPotential": "Unlock the full potential of your diary",
+    "includesWithPremium": "Included with Premium:",
+    "virtualTherapistChat": "Virtual therapist chat",
+    "advancedWritingAssistant": "Advanced writing assistant",
+    "behaviorPatternAnalysis": "Behavior pattern analysis",
+    "twoFactorAuthentication": "Two-factor authentication",
+    "unlimitedActivities": "Unlimited activities",
+    "close": "Close",
+    "upgradeToPremium": "Upgrade to Premium"
+  },
+  "basicWritingAssistant": {
+    "suggestionsToStart": "Suggestions to Start",
+    "assistantSuggestions": "Assistant Suggestions",
+    "generatingSuggestions": "Generating suggestions...",
+    "analyzingText": "Analyzing your text...",
+    "close": "Close",
+    "applySuggestion": "Apply Suggestion",
+    "errorProcessing": "Could not process the response.",
+    "connectionError": "Error connecting to AI."
+  },
+  "therapistReflection": {
+    "title": "AI Therapist Reflection",
+    "loading": "Loading...",
+    "analyzing": "Analyzing...",
+    "close": "Close",
+    "limitReached": "You have reached the limit of 3 analyses per entry. Modify the content to make a new analysis.",
+    "errorProcessing": "Could not process the response.",
+    "connectionError": "Error connecting to AI.",
+    "noEntryWritten": "Nothing was written.",
+    "noActivitiesRegistered": "No activities were registered."
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Introspect",
+      "content": "Your personal diary to save your thoughts and cultivate your habits with purpose."
+    },
+    "entry": {
+      "title": "Entry",
+      "content": "Write here the reflections and experiences of your day"
+    },
+    "writingAssistant": {
+      "title": "Writing Assistant",
+      "content": "Improve your writing with intelligent suggestions"
+    },
+    "therapistAI": {
+      "title": "AI Therapist",
+      "content": "Let AI help you reflect more deeply"
+    },
+    "activities": {
+      "title": "Activity Registration",
+      "content": "Register and track your daily activities"
+    },
+    "statistics": {
+      "title": "Statistics",
+      "content": "Evaluate progress towards your goals and objectives"
+    },
+    "archive": {
+      "title": "Archive",
+      "content": "Review and search all your previous entries"
+    },
+    "export": {
+      "title": "Export",
+      "content": "Save and share your entries in different formats"
+    },
+    "goodbye": {
+      "title": "Ready to start!",
+      "content": "Enjoy your introspection and personal growth. May each day be an opportunity to know yourself better!"
+    },
+    "navigation": {
+      "previous": "Previous",
+      "next": "Next",
+      "finish": "Finish",
+      "skip": "Skip"
+    }
   }
 } 

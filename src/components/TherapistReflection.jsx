@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 
 const TherapistReflection = ({ 
     isOpen, 
@@ -13,6 +14,7 @@ const TherapistReflection = ({
     currentTheme,
     userPrefs = {} // Agregar userPrefs como prop
 }) => {
+    const { t } = useTranslation();
     const [therapistReflection, setTherapistReflection] = useState('');
     const [reflectionAnalysisCount, setReflectionAnalysisCount] = useState(0);
     const [lastEntryHash, setLastEntryHash] = useState('');
@@ -286,11 +288,11 @@ const TherapistReflection = ({
                 body: JSON.stringify(payload)
             });
             const result = await response.json();
-            const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo procesar la respuesta.";
+            const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || t('therapistReflection.errorProcessing');
             setAiResponse(textResponse);
             return textResponse;
         } catch (error) {
-            setAiResponse("Error al conectar con la IA.");
+            setAiResponse(t('therapistReflection.connectionError'));
             return null;
         } finally {
             setIsAILoading(false);
@@ -307,7 +309,7 @@ const TherapistReflection = ({
         // Verificar límite
         if (reflectionAnalysisCount >= 3) {
             console.log('❌ Límite de análisis alcanzado');
-            setAiResponse('Has alcanzado el límite de 3 análisis por entrada. Modifica el contenido para poder hacer un nuevo análisis.');
+            setAiResponse(t('therapistReflection.limitReached'));
             return;
         }
         
@@ -315,7 +317,7 @@ const TherapistReflection = ({
         console.log('✅ Generando nuevo análisis...');
         
         const trackedActivitiesSummary = Object.entries(currentEntry?.tracked || {}).map(([activityId, option]) => `- ${activities[activityId]?.name || 'Actividad'}: ${option}`).join('\n');
-        const prompt = `Actúa como un terapeuta ${getTherapistStyle().tone}. Analiza la siguiente entrada de diario y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.\n\n**Entrada del Diario:**\n"${currentEntry?.text || 'No se escribió nada.'}"\n\n**Actividades Registradas:**\n${trackedActivitiesSummary || 'No se registraron actividades.'}`;
+        const prompt = `Actúa como un terapeuta ${getTherapistStyle().tone}. Analiza la siguiente entrada de diario y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.\n\n**Entrada del Diario:**\n"${currentEntry?.text || t('therapistReflection.noEntryWritten')}"\n\n**Actividades Registradas:**\n${trackedActivitiesSummary || t('therapistReflection.noActivitiesRegistered')}`;
         
         const response = await callAI(prompt);
         if (response) {
@@ -463,7 +465,7 @@ const TherapistReflection = ({
             <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-6 w-full max-w-lg flex flex-col`}>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className={`text-2xl font-bold ${currentTheme === 'dark' ? 'text-purple-300' : 'text-purple-600'}`}>
-                        Reflexión del Terapeuta IA
+                        {t('therapistReflection.title')}
                     </h2>
                 </div>
                 
@@ -471,12 +473,12 @@ const TherapistReflection = ({
                     {isLoading ? (
                         <div className="text-center py-10">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
-                            <p className={`mt-4 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Cargando...</p>
+                            <p className={`mt-4 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{t('therapistReflection.loading')}</p>
                         </div>
                     ) : isAILoading ? (
                         <div className="text-center py-10">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
-                            <p className={`mt-4 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Analizando...</p>
+                            <p className={`mt-4 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{t('therapistReflection.analyzing')}</p>
                         </div>
                     ) : (
                         <div className={`${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'} whitespace-pre-wrap prose ${currentTheme === 'dark' ? 'prose-invert' : ''} max-w-none`} 
@@ -493,7 +495,7 @@ const TherapistReflection = ({
                                 : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                         }`}
                     >
-                        Cerrar
+                        {t('therapistReflection.close')}
                     </button>
                 </div>
             </div>

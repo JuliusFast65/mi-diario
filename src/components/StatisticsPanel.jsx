@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { collection, query, where, documentId, getDocs } from 'firebase/firestore';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { useTranslation } from 'react-i18next';
 
 const StatisticsPanel = ({ db, userId, appId, activities, subscription, onUpgradeClick, currentTheme }) => {
+    const { t } = useTranslation();
     const [rawEntries, setRawEntries] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -14,7 +16,7 @@ const StatisticsPanel = ({ db, userId, appId, activities, subscription, onUpgrad
         const today = new Date();
         const ranges = {
             this_week: {
-                name: 'Esta semana',
+                name: t('statistics.dateRanges.this_week'),
                 startDate: (() => {
                     const d = new Date(today);
                     const day = d.getDay();
@@ -24,28 +26,28 @@ const StatisticsPanel = ({ db, userId, appId, activities, subscription, onUpgrad
                 endDate: getFormattedDate(today)
             },
             this_month: {
-                name: 'Este mes',
+                name: t('statistics.dateRanges.this_month'),
                 startDate: getFormattedDate(new Date(today.getFullYear(), today.getMonth(), 1)),
                 endDate: getFormattedDate(today)
             },
             this_year: {
-                name: 'Este año',
+                name: t('statistics.dateRanges.this_year'),
                 startDate: getFormattedDate(new Date(today.getFullYear(), 0, 1)),
                 endDate: getFormattedDate(today)
             },
             last_year: {
-                name: 'Año anterior',
+                name: t('statistics.dateRanges.last_year'),
                 startDate: getFormattedDate(new Date(today.getFullYear() - 1, 0, 1)),
                 endDate: getFormattedDate(new Date(today.getFullYear() - 1, 11, 31))
             },
             since_last_year: {
-                name: 'Desde el año pasado',
+                name: t('statistics.dateRanges.since_last_year'),
                 startDate: getFormattedDate(new Date(today.getFullYear() - 1, 0, 1)),
                 endDate: getFormattedDate(today)
             }
         };
         return ranges;
-    }, []);
+    }, [t]);
 
     const { startDate, endDate } = dateRanges[selectedRange];
 
@@ -62,13 +64,13 @@ const StatisticsPanel = ({ db, userId, appId, activities, subscription, onUpgrad
                 setRawEntries(entries);
             } catch (err) {
                 console.error("Error fetching statistics:", err);
-                setError("No se pudieron cargar las estadísticas.");
+                setError(t('statistics.errorLoadingStatistics'));
             } finally {
                 setIsLoading(false);
             }
         };
         fetchEntries();
-    }, [db, userId, appId, startDate, endDate]);
+    }, [db, userId, appId, startDate, endDate, t]);
 
     const handleBarClick = (data) => {
         // Verificar si el usuario es premium
@@ -93,7 +95,7 @@ const StatisticsPanel = ({ db, userId, appId, activities, subscription, onUpgrad
 
     if (isLoading) return (
         <div className={`p-8 text-center ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            Cargando estadísticas...
+            {t('statistics.loadingStatistics')}
         </div>
     );
     if (error) return (
@@ -130,6 +132,7 @@ const StatisticsPanel = ({ db, userId, appId, activities, subscription, onUpgrad
 
 // --- StatisticsOverview ---
 const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, selectedRange, onRangeChange, subscription, onUpgradeClick, currentTheme }) => {
+    const { t } = useTranslation();
     const [chartType, setChartType] = useState('bars');
     const [showGoals, setShowGoals] = useState(true);
 
@@ -141,7 +144,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                     if (!activityStats[activityId]) {
                         activityStats[activityId] = {
                             id: activityId,
-                            name: activities[activityId]?.name || 'Actividad Desconocida',
+                            name: activities[activityId]?.name || t('statistics.unknownActivity'),
                             totalPoints: 0,
                             totalCount: 0,
                             daysCount: 0,
@@ -188,7 +191,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                 const bValue = b.isSimple ? b.totalCount : b.totalPoints;
                 return bValue - aValue;
             });
-    }, [rawEntries, activities]);
+    }, [rawEntries, activities, t]);
 
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
@@ -197,18 +200,18 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                 <div className={`${currentTheme === 'dark' ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'} border rounded-lg p-3 shadow-lg`}>
                     <p className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{data.name}</p>
                     {data.isSimple ? (
-                        <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Veces realizadas: <span className="text-green-400 font-bold">{data.totalCount}</span></p>
+                        <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('statistics.tooltip.timesPerformed')}: <span className="text-green-400 font-bold">{data.totalCount}</span></p>
                     ) : (
-                        <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Puntos totales: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
+                        <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('statistics.tooltip.totalPoints')}: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
                     )}
-                    <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Días registrados: <span className="text-blue-400">{data.daysCount}</span></p>
+                    <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('statistics.tooltip.registeredDays')}: <span className="text-blue-400">{data.daysCount}</span></p>
                     {data.goal && (
                         <div className={`mt-2 pt-2 border-t ${currentTheme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`}>
                             <p className="text-yellow-300">
-                                Meta: {data.goal.target} {data.isSimple ? 'veces' : 'puntos'}
+                                {t('statistics.tooltip.goal')}: {data.goal.target} {data.isSimple ? t('statistics.tooltip.times') : t('statistics.tooltip.points')}
                             </p>
                             <p className={`font-bold ${data.isGoalMet ? 'text-green-400' : 'text-red-400'}`}>
-                                {data.completionPercentage}% cumplido{data.isGoalMet ? ' ✅' : ' ❌'}
+                                {data.completionPercentage}% {t('statistics.tooltip.completed')}{data.isGoalMet ? ' ✅' : ' ❌'}
                             </p>
                         </div>
                     )}
@@ -223,7 +226,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
             <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                 <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
                     <h3 className={`text-xl font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        Desempeño de Actividades
+                        {t('statistics.performanceTitle')}
                     </h3>
                     <div className="flex items-center gap-4">
                         <select
@@ -261,7 +264,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                                 </div>
                                 <div className={`text-sm space-y-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                                     <div className="flex justify-between">
-                                        <span>{activity.isSimple ? 'Veces:' : 'Puntos:'}</span>
+                                        <span>{activity.isSimple ? t('statistics.tooltip.times') : t('statistics.tooltip.points')}:</span>
                                         <span className="text-green-400 font-bold">
                                             {activity.isSimple ? activity.totalCount : activity.totalPoints}
                                         </span>
@@ -269,9 +272,9 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                                     {activity.goal && (
                                         <>
                                             <div className="flex justify-between">
-                                                <span>Meta:</span>
+                                                <span>{t('statistics.tooltip.goal')}:</span>
                                                 <span className="text-yellow-400">
-                                                    {activity.goal.target} {activity.isSimple ? 'veces' : 'puntos'}
+                                                    {activity.goal.target} {activity.isSimple ? t('statistics.tooltip.times') : t('statistics.tooltip.points')}
                                                 </span>
                                             </div>
                                             <div className="mt-2">
@@ -286,7 +289,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                                         </>
                                     )}
                                     <div className={`text-xs mt-2 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                        {subscription?.plan === 'premium' ? 'Haz clic para ver detalles' : '💎 Haz clic para ver detalles (Premium)'}
+                                        {subscription?.plan === 'premium' ? t('statistics.clickForDetails') : t('statistics.clickForDetailsPremium')}
                                     </div>
                                 </div>
                             </div>
@@ -294,7 +297,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                     </div>
                 ) : (
                     <p className={`text-center italic ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                        No hay datos para el rango de fechas seleccionado.
+                        {t('statistics.noDataForRange')}
                     </p>
                 )}
             </div>
@@ -304,6 +307,7 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
 
 // --- ActivityDetailView ---
 const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
+    const { t } = useTranslation();
     const [timeGroup, setTimeGroup] = useState('weekly');
     const [selectedPeriod, setSelectedPeriod] = useState(null);
 
@@ -387,11 +391,11 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
                 <div className={`${currentTheme === 'dark' ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'} border rounded-lg p-3 shadow-lg`}>
                     <p className={`font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{data.timePeriod}</p>
                     {isSimple ? (
-                        <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Veces: <span className="text-green-400 font-bold">{data.totalCount}</span></p>
+                        <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('statistics.tooltip.times')}: <span className="text-green-400 font-bold">{data.totalCount}</span></p>
                     ) : (
-                        <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Puntos: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
+                        <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('statistics.tooltip.points')}: <span className="text-green-400 font-bold">{data.totalPoints}</span></p>
                     )}
-                    <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Días: <span className="text-blue-400">{data.daysCount}</span></p>
+                    <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('statistics.tooltip.days')}: <span className="text-blue-400">{data.daysCount}</span></p>
                 </div>
             );
         }
@@ -421,29 +425,29 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                Volver al resumen
+                {t('statistics.backToSummary')}
             </button>
             <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                 <div className="mb-6">
                     <h3 className={`text-xl font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        Análisis Detallado: {activity.name}
+                        {t('statistics.detailedAnalysis')}: {activity.name}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div className={`text-center p-4 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <div className="text-2xl font-bold text-green-400">{totalValue}</div>
                             <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                {isSimple ? 'Veces Totales' : 'Puntos Totales'}
+                                {isSimple ? t('statistics.totalTimes') : t('statistics.totalPoints')}
                             </div>
                         </div>
                         <div className={`text-center p-4 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <div className="text-2xl font-bold text-blue-400">{processedData.length}</div>
-                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{timeGroup === 'weekly' ? 'Semanas' : 'Meses'}</div>
+                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{timeGroup === 'weekly' ? t('statistics.weeks') : t('statistics.months')}</div>
                         </div>
                         {calculateGoalForPeriod && (
                             <div className="text-center">
                                 <div className="text-2xl font-bold text-yellow-400">{calculateGoalForPeriod}</div>
                                 <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    Meta del Periodo ({isSimple ? 'veces' : 'puntos'})
+                                    {t('statistics.periodGoal')} ({isSimple ? t('statistics.times') : t('statistics.points')})
                                 </div>
                                 <div className={`text-sm font-bold ${goalMet ? 'text-green-400' : 'text-red-400'}`}>{completionPercentage}% {goalMet ? '✅' : '❌'}</div>
                             </div>
@@ -462,7 +466,7 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
                                     <Legend wrapperStyle={{ color: currentTheme === 'dark' ? '#E2E8F0' : '#2D3748' }} />
                                     <Bar 
                                         dataKey={isSimple ? "totalCount" : "totalPoints"} 
-                                        name={isSimple ? "Veces Totales" : "Puntos Totales"} 
+                                        name={isSimple ? t('statistics.chartLabels.totalTimes') : t('statistics.chartLabels.totalPoints')} 
                                         fill="#667EEA" 
                                         cursor="pointer"
                                         radius={[4, 4, 0, 0]}
@@ -473,7 +477,7 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
                                             stroke="#FFD700" 
                                             strokeDasharray="3 3" 
                                             strokeWidth={2}
-                                            label={{ value: 'Meta', position: 'insideTopRight', fill: '#FFD700' }}
+                                            label={{ value: t('statistics.chartLabels.goal'), position: 'insideTopRight', fill: '#FFD700' }}
                                         />
                                     )}
                                 </BarChart>
@@ -482,7 +486,7 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
                     </div>
                 ) : (
                     <p className={`text-center italic ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                        No hay datos de esta actividad para el rango y período seleccionados.
+                        {t('statistics.noDataForActivity')}
                     </p>
                 )}
             </div>
@@ -492,6 +496,7 @@ const ActivityDetailView = ({ activity, entries, onBack, currentTheme }) => {
 
 // --- ActivityPeriodDetail ---
 const ActivityPeriodDetail = ({ period, activity, onBack, currentTheme }) => {
+    const { t } = useTranslation();
     const isSimple = !activity.options || activity.options.length === 0;
     const totalValue = period.activities.reduce((sum, act) => sum + act.points, 0);
     
@@ -501,33 +506,33 @@ const ActivityPeriodDetail = ({ period, activity, onBack, currentTheme }) => {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                Volver al análisis de {activity.name}
+                {t('statistics.backToAnalysis')} {activity.name}
             </button>
             <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                 <div className="mb-6">
                     <h3 className={`text-xl font-semibold mb-2 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        Detalle del Periodo: {period.timePeriod}
+                        {t('statistics.periodDetail')}: {period.timePeriod}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className={`text-center p-3 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <div className="text-2xl font-bold text-green-400">{totalValue}</div>
                             <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                {isSimple ? 'Veces Totales' : 'Puntos Totales'}
+                                {isSimple ? t('statistics.totalTimesPeriod') : t('statistics.totalPointsPeriod')}
                             </div>
                         </div>
                         <div className={`text-center p-3 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <div className="text-2xl font-bold text-blue-400">{period.daysCount}</div>
-                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Días Registrados</div>
+                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('statistics.registeredDays')}</div>
                         </div>
                         <div className={`text-center p-3 rounded-lg ${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <div className="text-2xl font-bold text-purple-400">{period.activities.length}</div>
-                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Actividades</div>
+                            <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('statistics.activities')}</div>
                         </div>
                     </div>
                 </div>
                 <div>
                     <h4 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        Actividades del Periodo
+                        {t('statistics.periodActivities')}
                     </h4>
                     <div className="space-y-3">
                         {[...period.activities].sort((a, b) => a.date.localeCompare(b.date)).map((act, index) => (
@@ -538,7 +543,7 @@ const ActivityPeriodDetail = ({ period, activity, onBack, currentTheme }) => {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="text-green-400 font-bold">
-                                        {act.points} {isSimple ? 'vez' : 'pts'}
+                                        {act.points} {isSimple ? t('statistics.time') : t('statistics.pts')}
                                     </span>
                                 </div>
                             </div>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const Onboarding = ({ isOpen, onClose, mode = 'manual', currentTheme = 'dark' }) => {
+    const { t } = useTranslation();
     const [currentStep, setCurrentStep] = useState(0);
     const [isVisible, setIsVisible] = useState(false);
     const [highlightedElement, setHighlightedElement] = useState(null);
@@ -9,19 +11,19 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual', currentTheme = 'dark' })
     const steps = [
         {
             type: 'welcome',
-            title: 'Introspect',
-            content: 'Tu diario personal para guardar tus pensamientos y cultivar tus hábitos con propósito.',
+            title: t('tutorial.welcome.title'),
+            content: t('tutorial.welcome.content'),
             showLogo: true
         },
         {
             target: 'textarea.writing-area',
-            content: 'Escribe aquí las reflexiones y experiencias de tu día',
-            title: 'Entrada'
+            content: t('tutorial.entry.content'),
+            title: t('tutorial.entry.title')
         },
         {
             target: '.writing-assistant-btn',
-            content: 'Mejora tu redacción con sugerencias inteligentes',
-            title: 'Asistente de Escritura',
+            content: t('tutorial.writingAssistant.content'),
+            title: t('tutorial.writingAssistant.title'),
             icon: (
                 <svg className="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
@@ -31,8 +33,8 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual', currentTheme = 'dark' })
         },
         {
             target: '.ai-consult-btn',
-            content: 'Deja que la IA te ayude a reflexionar más profundamente',
-            title: 'Terapeuta IA',
+            content: t('tutorial.therapistAI.content'),
+            title: t('tutorial.therapistAI.title'),
             icon: (
                 <svg className="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" />
@@ -41,8 +43,8 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual', currentTheme = 'dark' })
         },
         {
             target: '.activities-tab',
-            content: 'Registra y da seguimiento a tus actividades diarias',
-            title: 'Registro de Actividades',
+            content: t('tutorial.activities.content'),
+            title: t('tutorial.activities.title'),
             action: () => {
                 const activitiesTab = document.querySelector('.activities-tab');
                 if (activitiesTab) activitiesTab.click();
@@ -50,8 +52,8 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual', currentTheme = 'dark' })
         },
         {
             target: '.stats-tab',
-            content: 'Evalúa el progreso hacia tus metas y objetivos',
-            title: 'Estadísticas',
+            content: t('tutorial.statistics.content'),
+            title: t('tutorial.statistics.title'),
             action: () => {
                 const statsTab = document.querySelector('.stats-tab');
                 if (statsTab) statsTab.click();
@@ -59,8 +61,8 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual', currentTheme = 'dark' })
         },
         {
             target: '.archive-tab',
-            content: 'Revisa y busca en todas tus entradas anteriores',
-            title: 'Archivo',
+            content: t('tutorial.archive.content'),
+            title: t('tutorial.archive.title'),
             action: () => {
                 const archiveTab = document.querySelector('.archive-tab');
                 if (archiveTab) archiveTab.click();
@@ -68,8 +70,8 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual', currentTheme = 'dark' })
         },
         {
             target: '.export-btn',
-            content: 'Guarda y comparte tus entradas en diferentes formatos',
-            title: 'Exportar',
+            content: t('tutorial.export.content'),
+            title: t('tutorial.export.title'),
             icon: (
                 <svg className="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -78,8 +80,8 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual', currentTheme = 'dark' })
         },
         {
             type: 'goodbye',
-            title: '¡Listo para comenzar!',
-            content: 'Disfruta de tu introspección y crecimiento personal. ¡Que cada día sea una oportunidad para conocerte mejor!',
+            title: t('tutorial.goodbye.title'),
+            content: t('tutorial.goodbye.content'),
             showLogo: true
         }
     ];
@@ -219,8 +221,8 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual', currentTheme = 'dark' })
                         )}
                         {currentStepData.icon && !currentStepData.showLogo && (
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                currentStepData.title === 'Asistente de Escritura' ? 'bg-cyan-600' :
-                                currentStepData.title === 'Terapeuta IA' ? 'bg-purple-600' :
+                                currentStepData.title === t('tutorial.writingAssistant.title') ? 'bg-cyan-600' :
+                                currentStepData.title === t('tutorial.therapistAI.title') ? 'bg-purple-600' :
                                 'bg-gray-600'
                             }`}>
                                 <div className="text-white">
@@ -262,14 +264,14 @@ const Onboarding = ({ isOpen, onClose, mode = 'manual', currentTheme = 'dark' })
                                 onClick={prevStep}
                                 className={`px-3 py-1.5 ${currentTheme === 'dark' ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300'} rounded-lg text-sm transition-colors font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-700'}`}
                             >
-                                Anterior
+                                {t('tutorial.navigation.previous')}
                             </button>
                         )}
                         <button 
                             onClick={nextStep}
                             className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm transition-colors font-medium text-white"
                         >
-                            {currentStep === steps.length - 1 ? 'Finalizar' : 'Siguiente'}
+                            {currentStep === steps.length - 1 ? t('tutorial.navigation.finish') : t('tutorial.navigation.next')}
                         </button>
                     </div>
                 </div>

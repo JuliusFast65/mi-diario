@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { decryptText } from '../utils/crypto';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import { useTranslation } from 'react-i18next';
 
 const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedDate, currentTheme }) => {
+    const { t } = useTranslation();
     const [deleteModalEntry, setDeleteModalEntry] = useState(null);
     const [decryptedEntries, setDecryptedEntries] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -91,7 +93,7 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedD
     if (isLoading) {
         return (
             <div className={`p-8 text-center ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Cargando archivo...
+                {t('archive.loadingArchive')}
             </div>
         );
     }
@@ -100,7 +102,7 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedD
         <div className="p-2 md:p-6">
             <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 md:p-6 border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'} shadow-lg`}>
                 <h3 className={`text-xl font-semibold mb-6 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                    Archivo de Entradas
+                    {t('archive.archiveTitle')}
                 </h3>
                 {decryptedEntries.length > 0 ? (
                     <ul className="space-y-3">
@@ -142,7 +144,7 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedD
                                                         ? 'bg-gray-600 hover:bg-red-500 text-gray-300 hover:text-white'
                                                         : 'bg-gray-200 hover:bg-red-500 text-gray-600 hover:text-white'
                                                 }`}
-                                                title="Eliminar entrada"
+                                                title={t('archive.deleteEntryTitle')}
                                             >
                                                 ✕
                                             </button>
@@ -154,7 +156,7 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedD
                     </ul>
                 ) : (
                     <p className={`text-center italic ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                        Aún no has escrito ninguna entrada.
+                        {t('archive.noEntriesYet')}
                     </p>
                 )}
             </div>

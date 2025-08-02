@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const BasicWritingAssistant = ({ 
     isOpen, 
@@ -8,6 +9,7 @@ const BasicWritingAssistant = ({
     currentTheme = 'dark',
     userPrefs = {} // Agregar userPrefs como prop
 }) => {
+    const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
     const [aiResponse, setAiResponse] = useState('');
 
@@ -58,11 +60,11 @@ const BasicWritingAssistant = ({
                 body: JSON.stringify(payload)
             });
             const result = await response.json();
-            const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo procesar la respuesta.";
+            const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || t('basicWritingAssistant.errorProcessing');
             setAiResponse(textResponse);
             return textResponse;
         } catch (error) { 
-            setAiResponse("Error al conectar con la IA."); 
+            setAiResponse(t('basicWritingAssistant.connectionError')); 
             return null;
         } finally { 
             setIsLoading(false); 
@@ -107,7 +109,7 @@ Ejemplo de estructura:
 **Ejemplo de inicio:**
 "Hoy fue un día interesante. Me desperté pensando en..."`;
 
-            await callAI(prompt, "Sugerencias para Comenzar");
+            await callAI(prompt, t('basicWritingAssistant.suggestionsToStart'));
             return;
         }
 
@@ -127,7 +129,7 @@ Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dent
 **Texto Original:**
 "${currentText}"`;
         
-        await callAI(prompt, "Sugerencias del Asistente");
+        await callAI(prompt, t('basicWritingAssistant.assistantSuggestions'));
     };
 
     // Función para extraer el texto mejorado de la respuesta de la IA
@@ -173,7 +175,7 @@ Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dent
             <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-6 w-full max-w-lg flex flex-col`}>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className={`text-2xl font-bold ${currentTheme === 'dark' ? 'text-cyan-300' : 'text-cyan-600'}`}>
-                        {isEntryEmpty() ? 'Sugerencias para Comenzar' : 'Sugerencias del Asistente'}
+                        {isEntryEmpty() ? t('basicWritingAssistant.suggestionsToStart') : t('basicWritingAssistant.assistantSuggestions')}
                     </h2>
                 </div>
                 
@@ -182,7 +184,7 @@ Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dent
                         <div className="text-center py-10">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto"></div>
                             <p className={`mt-4 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                                {isEntryEmpty() ? 'Generando sugerencias...' : 'Analizando tu texto...'}
+                                {isEntryEmpty() ? t('basicWritingAssistant.generatingSuggestions') : t('basicWritingAssistant.analyzingText')}
                             </p>
                         </div>
                     ) : (
@@ -205,7 +207,7 @@ Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dent
                                 : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                         }`}
                     >
-                        Cerrar
+                        {t('basicWritingAssistant.close')}
                     </button>
                     {hasApplicableSuggestion() && (
                         <button 
@@ -216,7 +218,7 @@ Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dent
                                     : 'bg-cyan-100 hover:bg-cyan-200 text-cyan-800'
                             }`}
                         >
-                            Aplicar Sugerencia
+                            {t('basicWritingAssistant.applySuggestion')}
                         </button>
                     )}
                 </div>

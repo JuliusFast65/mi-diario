@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, entry, currentTheme }) => {
+    const { t } = useTranslation();
+    
     if (!isOpen || !entry) return null;
 
     const handleConfirm = () => {
@@ -24,20 +27,20 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, entry, currentTheme })
                     </div>
                     <div>
                         <h3 className={`text-lg font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                            Eliminar Entrada
+                            {t('archive.deleteEntryTitle')}
                         </h3>
                         <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                            Esta acción no se puede deshacer
+                            {t('common.cannotBeUndone')}
                         </p>
                     </div>
                 </div>
                 
                 <div className="mb-6">
                     <p className={`mb-3 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                        ¿Estás seguro de que quieres eliminar la entrada del <strong>{entry.id}</strong>?
+                        {t('archive.confirmDeleteMessage', { date: entry.id })}
                     </p>
                     
-                    {entry.title && entry.title !== 'Sin Título' && (
+                    {entry.title && entry.title !== t('diary.noTitle') && (
                         <div className={`${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg p-3 mb-3`}>
                             <p className={`text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
                                 "{entry.title}"
@@ -47,7 +50,7 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, entry, currentTheme })
                     
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                         <p className="text-sm text-yellow-800">
-                            <strong>⚠️ Atención:</strong> Esta acción eliminará la entrada y todas las actividades registradas para este día.
+                            <strong>⚠️ {t('common.warning')}:</strong> {t('archive.deleteWarningMessage')}
                         </p>
                     </div>
                 </div>
@@ -61,13 +64,13 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, entry, currentTheme })
                                 : 'text-gray-700 bg-gray-200 hover:bg-gray-300'
                         }`}
                     >
-                        Cancelar
+                        {t('common.cancel')}
                     </button>
                     <button
                         onClick={handleConfirm}
                         className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                     >
-                        Eliminar
+                        {t('common.delete')}
                     </button>
                 </div>
             </div>
