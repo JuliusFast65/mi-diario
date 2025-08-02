@@ -5,6 +5,7 @@ export default function AppLock({
     isPinSet, 
     onUnlock, 
     onSetupPin, 
+    onResetPin,
     pinLength = 4,
     currentTheme = 'light',
     children 
@@ -120,6 +121,18 @@ export default function AppLock({
             setError('');
         } else {
             setError('Error al configurar PIN');
+        }
+    };
+
+    // Resetear PIN (cuando el usuario lo olvida)
+    const handleResetPin = () => {
+        if (onResetPin) {
+            onResetPin();
+            setIsSetupMode(true);
+            setPin('');
+            setConfirmPin('');
+            confirmPinRef.current = '';
+            setError('');
         }
     };
 
@@ -259,7 +272,7 @@ export default function AppLock({
                     {!isSetupMode && (
                         <div className="text-center">
                             <button
-                                onClick={() => setIsSetupMode(true)}
+                                onClick={handleResetPin}
                                 className={`${currentTheme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} text-sm`}
                             >
                                 ¿Olvidaste tu PIN?

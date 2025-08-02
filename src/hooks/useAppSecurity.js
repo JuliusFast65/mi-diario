@@ -14,12 +14,25 @@ export const useAppSecurity = (config = {}) => {
   const initialConfig = savedConfig ? JSON.parse(savedConfig) : DEFAULT_SECURITY_CONFIG;
   const securityConfig = { ...initialConfig, ...config };
   
+  // Estados principales
   const [isLocked, setIsLocked] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
   const [isVisible, setIsVisible] = useState(!document.hidden);
+  const [currentConfig, setCurrentConfig] = useState(securityConfig);
+  
+  // Estados del PIN - simplificados
   const [userPin, setUserPin] = useState(localStorage.getItem('app_pin') || '');
   const [isPinSet, setIsPinSet] = useState(!!localStorage.getItem('app_pin'));
-  const [currentConfig, setCurrentConfig] = useState(securityConfig);
+
+  // Verificar si la configuración es válida y corregir inmediatamente
+  // Solo corregir si es un valor negativo (no 0, que es válido para "deshabilitado")
+  useEffect(() => {
+    if (currentConfig.autoLockDelay < 0) {
+      const validConfig = { ...currentConfig, autoLockDelay: DEFAULT_SECURITY_CONFIG.autoLockDelay };
+      setCurrentConfig(validConfig);
+      localStorage.setItem('security_config', JSON.stringify(validConfig));
+    }
+  }, [currentConfig.autoLockDelay]);
 
   // Detectar actividad del usuario
   const resetActivityTimer = useCallback(() => {
@@ -63,15 +76,20 @@ export const useAppSecurity = (config = {}) => {
     };
   }, [resetActivityTimer]);
 
-  // Auto-bloqueo por inactividad
+  // Auto-bloqueo por inactividad - SOLO si hay PIN configurado
   useEffect(() => {
-    if (!isPinSet) return; // No bloquear si no hay PIN configurado
+    if (!isPinSet) {
+      return; // No bloquear si no hay PIN configurado
+    }
+
+    if (currentConfig.autoLockDelay <= 0) {
+      return;
+    }
 
     const timer = setInterval(() => {
       const timeSinceLastActivity = Date.now() - lastActivity;
       
-      if (timeSinceLastActivity > currentConfig.autoLockDelay && !isLocked) {
-        console.log('🔒 Auto-bloqueo por inactividad');
+      if (timeSinceLastActivity > currentConfig.autoLockDelay && !isLocked && isPinSet) {
         setIsLocked(true);
       }
     }, 1000);
@@ -98,7 +116,7 @@ export const useAppSecurity = (config = {}) => {
       return true;
     }
     return false;
-  }, [userPin, resetActivityTimer]);
+  }, [userPin, resetActivityTimer, currentConfig.pinLength]);
 
   // Función para bloquear manualmente
   const lockApp = useCallback(() => {
@@ -114,13 +132,13 @@ export const useAppSecurity = (config = {}) => {
 
   // Función para cambiar PIN
   const changePin = useCallback((currentPin, newPin) => {
-    if (currentPin === userPin && newPin.length === securityConfig.pinLength) {
+    if (currentPin === userPin && newPin.length === currentConfig.pinLength) {
       setUserPin(newPin);
       localStorage.setItem('app_pin', newPin);
       return true;
     }
     return false;
-  }, [userPin, securityConfig.pinLength]);
+  }, [userPin, currentConfig.pinLength]);
 
   // Función para deshabilitar PIN
   const disablePin = useCallback((currentPin) => {
@@ -129,18 +147,59 @@ export const useAppSecurity = (config = {}) => {
       setIsPinSet(false);
       setIsLocked(false);
       localStorage.removeItem('app_pin');
+      resetActivityTimer();
       return true;
     }
     return false;
-  }, [userPin]);
+  }, [userPin, currentConfig.pinLength, resetActivityTimer]);
+
+  // Función para resetear PIN (cuando el usuario lo olvida)
+  const resetPin = useCallback(() => {
+    // Remover del localStorage inmediatamente
+    localStorage.removeItem('app_pin');
+    
+    // Corregir configuración si es inválida (solo valores negativos, no 0)
+    if (currentConfig.autoLockDelay < 0) {
+      const validConfig = { ...currentConfig, autoLockDelay: DEFAULT_SECURITY_CONFIG.autoLockDelay };
+      setCurrentConfig(validConfig);
+      localStorage.setItem('security_config', JSON.stringify(validConfig));
+    }
+    
+    // Actualizar estado
+    setUserPin('');
+    setIsPinSet(false);
+    setIsLocked(false);
+    resetActivityTimer();
+    
+    return true;
+  }, [userPin, resetActivityTimer, currentConfig.autoLockDelay]);
 
   // Función para actualizar configuración
   const updateConfig = useCallback((newConfig) => {
     const updatedConfig = { ...currentConfig, ...newConfig };
     setCurrentConfig(updatedConfig);
     localStorage.setItem('security_config', JSON.stringify(updatedConfig));
-    console.log('🔧 Configuración de seguridad actualizada:', updatedConfig);
   }, [currentConfig]);
+
+  // Función de emergencia para limpiar completamente el estado
+  const emergencyReset = useCallback(() => {
+    // Limpiar localStorage
+    localStorage.removeItem('app_pin');
+    localStorage.removeItem('security_config');
+    
+    // Restaurar configuración por defecto
+    const defaultConfig = { ...DEFAULT_SECURITY_CONFIG };
+    setCurrentConfig(defaultConfig);
+    localStorage.setItem('security_config', JSON.stringify(defaultConfig));
+    
+    // Limpiar estado
+    setUserPin('');
+    setIsPinSet(false);
+    setIsLocked(false);
+    resetActivityTimer();
+    
+    return true;
+  }, [resetActivityTimer]);
 
   // Obtener tiempo restante antes del auto-bloqueo
   const getTimeUntilLock = useCallback(() => {
@@ -170,6 +229,8 @@ export const useAppSecurity = (config = {}) => {
     disablePin,
     resetActivityTimer,
     updateConfig,
+    resetPin,
+    emergencyReset,
     
     // Utilidades
     getTimeUntilLock,

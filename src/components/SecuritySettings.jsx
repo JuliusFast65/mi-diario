@@ -238,6 +238,27 @@ export default function SecuritySettings({
                                 </select>
                             </div>
 
+                            {/* Bloqueo al cambiar de pestaña */}
+                            <div>
+                                <h3 className={`font-medium ${currentTheme === 'dark' ? 'text-white' : 'text-gray-800'} mb-3`}>Bloqueo al cambiar de pestaña</h3>
+                                <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-3`}>
+                                    El diario se bloqueará cuando cambies a otra pestaña o aplicación y regreses.
+                                </p>
+                                <label className="flex items-center space-x-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={config.requirePinOnResume}
+                                        onChange={(e) => {
+                                            updateConfig({ requirePinOnResume: e.target.checked });
+                                        }}
+                                        className={`w-4 h-4 rounded focus:ring-2 focus:ring-blue-500 ${currentTheme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}`}
+                                    />
+                                    <span className={`text-sm ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        Requerir PIN al regresar a la aplicación
+                                    </span>
+                                </label>
+                            </div>
+
                             {/* Información de seguridad */}
                             <div className={`${currentTheme === 'dark' ? 'bg-blue-900 border-blue-700' : 'bg-blue-50 border-blue-200'} border rounded-lg p-4`}>
                                 <h4 className={`font-medium ${currentTheme === 'dark' ? 'text-blue-300' : 'text-blue-800'} mb-2`}>¿Cómo funciona?</h4>

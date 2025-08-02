@@ -565,6 +565,7 @@ const DiaryApp = ({ user }) => {
             isPinSet={securityHook.isPinSet}
             onUnlock={securityHook.unlockApp}
             onSetupPin={securityHook.setupPin}
+            onResetPin={securityHook.resetPin}
             pinLength={securityHook.pinLength}
             currentTheme={currentTheme}
         >
