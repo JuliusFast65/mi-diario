@@ -1,28 +1,19 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-
-// Importar ActivityTrackerItem desde el mismo directorio temporalmente
-import ActivityTrackerItem from './ActivityTrackerItem';
 import DeleteConfirmModal from './DeleteConfirmModal';
 
-// Estilos CSS para options en diferentes temas
-const selectStyles = `
-    /* Estilos para options en modo claro */
-    .light select option {
-        background-color: white;
-        color: #374151;
-    }
-    
-    /* Estilos para options en modo oscuro */
-    .dark select option {
-        background-color: #374151;
-        color: #f9fafb;
-    }
-`;
-
-const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActivity, onAddOption, onOpenDefineActivitiesModal, onConsultAI, onWritingAssistant, onUntrackActivity, userPrefs, onUpdateUserPrefs, selectedDate, onDateChange, textareaRef, onDeleteEntry, isSimpleActivity, getActivityPoints, getActivityCount, usesCountInsteadOfPoints, currentTheme = 'dark' }) => {
+const DiaryEntryEditor = ({ 
+    currentEntry, 
+    onTextChange, 
+    userPrefs, 
+    onUpdateUserPrefs, 
+    textareaRef, 
+    onDeleteEntry, 
+    onConsultAI, 
+    onWritingAssistant, 
+    currentTheme = 'dark' 
+}) => {
     const { t } = useTranslation();
-    const [activeTab, setActiveTab] = useState('entrada');
     const [focusMode, setFocusMode] = useState(false);
     const [deleteModalEntry, setDeleteModalEntry] = useState(null);
 
@@ -62,121 +53,59 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
         'text-4xl': 'text-4xl',
     };
 
-    const [trackedActivityIds, untrackedActivities] = useMemo(() => {
-        const trackedIds = Object.keys(currentEntry?.tracked || {});
-        const untracked = Object.values(activities).filter(act => !trackedIds.includes(act.id));
-        return [trackedIds, untracked];
-    }, [currentEntry, activities]);
 
-    const [lastTrackedId, setLastTrackedId] = useState(null);
-    const handleAddActivitySelect = (e) => {
-        const activityId = e.target.value;
-        if (!activityId || !activities[activityId]) { e.target.value = ""; return; }
-        const activity = activities[activityId];
-        
-        // Para actividades simples, registrar automáticamente como "Completado"
-        if (isSimpleActivity && isSimpleActivity(activityId)) {
-            onTrackActivity(activityId, t('diary.completed'));
-        } else {
-            // Para actividades premium, usar la primera opción o valor vacío
-            const initialValue = activity.options?.[0] || '';
-            onTrackActivity(activityId, initialValue);
-        }
-        
-        setLastTrackedId(activityId);
-        e.target.value = "";
-    };
-    React.useEffect(() => {
-        if (lastTrackedId) {
-            const timeout = setTimeout(() => setLastTrackedId(null), 1000);
-            return () => clearTimeout(timeout);
-        }
-    }, [lastTrackedId]);
-
-    const tabBaseStyle = "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors duration-200";
-    const tabActiveStyle = currentTheme === 'dark' ? "bg-gray-800 text-white" : "bg-white text-gray-900";
-    const tabInactiveStyle = currentTheme === 'dark' 
-        ? "bg-gray-700 text-gray-400 hover:bg-gray-600" 
-        : "bg-gray-200 text-gray-700 hover:bg-gray-300";
-
-    // Funciones para manejar los clicks de las pestañas y fecha
-    const handleTabClick = (tab) => {
-        setActiveTab(tab);
-        setFocusMode(false);
-    };
-
-    const handleDateChange = (e) => {
-        onDateChange(e.target.value);
-        setFocusMode(false);
-    };
 
     return (
         <>
-            <style>{selectStyles}</style>
             <div className="flex flex-col flex-grow relative">
-            {/* Modo enfoque - pantalla completa */}
-            {focusMode && activeTab === 'entrada' && (
-                <div className={`fixed inset-0 z-50 flex flex-col ${currentTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
-                    {/* Botón para salir del modo enfoque */}
-                    <button
-                        className="absolute top-4 right-4 z-[60] bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-2 shadow-lg"
-                        title={t('diary.exitFocusMode')}
-                        onClick={() => setFocusMode(false)}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                    
-                    {/* Área de escritura en modo enfoque */}
-                    <div className="flex-1 flex items-center justify-center p-4">
-                        <div className="w-full max-w-4xl h-full">
-                            <textarea
-                                ref={textareaRef}
-                                value={currentEntry?.text || ''}
-                                onChange={onTextChange}
-                                placeholder={t('diary.writeTitlePlaceholder')}
-                                className={`w-full h-full rounded-md p-6 border-none focus:ring-0 transition resize-none notebook journal-editor leading-[1.5] ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]} text-lg writing-area`}
-                                style={{minHeight: '80vh'}}
-                            />
+                {/* Modo enfoque - pantalla completa */}
+                {focusMode && (
+                    <div className={`fixed inset-0 z-50 flex flex-col ${currentTheme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+                        {/* Botón para salir del modo enfoque */}
+                        <button
+                            className="absolute top-4 right-4 z-[60] bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-2 shadow-lg"
+                            title={t('diary.exitFocusMode')}
+                            onClick={() => setFocusMode(false)}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        
+                        {/* Área de escritura en modo enfoque */}
+                        <div className="flex-1 flex items-center justify-center p-4">
+                            <div className="w-full max-w-4xl h-full">
+                                <textarea
+                                    ref={textareaRef}
+                                    value={currentEntry?.text || ''}
+                                    onChange={onTextChange}
+                                    placeholder={t('diary.writeTitlePlaceholder')}
+                                    className={`w-full h-full rounded-md p-6 border-none focus:ring-0 transition resize-none notebook journal-editor leading-[1.5] ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]} text-lg writing-area`}
+                                    style={{minHeight: '80vh'}}
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-            
-            {/* Vista normal */}
-            {!focusMode && (
-                <>
-                    {/* Botón de modo enfoque solo en móvil, solo si no está activo y solo en pestaña Entrada */}
-                    {activeTab === 'entrada' && (
+                )}
+                
+                {/* Vista normal */}
+                {!focusMode && (
+                    <>
+                        {/* Botón de modo enfoque solo en móvil */}
                         <button
                             className="md:hidden absolute top-2 right-2 z-20 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-2 shadow-lg focus-mode-btn"
                             title={t('diary.focusMode')}
                             onClick={() => setFocusMode(true)}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V6a2 2 0 012-2h2m8 0h2a2 2 0 012 2v2m0 8v2a2 2 0 01-2 2h-2m-8 0H6a2 2 0 01-2-2v-2" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V6a2 2 0 012-2h2m8 0h2a2 2 0 012 2v2m0 8v2a2 2 0 01-2 2h-2m-8 0H6a2 2 0 01-2-2v-2" />
+                            </svg>
                         </button>
-                    )}
-                    
-                    {/* Elementos normales */}
-                    <div className="flex justify-between items-center flex-shrink-0 px-4 md:px-6 pt-4">
-                        <div className={`flex border-b ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                            <button onClick={() => handleTabClick('entrada')} className={`${tabBaseStyle} ${activeTab === 'entrada' ? tabActiveStyle : tabInactiveStyle}`}>{t('diary.entry')}</button>
-                            <button onClick={() => handleTabClick('actividades')} className={`${tabBaseStyle} activities-tab ${activeTab === 'actividades' ? tabActiveStyle : tabInactiveStyle}`}>{t('diary.activities')}</button>
-                        </div>
-                        <input 
-                            type="date" 
-                            value={selectedDate} 
-                            onChange={handleDateChange} 
-                            className={`rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 ${
-                                currentTheme === 'dark' 
-                                    ? 'bg-gray-700 border-gray-600 text-white' 
-                                    : 'bg-white border-gray-300 text-gray-900'
-                            } border`} 
-                        />
-                    </div>
-                    
-                    {/* Área de escritura normal */}
-                    {activeTab === 'entrada' && (
-                        <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-b-lg p-2 flex flex-col flex-grow mb-4 md:mb-6 relative border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                        
+
+                        
+                        {/* Área de escritura */}
+                        <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-2 flex flex-col flex-grow mb-4 md:mb-6 relative border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                             <textarea
                                 ref={textareaRef}
                                 value={currentEntry?.text || ''}
@@ -189,7 +118,7 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                             {currentEntry?.text && (
                                 <button 
                                     title={t('diary.deleteEntry')} 
-                                    onClick={() => setDeleteModalEntry({ id: selectedDate, title: currentEntry?.text?.split('\n')[0] || t('diary.noTitle') })} 
+                                    onClick={() => setDeleteModalEntry({ id: 'current', title: currentEntry?.text?.split('\n')[0] || t('diary.noTitle') })} 
                                     className="absolute bottom-20 left-3 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg transition-colors z-30 pointer-events-auto"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -202,7 +131,9 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                             <div className={`flex justify-between items-center mt-4 pt-4 border-t flex-wrap gap-4 flex-shrink-0 ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                                 <div className="flex items-center gap-2 flex-wrap text-xs">
                                     <div className="flex items-center gap-1 min-w-0">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M10.755 2.168A.75.75 0 009.245 2.168L3.32 13.5h2.978l1.035-2.5h4.334l1.035 2.5h2.978L10.755 2.168zm-2.034 7.5L10 4.17l1.279 5.5H8.721z" /></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10.755 2.168A.75.75 0 009.245 2.168L3.32 13.5h2.978l1.035-2.5h4.334l1.035 2.5h2.978L10.755 2.168zm-2.034 7.5L10 4.17l1.279 5.5H8.721z" />
+                                        </svg>
                                         <select
                                             id="font-select"
                                             value={userPrefs.font}
@@ -220,7 +151,9 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                                         </select>
                                     </div>
                                     <div className="flex items-center gap-1 min-w-0">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M8.25 3.75a.75.75 0 01.75.75v10.5a.75.75 0 01-1.5 0V4.5a.75.75 0 01.75-.75zM13.25 5.75a.75.75 0 01.75.75v8.5a.75.75 0 01-1.5 0V6.5a.75.75 0 01.75-.75zM4.25 8.75a.75.75 0 01.75.75v2.5a.75.75 0 01-1.5 0v-2.5a.75.75 0 01.75-.75z" /></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M8.25 3.75a.75.75 0 01.75.75v10.5a.75.75 0 01-1.5 0V4.5a.75.75 0 01.75-.75zM13.25 5.75a.75.75 0 01.75.75v8.5a.75.75 0 01-1.5 0V6.5a.75.75 0 01.75-.75zM4.25 8.75a.75.75 0 01.75.75v2.5a.75.75 0 01-1.5 0v-2.5a.75.75 0 01.75-.75z" />
+                                        </svg>
                                         <select
                                             id="fontsize-select"
                                             value={userPrefs.fontSize}
@@ -250,74 +183,34 @@ const DiaryEntryEditor = ({ currentEntry, onTextChange, activities, onTrackActiv
                                 </div>
                                 <div className="flex gap-2">
                                     <button title={t('diary.writingAssistant')} onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2 writing-assistant-btn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                                            <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" />
+                                        </svg>
                                     </button>
                                     <button title={t('diary.aiConsult')} onClick={onConsultAI} className="bg-purple-600 hover:bg-purple-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2 ai-consult-btn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" /></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a2 2 0 100 4 2 2 0 000-4z" clipRule="evenodd" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    )}
-                    
-                    {/* Tab de actividades */}
-                    {activeTab === 'actividades' && (
-                        <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-b-lg p-4 mx-4 md:mx-6 mb-4 md:mb-6 border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                            <div className="space-y-4 min-h-[50px]">
-                                {trackedActivityIds.length > 0 ? (
-                                    trackedActivityIds.map((id, idx) => activities[id]).filter(Boolean).sort((a,b) => a.name.localeCompare(b.name)).map(activity => (
-                                        <ActivityTrackerItem
-                                            key={activity.id}
-                                            activity={activity}
-                                            selectedValue={currentEntry?.tracked?.[activity.id] || ''}
-                                            onValueChange={(value) => onTrackActivity(activity.id, value)}
-                                            onUntrack={onUntrackActivity}
-                                            autoFocus={lastTrackedId === activity.id}
-                                            isSimpleActivity={isSimpleActivity}
-                                            getActivityPoints={getActivityPoints}
-                                            getActivityCount={getActivityCount}
-                                            usesCountInsteadOfPoints={usesCountInsteadOfPoints}
-                                            currentTheme={currentTheme}
-                                        />
-                                    ))
-                                ) : (<div className={`text-center py-4 italic ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{t('diary.noActivitiesRegistered')}</div>)}
-                            </div>
-                            <div className={`mt-6 border-t pt-4 flex flex-col sm:flex-row items-center gap-4 ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                                <select 
-                                    onChange={handleAddActivitySelect} 
-                                    defaultValue="" 
-                                    className={`w-full sm:flex-grow rounded-md p-2 border focus:ring-1 focus:ring-indigo-400 ${
-                                        currentTheme === 'dark' 
-                                            ? 'bg-gray-600 border-gray-500 text-white' 
-                                            : 'bg-white border-gray-300 text-gray-900'
-                                    }`}
-                                >
-                                    <option value="" disabled>{t('diary.registerActivity')}</option>
-                                    {untrackedActivities.sort((a,b) => a.name.localeCompare(b.name)).map(act => (
-                                        <option key={act.id} value={act.id}>{act.name}</option>
-                                    ))}
-                                </select>
-                                <div className="flex items-center gap-4">
-                                    <button onClick={onOpenDefineActivitiesModal} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 whitespace-nowrap">{t('diary.defineActivities')}</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </>
-            )}
-            
-            <DeleteConfirmModal
-                isOpen={!!deleteModalEntry}
-                onClose={() => setDeleteModalEntry(null)}
-                onConfirm={async () => {
-                    if (deleteModalEntry) {
-                        await onDeleteEntry(deleteModalEntry.id);
-                    }
-                }}
-                entry={deleteModalEntry}
-                currentTheme={currentTheme}
-            />
-        </div>
+                    </>
+                )}
+                
+                <DeleteConfirmModal
+                    isOpen={!!deleteModalEntry}
+                    onClose={() => setDeleteModalEntry(null)}
+                    onConfirm={async () => {
+                        if (deleteModalEntry) {
+                            await onDeleteEntry(deleteModalEntry.id);
+                        }
+                    }}
+                    entry={deleteModalEntry}
+                    currentTheme={currentTheme}
+                />
+            </div>
         </>
     );
 };

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { auth, db } from './firebase';
 import DiaryEntryEditor from './components/DiaryEntryEditor';
+import ActivitiesView from './components/ActivitiesView';
 import ArchiveView from './components/ArchiveView';
 import StatisticsPanel from './components/StatisticsPanel';
 import { decryptText } from './utils/crypto';
@@ -14,6 +15,8 @@ import ExportModal from './components/ExportModal';
 import ImportModal from './components/ImportModal';
 import UserProfileModal from './components/UserProfileModal';
 import UpdateNotification from './components/UpdateNotification';
+
+
 
 // Security Components
 import AppLock from './components/AppLock';
@@ -42,17 +45,8 @@ import SubscriptionStatus from './components/SubscriptionStatus';
 import { APP_VERSION } from './config/version';
 
 
-// --- Configuración de Firebase ---
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-};
-
-const appId = firebaseConfig.projectId;
+// Configuración del proyecto
+const appId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
 
 // --- Componente de Login ---
 const LoginScreen = ({ onGoogleSignIn }) => {
@@ -172,6 +166,8 @@ const DiaryApp = ({ user }) => {
     const [aiModalTitle, setAIModalTitle] = useState('');
     const [selectedTextForAI, setSelectedTextForAI] = useState(null);
     const textareaRef = useRef();
+
+
 
     useEffect(() => {
         const firestoreDb = getFirestore();
@@ -728,12 +724,28 @@ const DiaryApp = ({ user }) => {
                     </div>
                 </header>
                 
-                <nav className="flex flex-wrap justify-between items-center p-2 bg-gray-100 dark:bg-gray-800 gap-2 flex-shrink-0 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => setView('diary')} className={`px-4 py-2 text-sm font-medium rounded-md diary-tab ${view === 'diary' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>{t('navigation.diary')}</button>
-                        <button onClick={() => setView('archive')} className={`px-4 py-2 text-sm font-medium rounded-md archive-tab ${view === 'archive' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>{t('navigation.archive')}</button>
-                        <button onClick={() => setView('stats')} className={`px-4 py-2 text-sm font-medium rounded-md stats-tab ${view === 'stats' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>{t('navigation.statistics')}</button>
+                <nav className="flex flex-wrap justify-between items-center p-2 bg-gray-100 dark:bg-gray-800 gap-1 flex-shrink-0 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-1">
+                        <button onClick={() => setView('diary')} className={`px-2 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md diary-tab ${view === 'diary' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>📝 Diario</button>
+                        <button onClick={() => setView('activities')} className={`px-2 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md activities-tab ${view === 'activities' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>📊 Actividades</button>
+                        <button onClick={() => setView('archive')} className={`px-2 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md archive-tab ${view === 'archive' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>📁 Archivo</button>
                     </div>
+                    
+                    {/* Selector de fecha - visible solo para Diario y Actividades */}
+                    {(view === 'diary' || view === 'activities') && (
+                        <div className="flex items-center gap-2">
+                            <input 
+                                type="date" 
+                                value={selectedDate || ''} 
+                                onChange={(e) => handleDateChange(e.target.value)} 
+                                className={`px-2 py-1 text-xs md:text-sm border rounded-md ${
+                                    currentTheme === 'dark' 
+                                        ? 'bg-gray-700 border-gray-600 text-white' 
+                                        : 'bg-white border-gray-300 text-gray-900'
+                                }`}
+                            />
+                        </div>
+                    )}
                 </nav>
 
                 {/* Advertencia de límite de actividades */}
@@ -756,10 +768,10 @@ const DiaryApp = ({ user }) => {
                         <DiaryEntryEditor 
                             currentEntry={currentEntry} 
                             onTextChange={handleTextChange} 
-                            activities={activities} 
-                            onTrackActivity={handleTrackActivity} 
-                            onAddOption={handleAddOptionToActivity} 
-                            onOpenDefineActivitiesModal={() => setDefineActivitiesModalOpen(true)} 
+                            userPrefs={userPrefs} 
+                            onUpdateUserPrefs={handleUpdateUserPrefs} 
+                            textareaRef={textareaRef} 
+                            onDeleteEntry={handleDeleteEntry}
                             onConsultAI={handleConsultAI} 
                             onWritingAssistant={() => {
                                 const selectedText = getSelectedText();
@@ -770,14 +782,18 @@ const DiaryApp = ({ user }) => {
                                     currentEntryTextLength: (currentEntry?.text || '').length
                                 });
                                 setIsBasicWritingAssistantOpen(true);
-                            }} 
-                            onUntrackActivity={handleUntrackActivity} 
-                            userPrefs={userPrefs} 
-                            onUpdateUserPrefs={handleUpdateUserPrefs} 
-                            selectedDate={selectedDate} 
-                            onDateChange={handleDateChange} 
-                            textareaRef={textareaRef} 
-                            onDeleteEntry={handleDeleteEntry}
+                            }}
+                            currentTheme={currentTheme}
+                        />
+                    ) : view === 'activities' ? (
+                        <ActivitiesView
+                            activities={activities}
+                            currentEntry={currentEntry}
+                            onTrackActivity={handleTrackActivity}
+                            onUntrackActivity={handleUntrackActivity}
+                            onOpenDefineActivitiesModal={() => setDefineActivitiesModalOpen(true)}
+                            onOpenStatisticsModal={() => setView('stats')}
+                            isPremium={subscription?.status === 'active'}
                             isSimpleActivity={isSimpleActivity}
                             getActivityPoints={getActivityPoints}
                             getActivityCount={getActivityCount}
@@ -793,7 +809,7 @@ const DiaryApp = ({ user }) => {
                              selectedDate={selectedDate}
                              currentTheme={currentTheme}
                          />
-                    ) : (
+                    ) : view === 'stats' ? (
                        <StatisticsPanel 
                            db={db} 
                            userId={user.uid} 
@@ -810,7 +826,7 @@ const DiaryApp = ({ user }) => {
                            }}
                            currentTheme={currentTheme}
                        />
-                    )}
+                    ) : null}
                 </main>
             </div>
             
