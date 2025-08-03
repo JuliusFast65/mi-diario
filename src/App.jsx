@@ -724,8 +724,8 @@ const DiaryApp = ({ user }) => {
                     </div>
                 </header>
                 
-                <nav className="flex flex-wrap justify-between items-center p-2 bg-gray-100 dark:bg-gray-800 gap-1 flex-shrink-0 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-1">
+                <nav className="flex items-center p-2 bg-gray-100 dark:bg-gray-800 gap-1 flex-shrink-0 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                         <button onClick={() => setView('diary')} className={`px-2 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md diary-tab ${view === 'diary' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>📝 Diario</button>
                         <button onClick={() => setView('activities')} className={`px-2 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md activities-tab ${view === 'activities' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>📊 Actividades</button>
                         <button onClick={() => setView('archive')} className={`px-2 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md archive-tab ${view === 'archive' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>📁 Archivo</button>
@@ -733,12 +733,12 @@ const DiaryApp = ({ user }) => {
                     
                     {/* Selector de fecha - visible solo para Diario y Actividades */}
                     {(view === 'diary' || view === 'activities') && (
-                        <div className="flex items-center gap-1 md:gap-2">
+                        <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-auto">
                             <input 
                                 type="date" 
                                 value={selectedDate || ''} 
                                 onChange={(e) => handleDateChange(e.target.value)} 
-                                className={`px-1 md:px-2 py-1 text-xs md:text-sm border rounded-md max-w-[120px] md:max-w-none ${
+                                className={`px-1 md:px-2 py-1 text-xs md:text-sm border rounded-md w-[105px] md:w-auto md:max-w-none ${
                                     currentTheme === 'dark' 
                                         ? 'bg-gray-700 border-gray-600 text-white' 
                                         : 'bg-white border-gray-300 text-gray-900'
