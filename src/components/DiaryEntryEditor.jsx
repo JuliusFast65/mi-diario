@@ -11,6 +11,9 @@ const DiaryEntryEditor = ({
     onDeleteEntry, 
     onConsultAI, 
     onWritingAssistant, 
+    onOpenStatistics,
+    onOpenAnalysis,
+    subscription,
     currentTheme = 'dark' 
 }) => {
     const { t } = useTranslation();
@@ -107,7 +110,26 @@ const DiaryEntryEditor = ({
                             
                             {/* Controles */}
                             <div className={`flex justify-between items-center mt-4 pt-4 border-t flex-wrap gap-4 flex-shrink-0 ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                                <div className="flex items-center gap-2 flex-wrap text-xs">
+                                {/* Lado izquierdo - Estadísticas, Análisis y Tutorial */}
+                                <div className="flex items-center gap-2">
+                                    <button title="Estadísticas" onClick={onOpenStatistics} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2zm0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                        </svg>
+                                    </button>
+                                    <button 
+                                        title={subscription?.plan === 'premium' ? 'Análisis de Comportamiento' : 'Función Premium - Análisis de Comportamiento'} 
+                                        onClick={onOpenAnalysis} 
+                                        className={`font-bold p-2 rounded-lg text-sm flex items-center gap-2 ${
+                                            subscription?.plan === 'premium'
+                                                ? 'bg-green-600 hover:bg-green-700 text-white'
+                                                : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                    </button>
                                     <button 
                                         onClick={() => window.dispatchEvent(new CustomEvent('openOnboarding'))} 
                                         title={t('diary.helpTutorial')} 
@@ -118,6 +140,8 @@ const DiaryEntryEditor = ({
                                         </svg>
                                     </button>
                                 </div>
+                                
+                                {/* Lado derecho - Asistente y Reflexión */}
                                 <div className="flex gap-2">
                                     <button title={t('diary.writingAssistant')} onClick={onWritingAssistant} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2 writing-assistant-btn">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

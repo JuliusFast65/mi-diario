@@ -145,7 +145,7 @@ export default function HamburgerMenu({
                                     : 'text-gray-700 hover:bg-gray-100'
                             }`}
                         >
-                            <span className="text-indigo-400">📊</span>
+                            <span className="text-indigo-400">⚡</span>
                             <div>
                                 <div className="font-medium">{t('hamburgerMenu.behaviorAnalysis')}</div>
                             </div>

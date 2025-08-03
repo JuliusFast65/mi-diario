@@ -783,6 +783,20 @@ const DiaryApp = ({ user }) => {
                                 });
                                 setIsBasicWritingAssistantOpen(true);
                             }}
+                            onOpenStatistics={() => setView('stats')}
+                            onOpenAnalysis={() => {
+                                if (subscription?.plan === 'premium') {
+                                    setIsBehaviorAnalysisOpen(true);
+                                } else {
+                                    setPremiumFeatureInfo({
+                                        name: 'Análisis de Comportamiento',
+                                        description: 'Descubre patrones en tus hábitos y comportamientos para mejorar tu bienestar.',
+                                        icon: '📈'
+                                    });
+                                    setIsPremiumFeatureModalOpen(true);
+                                }
+                            }}
+                            subscription={subscription}
                             currentTheme={currentTheme}
                         />
                     ) : view === 'activities' ? (
