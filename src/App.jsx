@@ -733,12 +733,12 @@ const DiaryApp = ({ user }) => {
                     
                     {/* Selector de fecha - visible solo para Diario y Actividades */}
                     {(view === 'diary' || view === 'activities') && (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 md:gap-2">
                             <input 
                                 type="date" 
                                 value={selectedDate || ''} 
                                 onChange={(e) => handleDateChange(e.target.value)} 
-                                className={`px-2 py-1 text-xs md:text-sm border rounded-md ${
+                                className={`px-1 md:px-2 py-1 text-xs md:text-sm border rounded-md max-w-[120px] md:max-w-none ${
                                     currentTheme === 'dark' 
                                         ? 'bg-gray-700 border-gray-600 text-white' 
                                         : 'bg-white border-gray-300 text-gray-900'

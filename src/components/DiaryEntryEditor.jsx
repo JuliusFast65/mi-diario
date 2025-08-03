@@ -17,24 +17,6 @@ const DiaryEntryEditor = ({
     const [focusMode, setFocusMode] = useState(false);
     const [deleteModalEntry, setDeleteModalEntry] = useState(null);
 
-    const fontOptions = [
-        { id: 'patrick-hand', name: t('fonts.names.patrickHand') },
-        { id: 'caveat', name: t('fonts.names.caveat') },
-        { id: 'indie-flower', name: t('fonts.names.indieFlower') },
-        { id: 'kalam', name: t('fonts.names.kalam') },
-        { id: 'gochi-hand', name: t('fonts.names.gochiHand') },
-        { id: 'lora', name: t('fonts.names.lora') },
-        { id: 'sans', name: t('fonts.names.sans') },
-    ];
-
-    const fontSizeOptions = [
-        { id: 'text-lg', name: t('fonts.sizes.verySmall')},
-        { id: 'text-xl', name: t('fonts.sizes.small') },
-        { id: 'text-2xl', name: t('fonts.sizes.medium') },
-        { id: 'text-3xl', name: t('fonts.sizes.large') },
-        { id: 'text-4xl', name: t('fonts.sizes.extraLarge') },
-    ];
-
     const fontClassMap = {
         'patrick-hand': 'font-patrick-hand',
         'caveat': 'font-caveat',
@@ -52,8 +34,6 @@ const DiaryEntryEditor = ({
         'text-3xl': 'text-3xl',
         'text-4xl': 'text-4xl',
     };
-
-
 
     return (
         <>
@@ -80,7 +60,7 @@ const DiaryEntryEditor = ({
                                     value={currentEntry?.text || ''}
                                     onChange={onTextChange}
                                     placeholder={t('diary.writeTitlePlaceholder')}
-                                    className={`w-full h-full rounded-md p-6 border-none focus:ring-0 transition resize-none notebook journal-editor leading-[1.5] ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]} text-lg writing-area`}
+                                    className={`w-full h-full rounded-md p-6 border-none focus:ring-0 transition resize-none notebook journal-editor leading-[1.5] ${fontSizeClassMap[userPrefs.fontSize]} ${fontClassMap[userPrefs.font]} writing-area`}
                                     style={{minHeight: '80vh'}}
                                 />
                             </div>
@@ -91,9 +71,9 @@ const DiaryEntryEditor = ({
                 {/* Vista normal */}
                 {!focusMode && (
                     <>
-                        {/* Botón de modo enfoque solo en móvil */}
+                        {/* Botón de modo enfoque */}
                         <button
-                            className="md:hidden absolute top-2 right-2 z-20 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-2 shadow-lg focus-mode-btn"
+                            className="absolute top-2 right-2 z-20 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-2 shadow-lg focus-mode-btn"
                             title={t('diary.focusMode')}
                             onClick={() => setFocusMode(true)}
                         >
@@ -101,8 +81,6 @@ const DiaryEntryEditor = ({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V6a2 2 0 012-2h2m8 0h2a2 2 0 012 2v2m0 8v2a2 2 0 01-2 2h-2m-8 0H6a2 2 0 01-2-2v-2" />
                             </svg>
                         </button>
-                        
-
                         
                         {/* Área de escritura */}
                         <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-2 flex flex-col flex-grow mb-4 md:mb-6 relative border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
@@ -130,47 +108,6 @@ const DiaryEntryEditor = ({
                             {/* Controles */}
                             <div className={`flex justify-between items-center mt-4 pt-4 border-t flex-wrap gap-4 flex-shrink-0 ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                                 <div className="flex items-center gap-2 flex-wrap text-xs">
-                                    <div className="flex items-center gap-1 min-w-0">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M10.755 2.168A.75.75 0 009.245 2.168L3.32 13.5h2.978l1.035-2.5h4.334l1.035 2.5h2.978L10.755 2.168zm-2.034 7.5L10 4.17l1.279 5.5H8.721z" />
-                                        </svg>
-                                        <select
-                                            id="font-select"
-                                            value={userPrefs.font}
-                                            onChange={(e) => onUpdateUserPrefs({ font: e.target.value })}
-                                            className={`rounded p-0.5 border text-xs min-w-0 ${
-                                                currentTheme === 'dark' 
-                                                    ? 'bg-gray-700 border-gray-600 text-white' 
-                                                    : 'bg-white border-gray-300 text-gray-900'
-                                            }`}
-                                            style={{maxWidth:'90px'}}
-                                        >
-                                            {fontOptions.map(font => (
-                                                <option key={font.id} value={font.id}>{font.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="flex items-center gap-1 min-w-0">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M8.25 3.75a.75.75 0 01.75.75v10.5a.75.75 0 01-1.5 0V4.5a.75.75 0 01.75-.75zM13.25 5.75a.75.75 0 01.75.75v8.5a.75.75 0 01-1.5 0V6.5a.75.75 0 01.75-.75zM4.25 8.75a.75.75 0 01.75.75v2.5a.75.75 0 01-1.5 0v-2.5a.75.75 0 01.75-.75z" />
-                                        </svg>
-                                        <select
-                                            id="fontsize-select"
-                                            value={userPrefs.fontSize}
-                                            onChange={(e) => onUpdateUserPrefs({ fontSize: e.target.value })}
-                                            className={`rounded p-0.5 border text-xs min-w-0 ${
-                                                currentTheme === 'dark' 
-                                                    ? 'bg-gray-700 border-gray-600 text-white' 
-                                                    : 'bg-white border-gray-300 text-gray-900'
-                                            }`}
-                                            style={{maxWidth:'70px'}}
-                                        >
-                                            {fontSizeOptions.map(size => (
-                                                <option key={size.id} value={size.id}>{size.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="flex-grow"></div>
                                     <button 
                                         onClick={() => window.dispatchEvent(new CustomEvent('openOnboarding'))} 
                                         title={t('diary.helpTutorial')} 

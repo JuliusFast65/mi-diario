@@ -41,8 +41,8 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
         timeFormat: '24h',
         
         // Preferencias Básicas
-        defaultFont: 'patrick-hand',
-        defaultFontSize: 'text-2xl',
+        font: 'patrick-hand',
+        fontSize: 'text-2xl',
         theme: 'dark',
         
         // Notificaciones Básicas
@@ -189,10 +189,10 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* Información Personal */}
                     {activeTab === 'personal' && (
                         <div className="space-y-4">
-                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Información Personal</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('profile.personalInformation')}</h3>
                             
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Nombre Completo</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.fullName')}</label>
                                 <input
                                     type="text"
                                     value={formData.fullName}
@@ -206,7 +206,7 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Fecha de Nacimiento (Opcional)</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.birthDateOptional')}</label>
                                 <input
                                     type="date"
                                     value={formData.birthDate}
@@ -220,7 +220,7 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Género/Identidad (Opcional)</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.genderOptional')}</label>
                                 <select
                                     value={formData.gender}
                                     onChange={(e) => handleInputChange('gender', e.target.value)}
@@ -230,16 +230,16 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                             : 'bg-white border-gray-300 text-gray-900'
                                     } border`}
                                 >
-                                    <option value="">No especificar</option>
-                                    <option value="masculino">Masculino</option>
-                                    <option value="femenino">Femenino</option>
-                                    <option value="no-binario">No binario</option>
-                                    <option value="otro">Otro</option>
+                                    <option value="">{t('profile.notSpecify')}</option>
+                                    <option value="masculino">{t('profile.male')}</option>
+                                    <option value="femenino">{t('profile.female')}</option>
+                                    <option value="no-binario">{t('profile.nonBinary')}</option>
+                                    <option value="otro">{t('profile.other')}</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Zona Horaria</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.timezone')}</label>
                                 <select
                                     value={formData.timezone}
                                     onChange={(e) => handleInputChange('timezone', e.target.value)}
@@ -317,8 +317,8 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             <div>
                                 <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.defaultFont')}</label>
                                 <select
-                                    value={formData.defaultFont}
-                                    onChange={(e) => handleInputChange('defaultFont', e.target.value)}
+                                    value={formData.font}
+                                    onChange={(e) => handleInputChange('font', e.target.value)}
                                     className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
                                         currentTheme === 'dark' 
                                             ? 'bg-gray-700 border-gray-600 text-white' 
@@ -338,8 +338,8 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             <div>
                                 <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.defaultFontSize')}</label>
                                 <select
-                                    value={formData.defaultFontSize}
-                                    onChange={(e) => handleInputChange('defaultFontSize', e.target.value)}
+                                    value={formData.fontSize}
+                                    onChange={(e) => handleInputChange('fontSize', e.target.value)}
                                     className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
                                         currentTheme === 'dark' 
                                             ? 'bg-gray-700 border-gray-600 text-white' 
@@ -355,7 +355,7 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Tema</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.theme')}</label>
                                 <select
                                     value={formData.theme}
                                     onChange={(e) => handleInputChange('theme', e.target.value)}
@@ -365,9 +365,9 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                             : 'bg-white border-gray-300 text-gray-900'
                                     } border`}
                                 >
-                                    <option value="dark">Oscuro</option>
-                                    <option value="light">Claro</option>
-                                    <option value="auto">Automático</option>
+                                    <option value="dark">{t('profile.dark')}</option>
+                                    <option value="light">{t('profile.light')}</option>
+                                    <option value="auto">{t('profile.auto')}</option>
                                 </select>
                             </div>
                         </div>
@@ -376,12 +376,12 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* Notificaciones Básicas */}
                     {activeTab === 'notifications' && (
                         <div className="space-y-4">
-                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Notificaciones</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('profile.notifications')}</h3>
                             
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Recordatorio Diario</label>
-                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Recibir notificación diaria para escribir</p>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.dailyReminder')}</label>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('profile.dailyReminderDescription')}</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -396,7 +396,7 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
 
                             {formData.dailyReminder && (
                                 <div>
-                                    <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Hora del Recordatorio</label>
+                                    <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.reminderTime')}</label>
                                     <input
                                         type="time"
                                         value={formData.reminderTime}
@@ -413,16 +413,16 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             {/* Sección Premium */}
                             {!isPremium && (
                                 <div className="mt-6 p-4 bg-gradient-to-r from-purple-900 to-indigo-900 rounded-lg border border-purple-500">
-                                    <h4 className="text-lg font-semibold text-white mb-2">✨ Funcionalidades Premium</h4>
-                                    <p className="text-gray-300 mb-3">Desbloquea notificaciones avanzadas y más opciones de personalización</p>
+                                    <h4 className="text-lg font-semibold text-white mb-2">{t('profile.premiumFeatures')}</h4>
+                                    <p className="text-gray-300 mb-3">{t('profile.premiumDescription')}</p>
                                     <ul className="text-sm text-gray-400 space-y-1 mb-4">
-                                        <li>• Recordatorios de actividades pendientes</li>
-                                        <li>• Resúmenes semanales del diario</li>
-                                        <li>• Personalización avanzada de IA (terapeuta, asistente, frases)</li>
-                                        <li>• Configuración de seguridad (2FA, respaldo, sincronización)</li>
-                                        <li>• Metas personales y objetivos de escritura</li>
-                                        <li>• Análisis de patrones de comportamiento</li>
-                                        <li>• Chat con terapeuta IA y asistente de escritura</li>
+                                        <li>• {t('profile.activityReminders')}</li>
+                                        <li>• {t('profile.weeklySummaries')}</li>
+                                        <li>• {t('profile.aiCustomizationAdvanced')}</li>
+                                        <li>• {t('profile.securitySettings')}</li>
+                                        <li>• {t('profile.personalGoals')}</li>
+                                        <li>• {t('profile.behaviorAnalysis')}</li>
+                                        <li>• {t('profile.aiChat')}</li>
                                     </ul>
                                     <button
                                         onClick={() => {
@@ -431,7 +431,7 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                         }}
                                         className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all"
                                     >
-                                        Actualizar a Premium
+                                        {t('profile.upgradeToPremium')}
                                     </button>
                                 </div>
                             )}
@@ -441,10 +441,10 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* IA Personalizada (Premium) */}
                     {activeTab === 'ai' && isPremium && (
                         <div className="space-y-4">
-                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Personalización de IA</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('profile.aiCustomizationTitle')}</h3>
                             
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Estilo del Terapeuta IA</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.therapistStyle')}</label>
                                 <select
                                     value={formData.therapistStyle}
                                     onChange={(e) => handleInputChange('therapistStyle', e.target.value)}
@@ -454,17 +454,17 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                             : 'bg-white border-gray-300 text-gray-900'
                                     } border`}
                                 >
-                                    <option value="empatico">Empático y comprensivo</option>
-                                    <option value="directo">Directo y analítico</option>
-                                    <option value="motivacional">Motivacional y alentador</option>
-                                    <option value="cognitivo">Cognitivo-conductual</option>
-                                    <option value="psicodinamico">Psicodinámico</option>
-                                    <option value="mindfulness">Mindfulness y meditación</option>
+                                    <option value="empatico">{t('profile.empathetic')}</option>
+                                    <option value="directo">{t('profile.direct')}</option>
+                                    <option value="motivacional">{t('profile.motivational')}</option>
+                                    <option value="cognitivo">{t('profile.cognitive')}</option>
+                                    <option value="psicodinamico">{t('profile.psychodynamic')}</option>
+                                    <option value="mindfulness">{t('profile.mindfulness')}</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Estilo del Asistente de Escritura</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.writingAssistantStyle')}</label>
                                 <select
                                     value={formData.writingAssistantStyle}
                                     onChange={(e) => handleInputChange('writingAssistantStyle', e.target.value)}
@@ -474,16 +474,16 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                             : 'bg-white border-gray-300 text-gray-900'
                                     } border`}
                                 >
-                                    <option value="formal">Formal y académico</option>
-                                    <option value="creativo">Creativo y expresivo</option>
-                                    <option value="simple">Simple y claro</option>
-                                    <option value="detallado">Detallado y descriptivo</option>
-                                    <option value="conciso">Conciso y directo</option>
+                                    <option value="formal">{t('profile.formal')}</option>
+                                    <option value="creativo">{t('profile.creative')}</option>
+                                    <option value="simple">{t('profile.simple')}</option>
+                                    <option value="detallado">{t('profile.detailed')}</option>
+                                    <option value="conciso">{t('profile.concise')}</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Tono de Frases Motivacionales</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.motivationalTone')}</label>
                                 <select
                                     value={formData.motivationalTone}
                                     onChange={(e) => handleInputChange('motivationalTone', e.target.value)}
@@ -493,13 +493,13 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                             : 'bg-white border-gray-300 text-gray-900'
                                     } border`}
                                 >
-                                    <option value="espiritual">Espiritual y trascendental</option>
-                                    <option value="filosofico">Filosófico y reflexivo</option>
-                                    <option value="motivacional">Motivacional y energético</option>
-                                    <option value="mindfulness">Mindfulness y presente</option>
-                                    <option value="cientifico">Científico y racional</option>
-                                    <option value="poetico">Poético y artístico</option>
-                                    <option value="practico">Práctico y aplicable</option>
+                                    <option value="espiritual">{t('profile.spiritual')}</option>
+                                    <option value="filosofico">{t('profile.philosophical')}</option>
+                                    <option value="motivacional">{t('profile.energetic')}</option>
+                                    <option value="mindfulness">{t('profile.present')}</option>
+                                    <option value="cientifico">{t('profile.scientific')}</option>
+                                    <option value="poetico">{t('profile.poetic')}</option>
+                                    <option value="practico">{t('profile.practical')}</option>
                                 </select>
                             </div>
                         </div>
@@ -508,12 +508,12 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* Seguridad (Premium) */}
                     {activeTab === 'security' && isPremium && (
                         <div className="space-y-4">
-                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Seguridad y Respaldo</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('profile.securityAndBackup')}</h3>
                             
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Autenticación de Dos Factores</label>
-                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Mayor seguridad para tu cuenta</p>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.twoFactorAuth')}</label>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('profile.twoFactorDescription')}</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -528,8 +528,8 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
 
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Respaldo Automático</label>
-                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Respaldar datos automáticamente</p>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.autoBackup')}</label>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('profile.autoBackupDescription')}</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -544,8 +544,8 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
 
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Sincronización</label>
-                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Sincronizar entre dispositivos</p>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.sync')}</label>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('profile.syncDescription')}</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -563,10 +563,10 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                     {/* Metas (Premium) */}
                     {activeTab === 'goals' && isPremium && (
                         <div className="space-y-4">
-                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Metas Personales</h3>
+                            <h3 className={`text-lg font-semibold mb-4 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('profile.personalGoalsTitle')}</h3>
                             
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Objetivo de Escritura Diario (palabras)</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.dailyWritingGoal')}</label>
                                 <input
                                     type="number"
                                     value={formData.dailyWritingGoal}
@@ -581,7 +581,7 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Objetivo de Escritura Semanal (palabras)</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.weeklyWritingGoal')}</label>
                                 <input
                                     type="number"
                                     value={formData.weeklyWritingGoal}
@@ -596,7 +596,7 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                             </div>
 
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Meta de Actividades Diarias</label>
+                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.dailyActivityGoal')}</label>
                                 <input
                                     type="number"
                                     value={formData.dailyActivityGoal}
@@ -613,8 +613,8 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
 
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Recordatorios de Actividades</label>
-                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Notificar actividades pendientes</p>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.activityRemindersTitle')}</label>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('profile.activityRemindersDescription')}</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -629,8 +629,8 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
 
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>Resúmenes Semanales</label>
-                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Recibir resumen semanal del diario</p>
+                                    <label className={`block text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.weeklySummariesTitle')}</label>
+                                    <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('profile.weeklySummariesDescription')}</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input

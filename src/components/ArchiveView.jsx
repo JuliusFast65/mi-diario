@@ -101,9 +101,6 @@ const ArchiveView = ({ allEntries, onSelectEntry, onDeleteEntry, user, selectedD
     return (
         <div className="p-2 md:p-6">
             <div className={`${currentTheme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 md:p-6 border ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'} shadow-lg`}>
-                <h3 className={`text-xl font-semibold mb-6 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                    {t('archive.archiveTitle')}
-                </h3>
                 {decryptedEntries.length > 0 ? (
                     <ul className="space-y-3">
                         {decryptedEntries.map(entry => (
