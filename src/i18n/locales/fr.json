@@ -31,7 +31,8 @@
     "appName": "Introspect",
     "tagline": "Votre Journal Personnel",
     "description": "Sauvegardez vos pensées et suivez vos habitudes avec un objectif.",
-    "loadingDiary": "Chargement de votre journal..."
+    "loadingDiary": "Chargement de votre journal...",
+    "myDiary": "Mon Journal"
   },
   "diary": {
     "entry": "Entrée",
@@ -47,7 +48,13 @@
     "noActivitiesRegistered": "Aucune activité enregistrée pour ce jour.",
     "registerActivity": "+ Enregistrer une activité...",
     "defineActivities": "Définir les Activités",
-    "completed": "Terminé"
+    "completed": "Terminé",
+    "noEntryText": "Aucun texte d'entrée.",
+    "registeredActivities": "Activités Enregistrées:",
+    "exportError": "Une erreur s'est produite lors de l'exportation. Vérifiez la console pour plus de détails.",
+    "saveActivityError": "Erreur lors de l'enregistrement de l'activité. Veuillez réessayer.",
+    "noEntriesToExport": "Aucune entrée dans la période sélectionnée à exporter.",
+    "profilePhoto": "Photo de profil"
   },
   "fonts": {
     "sizes": {

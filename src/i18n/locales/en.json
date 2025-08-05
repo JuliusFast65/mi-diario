@@ -31,7 +31,8 @@
     "appName": "Introspect",
     "tagline": "Your Personal Diary",
     "description": "Save your thoughts and track your habits with purpose.",
-    "loadingDiary": "Loading your diary..."
+    "loadingDiary": "Loading your diary...",
+    "myDiary": "My Diary"
   },
   "diary": {
     "entry": "Entry",
@@ -47,7 +48,13 @@
     "noActivitiesRegistered": "No activities registered for this day.",
     "registerActivity": "+ Register an activity...",
     "defineActivities": "Define Activities",
-    "completed": "Completed"
+    "completed": "Completed",
+    "noEntryText": "No entry text.",
+    "registeredActivities": "Registered Activities:",
+    "exportError": "An error occurred while exporting. Check the console for more details.",
+    "saveActivityError": "Error saving the activity. Please try again.",
+    "noEntriesToExport": "No entries in the selected period to export.",
+    "profilePhoto": "Profile photo"
   },
   "fonts": {
     "sizes": {

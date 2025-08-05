@@ -122,7 +122,7 @@ const DiaryApp = ({ user }) => {
                 alert(error.message);
                 setIsSubscriptionModalOpen(true);
             } else {
-                alert('Error al guardar la actividad. Inténtalo de nuevo.');
+                alert(t('diary.saveActivityError'));
             }
         }
     };
@@ -549,7 +549,7 @@ const DiaryApp = ({ user }) => {
             const querySnapshot = await getDocs(entriesQuery);
             const entries = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             if (entries.length === 0) {
-                alert("No hay entradas en el período seleccionado para exportar.");
+                alert(t('diary.noEntriesToExport'));
                 return;
             }
             const decryptedEntries = await Promise.all(
@@ -563,15 +563,15 @@ const DiaryApp = ({ user }) => {
             );
             decryptedEntries.sort((a, b) => a.id.localeCompare(b.id));
           //  let htmlContent = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Diario de ${user.displayName}</title><style>body{font-family:sans-serif;line-height:1.6;color:#333}h1{color:#2c3e50}h2{color:#34495e;border-bottom:2px solid #ecf0f1;padding-bottom:5px;margin-top:40px}h3{color:#3498db}p{white-space:pre-wrap}ul{list-style-type:none;padding-left:0}li{background-color:#f8f9f9;border-left:3px solid #3498db;margin-bottom:5px;padding:5px 10px}</style></head><body><h1>Diario de ${user.displayName}</h1>`;
-            let htmlContent = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Diario de ${user.displayName}</title><style>body{font-family:sans-serif;line-height:1.6;color:#333}h1{color:#2c3e50}h2{color:#34495e;border-bottom:2px solid #ecf0f1;padding-bottom:5px;margin-top:40px}h3{color:#3498db}p{white-space:pre-wrap}ul{list-style-type:none;padding-left:0}li{background-color:#f8f9f9;border-left:3px solid #3498db;margin-bottom:5px;padding:5px 10px}</style></head><body><h1>Mi Diario</h1>`;
+            let htmlContent = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Diario de ${user.displayName}</title><style>body{font-family:sans-serif;line-height:1.6;color:#333}h1{color:#2c3e50}h2{color:#34495e;border-bottom:2px solid #ecf0f1;padding-bottom:5px;margin-top:40px}h3{color:#3498db}p{white-space:pre-wrap}ul{list-style-type:none;padding-left:0}li{background-color:#f8f9f9;border-left:3px solid #3498db;margin-bottom:5px;padding:5px 10px}</style></head><body><h1>${t('splash.myDiary')}</h1>`;
             decryptedEntries.forEach(entry => {
                 htmlContent += `<h2>${entry.id}</h2>`;
-                htmlContent += `<h3>${entry.title || 'Sin Título'}</h3>`;
-                htmlContent += `<p>${entry.text || '<i>Sin entrada de texto.</i>'}</p>`;
+                htmlContent += `<h3>${entry.title || t('diary.noTitle')}</h3>`;
+                htmlContent += `<p>${entry.text || `<i>${t('diary.noEntryText')}</i>`}</p>`;
                 if (entry.tracked && Object.keys(entry.tracked).length > 0) {
-                    htmlContent += '<h4>Actividades Registradas:</h4><ul>';
+                    htmlContent += `<h4>${t('diary.registeredActivities')}</h4><ul>`;
                     Object.entries(entry.tracked).forEach(([activityId, option]) => {
-                        const activityName = activities[activityId]?.name || 'Actividad Desconocida';
+                        const activityName = activities[activityId]?.name || t('statistics.unknownActivity');
                         htmlContent += `<li><strong>${activityName}:</strong> ${option}</li>`;
                     });
                     htmlContent += '</ul>';
@@ -588,7 +588,7 @@ const DiaryApp = ({ user }) => {
             URL.revokeObjectURL(link.href);
         } catch (error) {
             console.error("Error al exportar las entradas:", error);
-            alert("Ocurrió un error al exportar. Revisa la consola para más detalles.");
+            alert(t('diary.exportError'));
         }
     };
 
@@ -620,9 +620,9 @@ const DiaryApp = ({ user }) => {
                 <div className="max-w-5xl mx-auto w-full flex flex-col flex-grow">
                 <header className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center flex-shrink-0 bg-gray-50 dark:bg-gray-800">
                     <div className="flex items-center gap-4">
-                        <img src={user.photoURL} alt="Foto de perfil" className="w-10 h-10 rounded-full" />
+                        <img src={user.photoURL} alt={t('diary.profilePhoto')} className="w-10 h-10 rounded-full" />
                         <div>
-                            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Mi Diario</h1>
+                            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{t('splash.myDiary')}</h1>
                             <SubscriptionStatus 
                                 subscription={subscription} 
                                 isSubscriptionActive={isSubscriptionActive} 
@@ -703,7 +703,7 @@ const DiaryApp = ({ user }) => {
                             <button 
                                 onClick={() => setIsSecuritySettingsOpen(true)}
                                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg transition-colors text-sm"
-                                title="Configuración de seguridad"
+                                title={t('security.securitySettings')}
                             >
                                 🔒
                             </button>
@@ -738,8 +738,8 @@ const DiaryApp = ({ user }) => {
                 
                 <nav className="flex items-center p-2 bg-gray-100 dark:bg-gray-800 gap-1 flex-shrink-0 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
                     <div className="flex items-center gap-1 flex-shrink-0">
-                        <button onClick={() => setView('diary')} className={`px-3 md:px-6 py-2 text-sm md:text-base font-medium rounded-md diary-tab ${view === 'diary' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>📝 Diario</button>
-                        <button onClick={() => setView('activities')} className={`px-3 md:px-6 py-2 text-sm md:text-base font-medium rounded-md activities-tab ${view === 'activities' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>📊 Actividades</button>
+                        <button onClick={() => setView('diary')} className={`px-3 md:px-6 py-2 text-sm md:text-base font-medium rounded-md diary-tab ${view === 'diary' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>📝 {t('navigation.diary')}</button>
+                        <button onClick={() => setView('activities')} className={`px-3 md:px-6 py-2 text-sm md:text-base font-medium rounded-md activities-tab ${view === 'activities' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>📊 {t('diary.activities')}</button>
                     </div>
                     
                     {/* Selector de fecha - visible solo para Diario y Actividades */}
