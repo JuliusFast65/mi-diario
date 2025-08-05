@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import PremiumFeatureModal from './PremiumFeatureModal';
 import { detectLanguage, getLanguageInstruction } from '../utils/languageUtils';
@@ -19,6 +20,7 @@ const WritingAssistant = ({
     userPrefs = {}, // Agregar userPrefs como prop
     selectedTextForAI = null // Texto seleccionado por el usuario
 }) => {
+    const { t } = useTranslation();
     const [suggestions, setSuggestions] = useState([]);
     const [prompts, setPrompts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -214,7 +216,7 @@ const WritingAssistant = ({
             return textResponse;
         } catch (error) {
             console.error('Error calling AI:', error);
-            return "Error al conectar con la IA.";
+            return t('writingAssistant.errorConnection');
         } finally {
             setIsAILoading(false);
         }
@@ -252,7 +254,7 @@ const WritingAssistant = ({
         
         // Check analysis limit
         if (writingAssistantData.analysisCount >= 5) {
-            alert('Has alcanzado el límite de 5 análisis por entrada. Modifica el contenido para poder hacer un nuevo análisis.');
+            alert(t('writingAssistant.limitReached', { limit: 5 }));
             return;
         }
         
@@ -513,7 +515,7 @@ Responde solo con el JSON válido.`;
     // Function to regenerate suggestions
     const handleRegenerateSuggestions = async () => {
         if (writingAssistantData.analysisCount >= 5) {
-            alert('Has alcanzado el límite de 5 análisis por entrada. Modifica el contenido para poder hacer un nuevo análisis.');
+            alert(t('writingAssistant.limitReached', { limit: 5 }));
             return;
         }
         
@@ -690,7 +692,7 @@ Responde solo con el JSON válido.`;
                         </div>
                         <div>
                             <h2 className={`text-xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                Asistente de Escritura Avanzado
+                                {t('writingAssistant.title')}
                             </h2>
                         </div>
                     </div>
@@ -721,7 +723,7 @@ Responde solo con el JSON válido.`;
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
-                        <span className="hidden sm:inline">Sugerencias</span>
+                        <span className="hidden sm:inline">{t('writingAssistant.suggestions')}</span>
                     </button>
                     <button
                         onClick={() => {
@@ -739,7 +741,7 @@ Responde solo con el JSON válido.`;
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
-                        <span className="hidden sm:inline">Vista Previa</span>
+                        <span className="hidden sm:inline">{t('writingAssistant.preview')}</span>
                     </button>
                     <button
                         onClick={() => {
@@ -756,7 +758,7 @@ Responde solo con el JSON válido.`;
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span className="hidden sm:inline">Comparación</span>
+                        <span className="hidden sm:inline">{t('writingAssistant.comparison')}</span>
                     </button>
                     <button
                         onClick={() => {
@@ -773,7 +775,7 @@ Responde solo con el JSON válido.`;
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
-                        <span className="hidden sm:inline">Prompts</span>
+                        <span className="hidden sm:inline">{t('writingAssistant.writingPrompts')}</span>
                     </button>
                 </div>
 
@@ -784,7 +786,7 @@ Responde solo con el JSON válido.`;
                             <div className="text-center">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
                                 <p className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
-                                    {isAILoading ? 'Conectando con IA...' : `Generando ${activeTab === 'suggestions' ? 'sugerencias' : 'prompts'}...`}
+                                    {isAILoading ? t('writingAssistant.connectingToAI') : (activeTab === 'suggestions' ? t('writingAssistant.generatingSuggestions') : t('writingAssistant.generatingPrompts'))}
                                 </p>
                             </div>
                         </div>
@@ -792,8 +794,8 @@ Responde solo con el JSON válido.`;
                         <div className="space-y-4">
                             {suggestions.length === 0 ? (
                                 <div className={`text-center ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'} py-8`}>
-                                    <p>No hay sugerencias disponibles para esta entrada.</p>
-                                    <p className="text-sm mt-2">Escribe más contenido para recibir sugerencias de mejora.</p>
+                                    <p>{t('writingAssistant.noSuggestionsAvailable')}</p>
+                                    <p className="text-sm mt-2">{t('writingAssistant.writeMoreForSuggestions')}</p>
                                 </div>
                             ) : (
                                 suggestions.map((suggestion, index) => (
@@ -821,7 +823,7 @@ Responde solo con el JSON válido.`;
                                                 onClick={() => applySuggestion(suggestion)}
                                                 className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors"
                                             >
-                                                Aplicar Sugerencia
+                                                {t('writingAssistant.applySuggestion')}
                                             </button>
                                             <button
                                                 onClick={() => {
@@ -831,7 +833,7 @@ Responde solo con el JSON válido.`;
                                                 }}
                                                 className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
                                             >
-                                                Ver Comparación
+                                                {t('writingAssistant.viewComparison')}
                                             </button>
                                         </div>
                                     </div>
@@ -842,27 +844,27 @@ Responde solo con el JSON válido.`;
                         <div className="space-y-4">
                             {suggestions.length === 0 ? (
                                 <div className={`text-center ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'} py-8`}>
-                                    <p>No hay sugerencias para generar vista previa.</p>
-                                    <p className="text-sm mt-2">Ve a la pestaña "Sugerencias" para generar mejoras.</p>
+                                    <p>{t('writingAssistant.noSuggestionsForPreview')}</p>
+                                    <p className="text-sm mt-2">{t('writingAssistant.goToSuggestionsTab')}</p>
                                 </div>
                             ) : (
                                 <>
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className={`text-lg font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                            Vista Previa con Todas las Mejoras
+                                            {t('writingAssistant.previewWithAllImprovements')}
                                         </h3>
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={generatePreviewText}
                                                 className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
                                             >
-                                                Actualizar Vista Previa
+                                                {t('writingAssistant.updatePreview')}
                                             </button>
                                             <button
                                                 onClick={applyAllSuggestions}
                                                 className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
                                             >
-                                                Aplicar Todas las Mejoras
+                                                {t('writingAssistant.applyAllImprovements')}
                                             </button>
                                         </div>
                                     </div>
@@ -871,12 +873,12 @@ Responde solo con el JSON válido.`;
                                         <div className="flex items-center gap-2 mb-3">
                                             <span className="text-green-500">✓</span>
                                             <span className={`text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                Texto Mejorado ({appliedSuggestions.length} sugerencias aplicadas)
+                                                {t('writingAssistant.improvedText', { count: appliedSuggestions.length })}
                                             </span>
                                         </div>
                                         <div className={`prose max-w-none ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
                                             <pre className={`whitespace-pre-wrap font-sans text-sm leading-relaxed ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
-                                                {previewText || currentEntry?.text || 'No hay contenido para mostrar.'}
+                                                {previewText || currentEntry?.text || t('writingAssistant.noContentToShow')}
                                             </pre>
                                         </div>
                                     </div>
@@ -884,7 +886,7 @@ Responde solo con el JSON válido.`;
                                     {appliedSuggestions.length > 0 && (
                                         <div className={`border rounded-lg p-4 ${currentTheme === 'dark' ? 'border-gray-700 bg-gray-700' : 'border-gray-300 bg-white'}`}>
                                             <h4 className={`font-semibold mb-3 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                                Sugerencias Aplicadas:
+                                                {t('writingAssistant.suggestionsApplied')}
                                             </h4>
                                             <div className="space-y-2">
                                                 {appliedSuggestions.map((index) => (
@@ -902,14 +904,14 @@ Responde solo con el JSON válido.`;
                         <div className="space-y-4">
                             {suggestions.length === 0 ? (
                                 <div className={`text-center ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'} py-8`}>
-                                    <p>No hay sugerencias para comparar.</p>
-                                    <p className="text-sm mt-2">Ve a la pestaña "Sugerencias" para generar mejoras.</p>
+                                    <p>{t('writingAssistant.noSuggestionsForComparison')}</p>
+                                    <p className="text-sm mt-2">{t('writingAssistant.goToSuggestionsTab')}</p>
                                 </div>
                             ) : (
                                 <>
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className={`text-lg font-semibold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                            Comparación Side-by-Side
+                                            {t('writingAssistant.sideBySideComparison')}
                                         </h3>
                                         <div className="flex items-center gap-4">
                                             <div className="flex items-center gap-2">
@@ -935,7 +937,7 @@ Responde solo con el JSON válido.`;
                                                 onClick={() => applySingleSuggestion(selectedSuggestionIndex)}
                                                 className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
                                             >
-                                                Aplicar Esta Mejora
+                                                {t('writingAssistant.applyThisImprovement')}
                                             </button>
                                         </div>
                                     </div>
@@ -945,12 +947,12 @@ Responde solo con el JSON válido.`;
                                             <div className="flex items-center gap-2 mb-3">
                                                 <span className="text-red-500">✗</span>
                                                 <span className={`text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                    Texto Original
+                                                    {t('writingAssistant.originalText')}
                                                 </span>
                                             </div>
                                             <div className={`prose max-w-none ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
                                                 <pre className={`whitespace-pre-wrap font-sans text-sm leading-relaxed ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
-                                                    {currentEntry?.text || 'No hay contenido.'}
+                                                    {currentEntry?.text || t('writingAssistant.noContentToShow')}
                                                 </pre>
                                             </div>
                                         </div>
@@ -959,28 +961,28 @@ Responde solo con el JSON válido.`;
                                             <div className="flex items-center gap-2 mb-3">
                                                 <span className="text-green-500">✓</span>
                                                 <span className={`text-sm font-medium ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                    Con Mejora: {suggestions[selectedSuggestionIndex]?.title}
+                                                    {t('writingAssistant.withImprovement', { title: suggestions[selectedSuggestionIndex]?.title })}
                                                 </span>
                                             </div>
                                             <div className={`prose max-w-none ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
                                                 <pre className={`whitespace-pre-wrap font-sans text-sm leading-relaxed ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
-                                                    {currentEntry?.text?.replace(
-                                                        suggestions[selectedSuggestionIndex]?.original || '',
-                                                        suggestions[selectedSuggestionIndex]?.improved || ''
-                                                    ) || 'No hay contenido.'}
+                                                                                                    {currentEntry?.text?.replace(
+                                                    suggestions[selectedSuggestionIndex]?.original || '',
+                                                    suggestions[selectedSuggestionIndex]?.improved || ''
+                                                ) || t('writingAssistant.noContentToShow')}
                                                 </pre>
                                             </div>
                                         </div>
                                     </div>
                                     
                                     <div className={`border rounded-lg p-4 ${currentTheme === 'dark' ? 'border-gray-700 bg-gray-700' : 'border-gray-300 bg-white'}`}>
-                                        <h4 className={`font-semibold mb-3 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                            Detalles de la Mejora:
-                                        </h4>
+                                                                                    <h4 className={`font-semibold mb-3 ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                                {t('writingAssistant.improvementDetails')}
+                                            </h4>
                                         <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
-                                            <p className="mb-2"><strong>Problema:</strong> {suggestions[selectedSuggestionIndex]?.suggestion}</p>
+                                            <p className="mb-2"><strong>{t('writingAssistant.problem')}</strong> {suggestions[selectedSuggestionIndex]?.suggestion}</p>
                                             <div className={`rounded p-3 ${currentTheme === 'dark' ? 'bg-gray-600' : 'bg-gray-50'}`}>
-                                                <p className="mb-1"><strong>Cambio específico:</strong></p>
+                                                <p className="mb-1"><strong>{t('writingAssistant.specificChange')}</strong></p>
                                                 <p className="text-red-500">- {suggestions[selectedSuggestionIndex]?.original}</p>
                                                 <p className="text-green-500">+ {suggestions[selectedSuggestionIndex]?.improved}</p>
                                             </div>
@@ -1004,7 +1006,7 @@ Responde solo con el JSON válido.`;
                                         onClick={() => usePrompt(prompt)}
                                         className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors"
                                     >
-                                        Usar Prompt
+                                        {t('writingAssistant.usePrompt')}
                                     </button>
                                 </div>
                             ))}
@@ -1016,7 +1018,7 @@ Responde solo con el JSON válido.`;
                 <div className={`flex justify-between items-center p-4 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
                     {/* Information about analysis count */}
                     <div className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                        Análisis {writingAssistantData.analysisCount}/5
+                        {t('writingAssistant.analysisCount', { current: writingAssistantData.analysisCount })}
                     </div>
                     
                     <div className="flex gap-3">
@@ -1025,7 +1027,7 @@ Responde solo con el JSON válido.`;
                                 onClick={handleRegenerateSuggestions}
                                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
                             >
-                                Regenerar Sugerencias
+                                {t('writingAssistant.regenerateSuggestions')}
                             </button>
                         )}
                         
@@ -1034,7 +1036,7 @@ Responde solo con el JSON válido.`;
                                 onClick={handleRegeneratePrompts}
                                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
                             >
-                                Regenerar Prompts
+                                {t('writingAssistant.regeneratePrompts')}
                             </button>
                         )}
                         
@@ -1046,7 +1048,7 @@ Responde solo con el JSON válido.`;
                                     : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                             }`}
                         >
-                            Cerrar
+                            {t('writingAssistant.close')}
                         </button>
                     </div>
                 </div>

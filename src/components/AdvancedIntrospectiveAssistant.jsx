@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import PremiumFeatureModal from './PremiumFeatureModal';
 import { collection, doc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { detectLanguage, getLanguageInstruction } from '../utils/languageUtils';
@@ -18,6 +19,7 @@ export default function AdvancedIntrospectiveAssistant({
     currentTheme = 'dark',
     userPrefs = {} // Agregar userPrefs como prop
 }) {
+    const { t } = useTranslation();
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -163,12 +165,12 @@ export default function AdvancedIntrospectiveAssistant({
                 const initialMessage = {
                     id: 1,
                     type: 'therapist',
-                    content: `Hola ${user?.displayName?.split(' ')[0] || 'Usuario'}. Veo que ya escribiste algo hoy. ¿Qué te gustaría hacer?`,
+                    content: t('advancedIntrospectiveAssistant.existingEntryGreeting', { name: user?.displayName?.split(' ')[0] || 'Usuario' }),
                     timestamp: new Date(),
                     options: [
-                        { id: 'analyze', text: '🧠 Analiza lo que escribí', action: 'analyze_existing' },
-                        { id: 'write_more', text: '✍️ Ayúdame a escribir más', action: 'help_write_more' },
-                        { id: 'chat', text: '💬 Solo conversar', action: 'start_chat' }
+                        { id: 'analyze', text: t('advancedIntrospectiveAssistant.analyzeWhatIWrote'), action: 'analyze_existing' },
+                        { id: 'write_more', text: t('advancedIntrospectiveAssistant.helpMeWriteMore'), action: 'help_write_more' },
+                        { id: 'chat', text: t('advancedIntrospectiveAssistant.justChat'), action: 'start_chat' }
                     ]
                 };
                 setMessages([initialMessage]);
@@ -182,11 +184,11 @@ export default function AdvancedIntrospectiveAssistant({
                 const initialMessage = {
                     id: 1,
                     type: 'therapist',
-                    content: `Hola ${user?.displayName?.split(' ')[0] || 'Usuario'}. ¿Cómo te sientes hoy? ¿Te gustaría contarme algo o que te ayude a escribir en tu diario?`,
+                    content: t('advancedIntrospectiveAssistant.initialGreeting', { name: user?.displayName?.split(' ')[0] || 'Usuario' }),
                     timestamp: new Date(),
                     options: [
-                        { id: 'tell', text: 'Contarte cómo me siento', action: 'start_chat' },
-                        { id: 'write', text: 'Ayúdame a escribir', action: 'help_write' }
+                        { id: 'tell', text: t('advancedIntrospectiveAssistant.tellMeHowYouFeel'), action: 'start_chat' },
+                        { id: 'write', text: t('advancedIntrospectiveAssistant.helpMeWrite'), action: 'help_write' }
                     ]
                 };
                 setMessages([initialMessage]);
@@ -420,7 +422,7 @@ export default function AdvancedIntrospectiveAssistant({
                     response = {
                         id: Date.now() + 1,
                         type: 'therapist',
-                        content: 'Gracias por compartir eso conmigo. ¿Puedes contarme más sobre esta situación?',
+                        content: t('advancedIntrospectiveAssistant.generalContinue'),
                         timestamp: new Date()
                     };
             }
@@ -437,7 +439,7 @@ export default function AdvancedIntrospectiveAssistant({
             const errorMessage = {
                 id: Date.now() + 1,
                 type: 'therapist',
-                content: 'Lo siento, estoy teniendo dificultades técnicas. ¿Podrías intentar de nuevo?',
+                content: t('advancedIntrospectiveAssistant.errorTechnicalDifficulties'),
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, errorMessage]);
@@ -480,7 +482,7 @@ export default function AdvancedIntrospectiveAssistant({
             const errorMessage = {
                 id: Date.now() + 1,
                 type: 'therapist',
-                content: 'Lo siento, estoy teniendo dificultades técnicas. ¿Podrías intentar de nuevo?',
+                content: t('advancedIntrospectiveAssistant.errorTechnicalDifficulties'),
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, errorMessage]);
@@ -497,7 +499,7 @@ export default function AdvancedIntrospectiveAssistant({
         const therapistResponse = {
             id: Date.now() + 1,
             type: 'therapist',
-            content: 'Perfecto, estoy aquí para escucharte. Cuéntame más sobre cómo te sientes y qué está pasando en tu vida.',
+            content: t('advancedIntrospectiveAssistant.perfectListening'),
             timestamp: new Date()
         };
         setCurrentStep('chat');
@@ -513,27 +515,27 @@ export default function AdvancedIntrospectiveAssistant({
         let response = '';
         
         if (lastTherapistMessage && (lastTherapistMessage.content.includes('análisis') || lastTherapistMessage.content.includes('analicé'))) {
-            // Si el último mensaje fue un análisis, continuar basándose en él
-            response = '¿Qué aspecto del análisis te gustaría explorar más?';
-        } else if (lastTherapistMessage) {
-            // Continuar basándose en el último mensaje del terapeuta
-            const lastUserMessage = messages
-                .filter(msg => msg.type === 'user')
-                .pop();
-            
-            if (lastUserMessage) {
-                // Usar IA para continuar la conversación con contexto
-                const emotionAnalysis = analyzeEmotions(lastUserMessage.content);
-                const context = buildContext();
-                const aiResponse = await generateAIResponse(lastUserMessage.content, emotionAnalysis, context);
-                response = aiResponse.content;
-            } else {
-                response = '¿Qué más te gustaría compartir?';
-            }
+                    // Si el último mensaje fue un análisis, continuar basándose en él
+        response = t('advancedIntrospectiveAssistant.continueBasedOnAnalysis');
+    } else if (lastTherapistMessage) {
+        // Continuar basándose en el último mensaje del terapeuta
+        const lastUserMessage = messages
+            .filter(msg => msg.type === 'user')
+            .pop();
+        
+        if (lastUserMessage) {
+            // Usar IA para continuar la conversación con contexto
+            const emotionAnalysis = analyzeEmotions(lastUserMessage.content);
+            const context = buildContext();
+            const aiResponse = await generateAIResponse(lastUserMessage.content, emotionAnalysis, context);
+            response = aiResponse.content;
         } else {
-            // Respuesta general para continuar conversando
-            response = '¿Qué más te gustaría compartir?';
+            response = t('advancedIntrospectiveAssistant.generalContinue');
         }
+    } else {
+        // Respuesta general para continuar conversando
+        response = t('advancedIntrospectiveAssistant.generalContinue');
+    }
         
         const therapistResponse = {
             id: Date.now() + 1,
@@ -549,7 +551,7 @@ export default function AdvancedIntrospectiveAssistant({
         const therapistResponse = {
             id: Date.now() + 1,
             type: 'therapist',
-            content: 'Te ayudo a escribir en tu diario. ¿Sobre qué te gustaría escribir hoy? Puedes contarme y te daré sugerencias específicas para empezar.',
+            content: t('advancedIntrospectiveAssistant.helpWriteMessage'),
             timestamp: new Date()
         };
         setCurrentStep('helping_write');
@@ -566,7 +568,7 @@ export default function AdvancedIntrospectiveAssistant({
         
         if (lastTherapistMessage && (lastTherapistMessage.content.includes('análisis') || lastTherapistMessage.content.includes('analicé'))) {
             // Si el último mensaje fue un análisis, continuar basándose en él
-            response = '¿Qué aspecto del análisis te gustaría desarrollar más en tu escritura?';
+            response = t('advancedIntrospectiveAssistant.exploreAnalysisAspect');
         } else if (lastTherapistMessage) {
             // Continuar basándose en el contexto de la conversación
             const lastUserMessage = messages
@@ -618,21 +620,21 @@ Sugiere qué escribir:`;
                         if (aiResponse && aiResponse !== "No se pudo procesar la respuesta.") {
                             response = aiResponse;
                         } else {
-                            response = '¿Qué aspecto de nuestra conversación te gustaría escribir?';
+                            response = t('advancedIntrospectiveAssistant.developConversationAspect');
                         }
                     } else {
-                        response = '¿Qué aspecto de nuestra conversación te gustaría escribir?';
+                        response = t('advancedIntrospectiveAssistant.developConversationAspect');
                     }
                 } catch (error) {
                     console.error('Error generating writing assistance:', error);
-                    response = '¿Qué aspecto de nuestra conversación te gustaría escribir?';
+                    response = t('advancedIntrospectiveAssistant.developConversationAspect');
                 }
             } else {
-                response = '¿Qué más te gustaría agregar a tu escritura?';
+                response = t('advancedIntrospectiveAssistant.addMoreToWriting');
             }
         } else {
             // Respuesta general para continuar escribiendo
-            response = '¿Qué más te gustaría agregar a tu escritura?';
+            response = t('advancedIntrospectiveAssistant.addMoreToWriting');
         }
         
         const therapistResponse = {
@@ -654,9 +656,9 @@ Sugiere qué escribir:`;
             content: analysis,
             timestamp: new Date(),
             options: [
-                { id: 'help_write_more', text: '✍️ Ayúdame a escribir más', action: 'help_write_more' },
-                { id: 'focus_diary', text: '📝 Ir al diario', action: 'focus_diary' },
-                { id: 'continue_chat', text: '💬 Continuar conversando', action: 'continue_chat' }
+                { id: 'help_write_more', text: t('advancedIntrospectiveAssistant.helpMeWriteMore'), action: 'help_write_more' },
+                { id: 'focus_diary', text: t('advancedIntrospectiveAssistant.goToDiary'), action: 'focus_diary' },
+                { id: 'continue_chat', text: t('advancedIntrospectiveAssistant.continueConversing'), action: 'continue_chat' }
             ]
         };
         setCurrentStep('analysis_complete');
@@ -667,7 +669,7 @@ Sugiere qué escribir:`;
         const therapistResponse = {
             id: Date.now() + 1,
             type: 'therapist',
-            content: 'Perfecto, voy a cerrar este chat para que puedas escribir en tu diario. ¡Que tengas una excelente sesión de escritura!',
+            content: t('advancedIntrospectiveAssistant.focusDiaryMessage'),
             timestamp: new Date()
         };
         
@@ -686,7 +688,7 @@ Sugiere qué escribir:`;
         const therapistResponse = {
             id: Date.now() + 1,
             type: 'therapist',
-            content: 'Ha sido un placer acompañarte en esta sesión. Recuerda que estoy aquí cuando necesites reflexionar o escribir. ¡Que tengas un excelente día!',
+            content: t('advancedIntrospectiveAssistant.sessionEnded'),
             timestamp: new Date()
         };
         setCurrentStep('session_ended');
@@ -870,8 +872,8 @@ Responde de manera natural manteniendo tu estilo terapéutico:`;
             // Respuestas específicas para ayudar a escribir
             response = await generateWritingAssistance(userInput, context);
             options = [
-                { id: 'focus_diary', text: '📝 Ir a escribir al diario', action: 'focus_diary' },
-                { id: 'continue_chat', text: '💬 Seguir conversando', action: 'start_chat' }
+                { id: 'focus_diary', text: t('advancedIntrospectiveAssistant.goToWrite'), action: 'focus_diary' },
+                { id: 'continue_chat', text: t('advancedIntrospectiveAssistant.followConversation'), action: 'start_chat' }
             ];
         } else {
             // Respuestas generales de conversación
@@ -888,51 +890,130 @@ Responde de manera natural manteniendo tu estilo terapéutico:`;
     };
 
     const generateWritingAssistance = async (userInput, context) => {
-        const writingPrompts = [
-            `Basándome en lo que me contaste, te sugiero empezar escribiendo sobre: "${userInput}". Puedes expandir esto en tu diario explorando tus sentimientos más profundos.`,
-            `Me parece que "${userInput}" es un tema importante para ti. ¿Por qué no escribes sobre cómo te hace sentir y cuándo empezaste a notar estos sentimientos?`,
-            `"${userInput}" suena muy significativo. Te sugiero escribir sobre cuándo empezaste a sentir esto, cómo ha evolucionado, y qué has aprendido de esta experiencia.`,
-            `Excelente tema. Sobre "${userInput}", podrías escribir sobre qué aprendiste de esta experiencia y cómo te ha cambiado.`,
-            `"${userInput}" es muy interesante. ¿Qué te gustaría explorar más sobre esto en tu diario? Considera escribir sobre tus pensamientos, sentimientos y reflexiones.`
-        ];
+        // Detectar idioma del input del usuario
+        const detectedLanguage = detectLanguage(userInput);
         
-        return writingPrompts[Math.floor(Math.random() * writingPrompts.length)];
+        const writingPrompts = {
+            'es': [
+                `Basándome en lo que me contaste, te sugiero empezar escribiendo sobre: "${userInput}". Puedes expandir esto en tu diario explorando tus sentimientos más profundos.`,
+                `Me parece que "${userInput}" es un tema importante para ti. ¿Por qué no escribes sobre cómo te hace sentir y cuándo empezaste a notar estos sentimientos?`,
+                `"${userInput}" suena muy significativo. Te sugiero escribir sobre cuándo empezaste a sentir esto, cómo ha evolucionado, y qué has aprendido de esta experiencia.`,
+                `Excelente tema. Sobre "${userInput}", podrías escribir sobre qué aprendiste de esta experiencia y cómo te ha cambiado.`,
+                `"${userInput}" es muy interesante. ¿Qué te gustaría explorar más sobre esto en tu diario? Considera escribir sobre tus pensamientos, sentimientos y reflexiones.`
+            ],
+            'en': [
+                `Based on what you told me, I suggest you start writing about: "${userInput}". You can expand this in your diary by exploring your deeper feelings.`,
+                `I think "${userInput}" is an important topic for you. Why don't you write about how it makes you feel and when you started noticing these feelings?`,
+                `"${userInput}" sounds very significant. I suggest you write about when you started feeling this, how it has evolved, and what you've learned from this experience.`,
+                `Excellent topic. About "${userInput}", you could write about what you learned from this experience and how it has changed you.`,
+                `"${userInput}" is very interesting. What would you like to explore more about this in your diary? Consider writing about your thoughts, feelings, and reflections.`
+            ],
+            'fr': [
+                `Basé sur ce que vous m'avez dit, je vous suggère de commencer à écrire sur : "${userInput}". Vous pouvez développer cela dans votre journal en explorant vos sentiments plus profonds.`,
+                `Je pense que "${userInput}" est un sujet important pour vous. Pourquoi ne pas écrire sur comment cela vous fait sentir et quand vous avez commencé à remarquer ces sentiments ?`,
+                `"${userInput}" semble très significatif. Je vous suggère d'écrire sur quand vous avez commencé à ressentir cela, comment cela a évolué, et ce que vous avez appris de cette expérience.`,
+                `Excellent sujet. À propos de "${userInput}", vous pourriez écrire sur ce que vous avez appris de cette expérience et comment cela vous a changé.`,
+                `"${userInput}" est très intéressant. Qu'aimeriez-vous explorer davantage à ce sujet dans votre journal ? Considérez écrire sur vos pensées, sentiments et réflexions.`
+            ]
+        };
+        
+        const prompts = writingPrompts[detectedLanguage] || writingPrompts['es'];
+        return prompts[Math.floor(Math.random() * prompts.length)];
     };
 
     const generateConversationResponse = async (userInput, emotions, context) => {
+        // Detectar idioma del input del usuario
+        const detectedLanguage = detectLanguage(userInput);
+        
+        const emotionResponses = {
+            'es': {
+                sadness: [
+                    `Entiendo que te sientes triste, ${context.userName}. Es completamente normal sentir estas emociones. ¿Puedes contarme más sobre qué está causando esta tristeza?`,
+                    `La tristeza que describes es válida y real. ¿Has notado si hay algo específico que desencadena estos sentimientos?`,
+                    `Es valiente de tu parte reconocer estos sentimientos de tristeza. ¿Cómo te gustaría manejar esta situación?`
+                ],
+                anxiety: [
+                    `Entiendo que te sientes ansioso. La ansiedad puede ser muy abrumadora. ¿Puedes identificar qué está causando esta preocupación?`,
+                    `Es normal sentir ansiedad ante situaciones difíciles. ¿Qué te gustaría hacer para calmarte en este momento?`,
+                    `La ansiedad que describes suena muy real. ¿Has probado alguna técnica de respiración o relajación?`
+                ],
+                joy: [
+                    `¡Me alegra mucho que te sientas feliz! Es hermoso ver que estás experimentando momentos de alegría. ¿Qué está causando estos sentimientos positivos?`,
+                    `Es maravilloso que te sientas contento. ¿Te gustaría compartir más sobre lo que te está haciendo feliz?`,
+                    `La felicidad que describes suena muy genuina. ¿Cómo te gustaría celebrar o aprovechar estos momentos positivos?`
+                ],
+                general: [
+                    `Gracias por compartir eso conmigo, ${context.userName}. ¿Puedes contarme más sobre esta situación?`,
+                    `Entiendo lo que me cuentas. ¿Qué crees que está causando estos sentimientos?`,
+                    `Es importante lo que me compartes. ¿Cómo te gustaría manejar esta situación?`,
+                    `Veo que esto es significativo para ti. ¿Qué opciones has considerado?`,
+                    `Me parece que has estado reflexionando sobre esto. ¿Qué has aprendido de esta experiencia?`,
+                    `Es valiente de tu parte expresar estos pensamientos. ¿Cómo te gustaría proceder?`
+                ]
+            },
+            'en': {
+                sadness: [
+                    `I understand you're feeling sad, ${context.userName}. It's completely normal to feel these emotions. Can you tell me more about what's causing this sadness?`,
+                    `The sadness you describe is valid and real. Have you noticed if there's something specific that triggers these feelings?`,
+                    `It's brave of you to acknowledge these feelings of sadness. How would you like to handle this situation?`
+                ],
+                anxiety: [
+                    `I understand you're feeling anxious. Anxiety can be very overwhelming. Can you identify what's causing this worry?`,
+                    `It's normal to feel anxious in difficult situations. What would you like to do to calm yourself right now?`,
+                    `The anxiety you describe sounds very real. Have you tried any breathing or relaxation techniques?`
+                ],
+                joy: [
+                    `I'm so glad you're feeling happy! It's beautiful to see you experiencing moments of joy. What's causing these positive feelings?`,
+                    `It's wonderful that you're feeling content. Would you like to share more about what's making you happy?`,
+                    `The happiness you describe sounds very genuine. How would you like to celebrate or take advantage of these positive moments?`
+                ],
+                general: [
+                    `Thank you for sharing that with me, ${context.userName}. Can you tell me more about this situation?`,
+                    `I understand what you're telling me. What do you think is causing these feelings?`,
+                    `It's important what you're sharing with me. How would you like to handle this situation?`,
+                    `I see this is significant for you. What options have you considered?`,
+                    `It seems like you've been reflecting on this. What have you learned from this experience?`,
+                    `It's brave of you to express these thoughts. How would you like to proceed?`
+                ]
+            },
+            'fr': {
+                sadness: [
+                    `Je comprends que vous vous sentez triste, ${context.userName}. Il est tout à fait normal de ressentir ces émotions. Pouvez-vous me dire plus sur ce qui cause cette tristesse ?`,
+                    `La tristesse que vous décrivez est valide et réelle. Avez-vous remarqué s'il y a quelque chose de spécifique qui déclenche ces sentiments ?`,
+                    `C'est courageux de votre part de reconnaître ces sentiments de tristesse. Comment aimeriez-vous gérer cette situation ?`
+                ],
+                anxiety: [
+                    `Je comprends que vous vous sentez anxieux. L'anxiété peut être très accablante. Pouvez-vous identifier ce qui cause cette inquiétude ?`,
+                    `Il est normal de se sentir anxieux dans des situations difficiles. Que voudriez-vous faire pour vous calmer en ce moment ?`,
+                    `L'anxiété que vous décrivez semble très réelle. Avez-vous essayé des techniques de respiration ou de relaxation ?`
+                ],
+                joy: [
+                    `Je suis si content que vous vous sentiez heureux ! C'est beau de voir que vous vivez des moments de joie. Qu'est-ce qui cause ces sentiments positifs ?`,
+                    `C'est merveilleux que vous vous sentiez content. Voudriez-vous partager plus sur ce qui vous rend heureux ?`,
+                    `Le bonheur que vous décrivez semble très authentique. Comment aimeriez-vous célébrer ou profiter de ces moments positifs ?`
+                ],
+                general: [
+                    `Merci de partager cela avec moi, ${context.userName}. Pouvez-vous me dire plus sur cette situation ?`,
+                    `Je comprends ce que vous me dites. Que pensez-vous qui cause ces sentiments ?`,
+                    `C'est important ce que vous partagez avec moi. Comment aimeriez-vous gérer cette situation ?`,
+                    `Je vois que c'est significatif pour vous. Quelles options avez-vous considérées ?`,
+                    `Il semble que vous ayez réfléchi à cela. Qu'avez-vous appris de cette expérience ?`,
+                    `C'est courageux de votre part d'exprimer ces pensées. Comment aimeriez-vous procéder ?`
+                ]
+            }
+        };
+        
+        const responses = emotionResponses[detectedLanguage] || emotionResponses['es'];
         let response = '';
         
         if (emotions.includes('sadness')) {
-            const responses = [
-                `Entiendo que te sientes triste, ${context.userName}. Es completamente normal sentir estas emociones. ¿Puedes contarme más sobre qué está causando esta tristeza?`,
-                `La tristeza que describes es válida y real. ¿Has notado si hay algo específico que desencadena estos sentimientos?`,
-                `Es valiente de tu parte reconocer estos sentimientos de tristeza. ¿Cómo te gustaría manejar esta situación?`
-            ];
-            response = responses[Math.floor(Math.random() * responses.length)];
+            response = responses.sadness[Math.floor(Math.random() * responses.sadness.length)];
         } else if (emotions.includes('anxiety')) {
-            const responses = [
-                `Entiendo que te sientes ansioso. La ansiedad puede ser muy abrumadora. ¿Puedes identificar qué está causando esta preocupación?`,
-                `Es normal sentir ansiedad ante situaciones difíciles. ¿Qué te gustaría hacer para calmarte en este momento?`,
-                `La ansiedad que describes suena muy real. ¿Has probado alguna técnica de respiración o relajación?`
-            ];
-            response = responses[Math.floor(Math.random() * responses.length)];
+            response = responses.anxiety[Math.floor(Math.random() * responses.anxiety.length)];
         } else if (emotions.includes('joy')) {
-            const responses = [
-                `¡Me alegra mucho que te sientas feliz! Es hermoso ver que estás experimentando momentos de alegría. ¿Qué está causando estos sentimientos positivos?`,
-                `Es maravilloso que te sientas contento. ¿Te gustaría compartir más sobre lo que te está haciendo feliz?`,
-                `La felicidad que describes suena muy genuina. ¿Cómo te gustaría celebrar o aprovechar estos momentos positivos?`
-            ];
-            response = responses[Math.floor(Math.random() * responses.length)];
+            response = responses.joy[Math.floor(Math.random() * responses.joy.length)];
         } else {
-            const responses = [
-                `Gracias por compartir eso conmigo, ${context.userName}. ¿Puedes contarme más sobre esta situación?`,
-                `Entiendo lo que me cuentas. ¿Qué crees que está causando estos sentimientos?`,
-                `Es importante lo que me compartes. ¿Cómo te gustaría manejar esta situación?`,
-                `Veo que esto es significativo para ti. ¿Qué opciones has considerado?`,
-                `Me parece que has estado reflexionando sobre esto. ¿Qué has aprendido de esta experiencia?`,
-                `Es valiente de tu parte expresar estos pensamientos. ¿Cómo te gustaría proceder?`
-            ];
-            response = responses[Math.floor(Math.random() * responses.length)];
+            response = responses.general[Math.floor(Math.random() * responses.general.length)];
         }
         
         return response;
@@ -990,36 +1071,99 @@ Analiza de manera terapéutica con tu estilo:`;
             const emotions = analyzeEmotions(text);
             const entryLength = text.length;
             
-            let analysis = `He analizado lo que escribiste hoy. `;
+            // Detectar idioma del texto
+            const detectedLanguage = detectLanguage(text);
+            
+            const fallbackAnalysis = {
+                'es': {
+                    start: 'He analizado lo que escribiste hoy. ',
+                    emotions: {
+                        sadness: 'tristeza',
+                        anxiety: 'ansiedad',
+                        anger: 'enojo',
+                        joy: 'alegría',
+                        gratitude: 'gratitud',
+                        confusion: 'confusión'
+                    },
+                    length: {
+                        long: 'Has escrito bastante hoy, lo que sugiere que tienes mucho en mente. ',
+                        medium: 'Has empezado a expresar tus pensamientos. ',
+                        short: 'Has escrito una entrada breve. '
+                    },
+                    end: '¿Te gustaría que profundicemos en algún aspecto específico de lo que escribiste?',
+                    error: 'He revisado tu entrada de hoy. ¿Te gustaría que conversemos sobre lo que escribiste?'
+                },
+                'en': {
+                    start: 'I have analyzed what you wrote today. ',
+                    emotions: {
+                        sadness: 'sadness',
+                        anxiety: 'anxiety',
+                        anger: 'anger',
+                        joy: 'joy',
+                        gratitude: 'gratitude',
+                        confusion: 'confusion'
+                    },
+                    length: {
+                        long: 'You have written quite a bit today, which suggests you have a lot on your mind. ',
+                        medium: 'You have started to express your thoughts. ',
+                        short: 'You have written a brief entry. '
+                    },
+                    end: 'Would you like to explore any specific aspect of what you wrote?',
+                    error: 'I have reviewed your entry today. Would you like to discuss what you wrote?'
+                },
+                'fr': {
+                    start: 'J\'ai analysé ce que vous avez écrit aujourd\'hui. ',
+                    emotions: {
+                        sadness: 'tristesse',
+                        anxiety: 'anxiété',
+                        anger: 'colère',
+                        joy: 'joie',
+                        gratitude: 'gratitude',
+                        confusion: 'confusion'
+                    },
+                    length: {
+                        long: 'Vous avez écrit pas mal aujourd\'hui, ce qui suggère que vous avez beaucoup en tête. ',
+                        medium: 'Vous avez commencé à exprimer vos pensées. ',
+                        short: 'Vous avez écrit une entrée brève. '
+                    },
+                    end: 'Aimeriez-vous explorer un aspect spécifique de ce que vous avez écrit ?',
+                    error: 'J\'ai examiné votre entrée aujourd\'hui. Aimeriez-vous discuter de ce que vous avez écrit ?'
+                }
+            };
+            
+            const analysis = fallbackAnalysis[detectedLanguage] || fallbackAnalysis['es'];
+            let result = analysis.start;
             
             if (emotions.length > 0) {
-                const emotionNames = {
-                    sadness: 'tristeza',
-                    anxiety: 'ansiedad',
-                    anger: 'enojo',
-                    joy: 'alegría',
-                    gratitude: 'gratitud',
-                    confusion: 'confusión'
+                const emotionNames = emotions.map(e => analysis.emotions[e]).join(', ');
+                const emotionMessages = {
+                    'es': `Detecto que estás experimentando ${emotionNames}. `,
+                    'en': `I detect that you are experiencing ${emotionNames}. `,
+                    'fr': `Je détecte que vous ressentez ${emotionNames}. `
                 };
-                
-                const detectedEmotions = emotions.map(e => emotionNames[e]).join(', ');
-                analysis += `Detecto que estás experimentando ${detectedEmotions}. `;
+                result += emotionMessages[detectedLanguage] || emotionMessages['es'];
             }
             
             if (entryLength > 500) {
-                analysis += `Has escrito bastante hoy, lo que sugiere que tienes mucho en mente. `;
+                result += analysis.length.long;
             } else if (entryLength > 100) {
-                analysis += `Has empezado a expresar tus pensamientos. `;
+                result += analysis.length.medium;
             } else {
-                analysis += `Has escrito una entrada breve. `;
+                result += analysis.length.short;
             }
             
-            analysis += `¿Te gustaría que profundicemos en algún aspecto específico de lo que escribiste?`;
+            result += analysis.end;
             
-            return analysis;
+            return result;
         } catch (error) {
             console.error('Error analyzing entry:', error);
-            return `He revisado tu entrada de hoy. ¿Te gustaría que conversemos sobre lo que escribiste?`;
+            const detectedLanguage = detectLanguage(text);
+            const fallbackAnalysis = {
+                'es': 'He revisado tu entrada de hoy. ¿Te gustaría que conversemos sobre lo que escribiste?',
+                'en': 'I have reviewed your entry today. Would you like to discuss what you wrote?',
+                'fr': 'J\'ai examiné votre entrée aujourd\'hui. Aimeriez-vous discuter de ce que vous avez écrit ?'
+            };
+            return fallbackAnalysis[detectedLanguage] || fallbackAnalysis['es'];
         }
     };
 
@@ -1064,7 +1208,7 @@ Analiza de manera terapéutica con tu estilo:`;
                             <span className="text-white font-semibold">🧠</span>
                         </div>
                         <div>
-                            <h2 className={`text-xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Asistente Introspectivo</h2>
+                            <h2 className={`text-xl font-bold ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('advancedIntrospectiveAssistant.title')}</h2>
                             <p className="text-xs text-blue-600 font-medium">
                                 📅 {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { 
                                     day: 'numeric', 
@@ -1077,7 +1221,7 @@ Analiza de manera terapéutica con tu estilo:`;
                     <div className="flex items-center gap-2">
                         <button
                             onClick={async () => {
-                                if (confirm(`¿Estás seguro de que quieres limpiar la conversación del ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES')}?`)) {
+                                if (confirm(t('advancedIntrospectiveAssistant.clearConversationConfirm', { date: new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES') }))) {
                                     console.log('Clearing session for date:', selectedDate);
                                     setMessages([]);
                                     setCurrentStep('initial');
@@ -1092,7 +1236,7 @@ Analiza de manera terapéutica con tu estilo:`;
                                 }
                             }}
                             className={`text-red-600 hover:text-red-900 p-2 rounded-lg transition-colors text-xs ${currentTheme === 'dark' ? 'hover:bg-red-900 hover:bg-opacity-20' : 'hover:bg-red-100'}`}
-                            title={`Limpiar conversación del ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES')}`}
+                            title={t('advancedIntrospectiveAssistant.clearConversation', { date: new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES') })}
                         >
                             🗑️
                         </button>
@@ -1117,7 +1261,7 @@ Analiza de manera terapéutica con tu estilo:`;
                                     <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                                     <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                                 </div>
-                                <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Cargando conversación del {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES')}...</p>
+                                <p className={`text-sm ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('advancedIntrospectiveAssistant.loadingConversation', { date: new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES') })}</p>
                             </div>
                         </div>
                     )}
@@ -1182,20 +1326,20 @@ Analiza de manera terapéutica con tu estilo:`;
                 {/* Input */}
                 <div className={`p-4 border-t ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
                     <div className="flex gap-2">
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={inputMessage}
-                            onChange={(e) => setInputMessage(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            placeholder="Escribe tu mensaje..."
-                            className={`flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium ${
-                                currentTheme === 'dark' 
-                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                                    : 'border-gray-400 text-gray-900 placeholder-gray-600'
-                            }`}
-                            disabled={isLoading}
-                        />
+                                                    <input
+                                ref={inputRef}
+                                type="text"
+                                value={inputMessage}
+                                onChange={(e) => setInputMessage(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                placeholder={t('advancedIntrospectiveAssistant.writeMessage')}
+                                className={`flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium ${
+                                    currentTheme === 'dark' 
+                                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                                        : 'border-gray-400 text-gray-900 placeholder-gray-600'
+                                }`}
+                                disabled={isLoading}
+                            />
                         <button
                             onClick={handleSendMessage}
                             disabled={!inputMessage.trim() || isLoading}

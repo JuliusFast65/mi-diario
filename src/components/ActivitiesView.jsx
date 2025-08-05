@@ -86,7 +86,7 @@ const ActivitiesView = ({
                         }`}
                         defaultValue=""
                     >
-                        <option value="">+ {t('diary.registerActivity')}...</option>
+                        <option value="">{t('diary.registerActivity')}...</option>
                         {availableActivities.map(activity => (
                             <option key={activity.id} value={activity.id}>
                                 {activity.name}

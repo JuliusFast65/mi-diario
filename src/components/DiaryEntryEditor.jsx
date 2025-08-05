@@ -110,33 +110,20 @@ const DiaryEntryEditor = ({
                             
                             {/* Controles */}
                             <div className={`flex justify-between items-center mt-4 pt-4 border-t flex-wrap gap-4 flex-shrink-0 ${currentTheme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                                {/* Lado izquierdo - Estadísticas, Análisis y Tutorial */}
+                                {/* Lado izquierdo - Archivo y Estadísticas */}
                                 <div className="flex items-center gap-2">
+                                    <button 
+                                        title="Archivo" 
+                                        onClick={() => window.dispatchEvent(new CustomEvent('openArchive'))} 
+                                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-5l-2-2H5a2 2 0 00-2 2z" />
+                                        </svg>
+                                    </button>
                                     <button title="Estadísticas" onClick={onOpenStatistics} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-2 rounded-lg text-sm flex items-center gap-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2zm0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                        </svg>
-                                    </button>
-                                    <button 
-                                        title={subscription?.plan === 'premium' ? 'Análisis de Comportamiento' : 'Función Premium - Análisis de Comportamiento'} 
-                                        onClick={onOpenAnalysis} 
-                                        className={`font-bold p-2 rounded-lg text-sm flex items-center gap-2 ${
-                                            subscription?.plan === 'premium'
-                                                ? 'bg-green-600 hover:bg-green-700 text-white'
-                                                : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                                        }`}
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                        </svg>
-                                    </button>
-                                    <button 
-                                        onClick={() => window.dispatchEvent(new CustomEvent('openOnboarding'))} 
-                                        title={t('diary.helpTutorial')} 
-                                        className={`${currentTheme === 'dark' ? 'text-gray-400 hover:text-blue-300' : 'text-gray-600 hover:text-blue-600'} transition-colors p-1`}
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </button>
                                 </div>
