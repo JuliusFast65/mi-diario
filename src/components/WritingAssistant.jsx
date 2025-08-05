@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import PremiumFeatureModal from './PremiumFeatureModal';
+import { detectLanguage, getLanguageInstruction } from '../utils/languageUtils';
 
 const WritingAssistant = ({ 
     isOpen, 
@@ -40,42 +41,61 @@ const WritingAssistant = ({
 
     // Función para obtener el estilo del asistente basado en las preferencias
     const getWritingAssistantStyle = () => {
-        const style = userPrefs.writingAssistantStyle || 'creativo';
+        const style = userPrefs.writingAssistantStyle || 'claro';
         
         const styleConfigs = {
-            'formal': {
-                tone: 'formal y académico',
-                approach: 'enfocado en la estructura y claridad del texto',
-                suggestions: 'sugerencias para mejorar la coherencia y el flujo académico',
-                prompts: 'prompts para desarrollar ideas de manera estructurada'
+            'claro': {
+                tone: 'claro y conciso',
+                approach: 'enfocado en la claridad y precisión del mensaje',
+                suggestions: 'sugerencias para mejorar la claridad y concisión',
+                prompts: 'prompts para expresar ideas de manera clara y directa',
+                description: 'Mejora la claridad y precisión de tu escritura, eliminando redundancias y mejorando la estructura.'
+            },
+            'natural': {
+                tone: 'natural y conversacional',
+                approach: 'enfocado en mantener un estilo cercano y espontáneo',
+                suggestions: 'sugerencias para hacer el texto más natural y conversacional',
+                prompts: 'prompts para escribir de manera natural y espontánea',
+                description: 'Escribe como hablas, cercano y espontáneo, ideal para registrar tu día tal cual lo viviste.'
+            },
+            'reflexivo': {
+                tone: 'reflexivo e inspirador',
+                approach: 'enfocado en agregar introspección y motivación',
+                suggestions: 'sugerencias para añadir reflexión e inspiración',
+                prompts: 'prompts para reflexionar y encontrar inspiración',
+                description: 'Da un toque de introspección y motivación, resaltando aprendizajes y emociones positivas.'
+            },
+            'estructurado': {
+                tone: 'claro y estructurado',
+                approach: 'enfocado en organizar ideas de manera coherente',
+                suggestions: 'sugerencias para mejorar la estructura y organización',
+                prompts: 'prompts para organizar ideas de manera estructurada',
+                description: 'Organiza tus ideas para que sean fáciles de releer y comprender en el futuro.'
             },
             'creativo': {
-                tone: 'creativo y expresivo',
-                approach: 'enfocado en la expresión emocional y la creatividad',
-                suggestions: 'sugerencias para enriquecer la expresión y la creatividad',
-                prompts: 'prompts para despertar la creatividad y la imaginación'
+                tone: 'creativo y literario',
+                approach: 'enfocado en agregar estilo poético y artístico',
+                suggestions: 'sugerencias para enriquecer con creatividad literaria',
+                prompts: 'prompts para desarrollar creatividad literaria',
+                description: 'Agrega un estilo poético o artístico, perfecto para transformar tus pensamientos en pequeñas historias.'
             },
-            'simple': {
-                tone: 'simple y claro',
-                approach: 'enfocado en la claridad y simplicidad del mensaje',
-                suggestions: 'sugerencias para simplificar y clarificar el texto',
-                prompts: 'prompts para expresar ideas de manera simple y directa'
+            'breve': {
+                tone: 'breve y al grano',
+                approach: 'enfocado en la concisión y precisión',
+                suggestions: 'sugerencias para hacer el texto más conciso',
+                prompts: 'prompts para expresar ideas de manera breve y directa',
+                description: 'Resume tus ideas en pocas palabras, sin adornos ni rodeos.'
             },
-            'detallado': {
-                tone: 'detallado y descriptivo',
-                approach: 'enfocado en agregar detalles y descripciones',
-                suggestions: 'sugerencias para enriquecer con detalles y descripciones',
-                prompts: 'prompts para desarrollar descripciones detalladas'
-            },
-            'conciso': {
-                tone: 'conciso y directo',
-                approach: 'enfocado en la brevedad y precisión',
-                suggestions: 'sugerencias para hacer el texto más conciso y directo',
-                prompts: 'prompts para expresar ideas de manera concisa'
+            'humor': {
+                tone: 'ligero y con humor',
+                approach: 'enfocado en agregar un toque divertido o irónico',
+                suggestions: 'sugerencias para añadir humor y ligereza',
+                prompts: 'prompts para añadir humor y ligereza al texto',
+                description: 'Dale un giro divertido o irónico a tus recuerdos, haciéndolos más amenos de leer.'
             }
         };
         
-        return styleConfigs[style] || styleConfigs['creativo'];
+        return styleConfigs[style] || styleConfigs['claro'];
     };
 
     // Function to generate hash of the entry
@@ -175,7 +195,15 @@ const WritingAssistant = ({
         setIsAILoading(true);
         
         try {
-            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+            // Detectar idioma del texto del usuario
+            const userText = selectedTextForAI || currentEntry?.text || '';
+            const detectedLanguage = detectLanguage(userText);
+            const languageInstruction = getLanguageInstruction(detectedLanguage);
+            
+            // Agregar instrucción de idioma al prompt
+            const promptWithLanguage = `${languageInstruction}\n\n${prompt}`;
+            
+            const payload = { contents: [{ role: "user", parts: [{ text: promptWithLanguage }] }] };
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

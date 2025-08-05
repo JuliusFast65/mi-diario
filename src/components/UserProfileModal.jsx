@@ -51,7 +51,7 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
         
         // Premium - Personalización de IA
         therapistStyle: 'empatico',
-        writingAssistantStyle: 'creativo',
+        writingAssistantStyle: 'claro',
         motivationalTone: 'espiritual',
         
         // Premium - Seguridad
@@ -474,11 +474,13 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                             : 'bg-white border-gray-300 text-gray-900'
                                     } border`}
                                 >
-                                    <option value="formal">{t('profile.formal')}</option>
+                                    <option value="claro">{t('profile.clear')}</option>
+                                    <option value="natural">{t('profile.natural')}</option>
+                                    <option value="reflexivo">{t('profile.reflective')}</option>
+                                    <option value="estructurado">{t('profile.structured')}</option>
                                     <option value="creativo">{t('profile.creative')}</option>
-                                    <option value="simple">{t('profile.simple')}</option>
-                                    <option value="detallado">{t('profile.detailed')}</option>
-                                    <option value="conciso">{t('profile.concise')}</option>
+                                    <option value="breve">{t('profile.brief')}</option>
+                                    <option value="humor">{t('profile.humorous')}</option>
                                 </select>
                             </div>
 

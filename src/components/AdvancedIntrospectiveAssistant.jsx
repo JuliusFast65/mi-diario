@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PremiumFeatureModal from './PremiumFeatureModal';
 import { collection, doc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { detectLanguage, getLanguageInstruction } from '../utils/languageUtils';
 
 export default function AdvancedIntrospectiveAssistant({ 
     isOpen, 
@@ -788,7 +789,13 @@ Sugiere qué escribir:`;
                     .map(msg => `${msg.type === 'user' ? 'Usuario' : 'Terapeuta'}: ${msg.content}`)
                     .join('\n');
                 
+                // Detectar idioma del input del usuario
+                const detectedLanguage = detectLanguage(userInput);
+                const languageInstruction = getLanguageInstruction(detectedLanguage);
+                
                 const prompt = `Eres un terapeuta con estilo ${styleConfig.tone} y personalidad ${styleConfig.personality}. Tu enfoque es ${styleConfig.approach} y utilizas técnicas de ${styleConfig.techniques}.
+
+${languageInstruction}
 
 **Contexto:**
 - Nombre: ${context.userName}
@@ -938,7 +945,13 @@ Responde de manera natural manteniendo tu estilo terapéutico:`;
                 const styleConfig = getTherapistStyle();
                 const trackedActivitiesSummary = Object.entries(currentEntry?.tracked || {}).map(([activityId, option]) => `- ${activities[activityId]?.name || 'Actividad'}: ${option}`).join('\n');
                 
+                // Detectar idioma del texto
+                const detectedLanguage = detectLanguage(text);
+                const languageInstruction = getLanguageInstruction(detectedLanguage);
+                
                 const prompt = `Analiza esta entrada de diario con tu estilo terapéutico ${styleConfig.tone} y enfoque ${styleConfig.approach}.
+
+${languageInstruction}
 
 **Entrada:**
 "${text || 'No se escribió nada.'}"

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
+import { detectLanguage, getLanguageInstruction } from '../utils/languageUtils';
 
 const TherapistReflection = ({ 
     isOpen, 
@@ -344,7 +345,19 @@ const TherapistReflection = ({
         
         const trackedActivitiesSummary = Object.entries(currentEntry?.tracked || {}).map(([activityId, option]) => `- ${activities[activityId]?.name || 'Actividad'}: ${option}`).join('\n');
         
-        const prompt = `Actúa como un terapeuta ${getTherapistStyle().tone}. Analiza el siguiente ${analysisContext} y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.\n\n**${analysisContext.charAt(0).toUpperCase() + analysisContext.slice(1)}:**\n"${textToAnalyze}"\n\n**Actividades Registradas:**\n${trackedActivitiesSummary || t('therapistReflection.noActivitiesRegistered')}`;
+        // Detectar idioma del texto a analizar
+        const detectedLanguage = detectLanguage(textToAnalyze);
+        const languageInstruction = getLanguageInstruction(detectedLanguage);
+        
+        const prompt = `Actúa como un terapeuta ${getTherapistStyle().tone}. Analiza el siguiente ${analysisContext} y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.
+
+${languageInstruction}
+
+**${analysisContext.charAt(0).toUpperCase() + analysisContext.slice(1)}:**
+"${textToAnalyze}"
+
+**Actividades Registradas:**
+${trackedActivitiesSummary || t('therapistReflection.noActivitiesRegistered')}`;
         
         const response = await callAI(prompt);
         if (response) {
