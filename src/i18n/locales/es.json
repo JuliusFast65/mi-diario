@@ -471,6 +471,7 @@
     "fullName": "Nombre Completo",
     "birthDate": "Fecha de Nacimiento",
     "birthDateOptional": "Fecha de Nacimiento (Opcional)",
+    
     "gender": "Género/Identidad",
     "genderOptional": "Género/Identidad (Opcional)",
     "timezone": "Zona Horaria",

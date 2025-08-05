@@ -262,7 +262,28 @@ const WritingAssistant = ({
         
         try {
             const styleConfig = getWritingAssistantStyle();
-            const prompt = `Actúa como un asistente de escritura experto con estilo ${styleConfig.tone} y enfoque ${styleConfig.approach}. Analiza el siguiente ${analysisContext} y proporciona 3-4 sugerencias específicas para mejorar la escritura. Considera:
+            
+            // Obtener información demográfica del usuario
+            const userGender = userPrefs.gender || '';
+            let userAge = '';
+            if (userPrefs.birthDate) {
+                const birthDate = new Date(userPrefs.birthDate);
+                const today = new Date();
+                const age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    userAge = age - 1;
+                } else {
+                    userAge = age;
+                }
+            }
+            
+            const demographicInfo = [];
+            if (userAge) demographicInfo.push(`edad: ${userAge} años`);
+            if (userGender) demographicInfo.push(`género: ${userGender}`);
+            const demographicContext = demographicInfo.length > 0 ? `\n- Información demográfica: ${demographicInfo.join(', ')}` : '';
+
+            const prompt = `Actúa como un asistente de escritura experto con un enfoque ${styleConfig.approach}. Analiza el siguiente ${analysisContext} y proporciona 3-4 sugerencias específicas para mejorar la escritura. Considera:
 
 1. Estructura y organización
 2. Claridad y expresividad
@@ -274,7 +295,9 @@ Para cada sugerencia, proporciona:
 - Descripción del problema
 - Ejemplo de mejora específica
 
-Mantén tu estilo ${styleConfig.tone} y enfócate en ${styleConfig.suggestions}.
+Mantén un tono ${styleConfig.tone} de manera NATURAL y enfócate en ${styleConfig.suggestions}. NO exageres el estilo - debe sentirse auténtico. Adapta tus sugerencias según la edad y contexto del usuario.
+
+**Contexto del usuario:**${demographicContext}
 
 Formato de respuesta (JSON):
 {
@@ -406,11 +429,34 @@ Responde solo con el JSON válido.`;
         
         try {
             const styleConfig = getWritingAssistantStyle();
-            const prompt = `Actúa como un asistente de escritura creativo con estilo ${styleConfig.tone} y enfoque ${styleConfig.approach}. Basándote en el contenido de esta entrada de diario, genera 6 prompts específicos y personalizados para ayudar al usuario a expandir su reflexión.
+            
+            // Obtener información demográfica del usuario
+            const userGender = userPrefs.gender || '';
+            let userAge = '';
+            if (userPrefs.birthDate) {
+                const birthDate = new Date(userPrefs.birthDate);
+                const today = new Date();
+                const age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    userAge = age - 1;
+                } else {
+                    userAge = age;
+                }
+            }
+            
+            const demographicInfo = [];
+            if (userAge) demographicInfo.push(`edad: ${userAge} años`);
+            if (userGender) demographicInfo.push(`género: ${userGender}`);
+            const demographicContext = demographicInfo.length > 0 ? `\n- Información demográfica: ${demographicInfo.join(', ')}` : '';
+
+            const prompt = `Actúa como un asistente de escritura creativo con un enfoque ${styleConfig.approach}. Basándote en el contenido de esta entrada de diario, genera 6 prompts específicos y personalizados para ayudar al usuario a expandir su reflexión.
 
 Considera el contexto emocional y temático de la entrada para crear prompts relevantes.
 
-Mantén tu estilo ${styleConfig.tone} y enfócate en ${styleConfig.prompts}.
+Mantén un tono ${styleConfig.tone} de manera NATURAL y enfócate en ${styleConfig.prompts}. NO exageres el estilo - debe sentirse auténtico. Adapta tus prompts según la edad y contexto del usuario.
+
+**Contexto del usuario:**${demographicContext}
 
 Formato de respuesta (JSON):
 {

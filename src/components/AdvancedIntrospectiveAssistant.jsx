@@ -795,12 +795,32 @@ Sugiere qué escribir:`;
                 const detectedLanguage = detectLanguage(userInput);
                 const languageInstruction = getLanguageInstruction(detectedLanguage);
                 
-                const prompt = `Eres un terapeuta con estilo ${styleConfig.tone} y personalidad ${styleConfig.personality}. Tu enfoque es ${styleConfig.approach} y utilizas técnicas de ${styleConfig.techniques}.
+                // Obtener información demográfica del usuario
+                const userGender = userPrefs.gender || '';
+                let userAge = '';
+                if (userPrefs.birthDate) {
+                    const birthDate = new Date(userPrefs.birthDate);
+                    const today = new Date();
+                    const age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                        userAge = age - 1;
+                    } else {
+                        userAge = age;
+                    }
+                }
+                
+                const demographicInfo = [];
+                if (userAge) demographicInfo.push(`edad: ${userAge} años`);
+                if (userGender) demographicInfo.push(`género: ${userGender}`);
+                const demographicContext = demographicInfo.length > 0 ? `\n- Información demográfica: ${demographicInfo.join(', ')}` : '';
+
+                const prompt = `Eres un terapeuta con un enfoque ${styleConfig.approach}. Tu personalidad es ${styleConfig.personality} y utilizas técnicas de ${styleConfig.techniques}.
 
 ${languageInstruction}
 
 **Contexto:**
-- Nombre: ${context.userName}
+- Nombre: ${context.userName}${demographicContext}
 - Entrada de hoy: ${hasTodayEntry ? 'Sí' : 'No'}
 - Emociones: ${detectedEmotions || 'No detectadas'}
 
@@ -810,16 +830,17 @@ ${conversationHistory}
 **Usuario dice:** "${userInput}"
 
 **Instrucciones importantes:**
-- Mantén tu estilo ${styleConfig.tone} y personalidad ${styleConfig.personality}
-- Utiliza técnicas de ${styleConfig.techniques}
-- NO saludes ni uses frases como "te entiendo" repetitivamente
+- Mantén un tono ${styleConfig.tone} de manera NATURAL y SUTIL
+- NO exageres ni fuerces el estilo - debe sentirse auténtico
+- Utiliza técnicas de ${styleConfig.techniques} de forma orgánica
 - Responde de manera natural, como en una conversación real
 - Mantén respuestas CONCISAS (máximo 2-3 frases)
 - Haz preguntas abiertas que inviten a la reflexión
 - Mantén continuidad con la conversación anterior
+- Adapta tu lenguaje según la edad y contexto del usuario
 - No uses lenguaje formal o terapéutico excesivo
 
-Responde de manera natural manteniendo tu estilo terapéutico:`;
+Responde de manera natural y auténtica:`;
 
                 const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
@@ -1030,7 +1051,27 @@ Responde de manera natural manteniendo tu estilo terapéutico:`;
                 const detectedLanguage = detectLanguage(text);
                 const languageInstruction = getLanguageInstruction(detectedLanguage);
                 
-                const prompt = `Analiza esta entrada de diario con tu estilo terapéutico ${styleConfig.tone} y enfoque ${styleConfig.approach}.
+                // Obtener información demográfica del usuario
+                const userGender = userPrefs.gender || '';
+                let userAge = '';
+                if (userPrefs.birthDate) {
+                    const birthDate = new Date(userPrefs.birthDate);
+                    const today = new Date();
+                    const age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                        userAge = age - 1;
+                    } else {
+                        userAge = age;
+                    }
+                }
+                
+                const demographicInfo = [];
+                if (userAge) demographicInfo.push(`edad: ${userAge} años`);
+                if (userGender) demographicInfo.push(`género: ${userGender}`);
+                const demographicContext = demographicInfo.length > 0 ? `\n- Información demográfica: ${demographicInfo.join(', ')}` : '';
+
+                const prompt = `Analiza esta entrada de diario con un enfoque ${styleConfig.approach}.
 
 ${languageInstruction}
 
@@ -1040,18 +1081,20 @@ ${languageInstruction}
 **Actividades:**
 ${trackedActivitiesSummary || 'No se registraron actividades.'}
 
-**Usuario:** ${userContext.userName}
+**Usuario:** ${userContext.userName}${demographicContext}
 
 **Instrucciones:**
-- Mantén tu personalidad ${styleConfig.personality}
-- Utiliza técnicas de ${styleConfig.techniques}
+- Mantén una personalidad ${styleConfig.personality} de manera NATURAL
+- Utiliza técnicas de ${styleConfig.techniques} de forma orgánica
 - Ofrece una reflexión amable y concisa
 - Identifica patrones o sentimientos importantes
 - Proporciona 1-2 sugerencias constructivas
 - Mantén un tono natural y de apoyo
+- NO exageres el estilo - debe sentirse auténtico
+- Adapta tu análisis según la edad y contexto del usuario
 - No uses lenguaje formal excesivo
 
-Analiza de manera terapéutica con tu estilo:`;
+Analiza de manera terapéutica natural:`;
 
                 const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {

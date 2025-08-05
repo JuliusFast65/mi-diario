@@ -129,10 +129,11 @@ const DiaryApp = ({ user }) => {
     
     // const { subscription, updateSubscription, hasFeature, isSubscriptionActive } = useSubscription(db, user, appId);
     const [view, setView] = useState('diary');
-    const [userPrefs, setUserPrefs] = useState({ 
-        font: 'patrick-hand', 
+        const [userPrefs, setUserPrefs] = useState({
+        font: 'patrick-hand',
         fontSize: 'text-3xl',
         theme: 'dark',
+        gender: '', // Agregar campo de género
         lastVisitedDate: null
     });
     const [allEntries, setAllEntries] = useState([]);
@@ -459,7 +460,31 @@ const DiaryApp = ({ user }) => {
         
         const selectedTone = toneConfigs[motivationalTone] || toneConfigs['espiritual'];
         
-        const prompt = `Actúa como un ${selectedTone}. Escribe una frase inspiradora, corta y única para empezar el día. Sé profundo pero conciso. No añadas introducciones, saludos, ni comillas, solo la frase.`;
+                            // Obtener información demográfica del usuario
+                    const userGender = userPrefs.gender || '';
+                    let userAge = '';
+                    if (userPrefs.birthDate) {
+                        const birthDate = new Date(userPrefs.birthDate);
+                        const today = new Date();
+                        const age = today.getFullYear() - birthDate.getFullYear();
+                        const monthDiff = today.getMonth() - birthDate.getMonth();
+                        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                            userAge = age - 1;
+                        } else {
+                            userAge = age;
+                        }
+                    }
+                    
+                    const demographicInfo = [];
+                    if (userAge) demographicInfo.push(`edad: ${userAge} años`);
+                    if (userGender) demographicInfo.push(`género: ${userGender}`);
+                    const demographicContext = demographicInfo.length > 0 ? `\n- Información demográfica: ${demographicInfo.join(', ')}` : '';
+        
+        const prompt = `Actúa como un ${selectedTone}. Escribe una frase inspiradora, corta y única para empezar el día. Sé profundo pero conciso. NO exageres el estilo - debe sentirse auténtico y natural. Adapta tu mensaje según la edad y contexto del usuario.
+
+**Contexto del usuario:**${demographicContext}
+
+No añadas introducciones, saludos, ni comillas, solo la frase.`;
         callAI(prompt, t('inspirationalMessage.title'));
     };
     

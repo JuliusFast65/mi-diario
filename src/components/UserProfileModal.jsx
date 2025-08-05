@@ -28,12 +28,12 @@ const scrollbarHideStyles = `
 const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs, subscription, onUpgradeClick, currentTheme = 'dark' }) => {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('personal');
-    const [formData, setFormData] = useState({
-        // Información Personal
-        fullName: '',
-        birthDate: '',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        gender: '',
+            const [formData, setFormData] = useState({
+            // Información Personal
+            fullName: '',
+            birthDate: '',
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            gender: '',
         
         // Configuración Regional
         language: 'es',
@@ -205,19 +205,19 @@ const UserProfileModal = ({ isOpen, onClose, user, userPrefs, onUpdateUserPrefs,
                                 />
                             </div>
 
-                            <div>
-                                <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.birthDateOptional')}</label>
-                                <input
-                                    type="date"
-                                    value={formData.birthDate}
-                                    onChange={(e) => handleInputChange('birthDate', e.target.value)}
-                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
-                                        currentTheme === 'dark' 
-                                            ? 'bg-gray-700 border-gray-600 text-white' 
-                                            : 'bg-white border-gray-300 text-gray-900'
-                                    } border`}
-                                />
-                            </div>
+                                            <div>
+                    <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.birthDateOptional')}</label>
+                    <input
+                        type="date"
+                        value={formData.birthDate}
+                        onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                        className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-indigo-500 ${
+                            currentTheme === 'dark'
+                                ? 'bg-gray-700 border-gray-600 text-white'
+                                : 'bg-white border-gray-300 text-gray-900'
+                        } border`}
+                    />
+                </div>
 
                             <div>
                                 <label className={`block text-sm font-medium mb-2 ${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>{t('profile.genderOptional')}</label>

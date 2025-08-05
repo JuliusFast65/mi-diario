@@ -349,7 +349,27 @@ const TherapistReflection = ({
         const detectedLanguage = detectLanguage(textToAnalyze);
         const languageInstruction = getLanguageInstruction(detectedLanguage);
         
-        const prompt = `Actúa como un terapeuta ${getTherapistStyle().tone}. Analiza el siguiente ${analysisContext} y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.
+                    // Obtener información demográfica del usuario
+            const userGender = userPrefs.gender || '';
+            let userAge = '';
+            if (userPrefs.birthDate) {
+                const birthDate = new Date(userPrefs.birthDate);
+                const today = new Date();
+                const age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    userAge = age - 1;
+                } else {
+                    userAge = age;
+                }
+            }
+            
+            const demographicInfo = [];
+            if (userAge) demographicInfo.push(`edad: ${userAge} años`);
+            if (userGender) demographicInfo.push(`género: ${userGender}`);
+            const demographicContext = demographicInfo.length > 0 ? `\n- Información demográfica: ${demographicInfo.join(', ')}` : '';
+
+        const prompt = `Actúa como un terapeuta con enfoque ${getTherapistStyle().approach}. Analiza el siguiente ${analysisContext} y las actividades registradas. Ofrece una reflexión amable, identifica posibles patrones o sentimientos subyacentes y proporciona una o dos sugerencias constructivas o preguntas para la autorreflexión. Sé conciso y alentador.
 
 ${languageInstruction}
 
@@ -357,7 +377,16 @@ ${languageInstruction}
 "${textToAnalyze}"
 
 **Actividades Registradas:**
-${trackedActivitiesSummary || t('therapistReflection.noActivitiesRegistered')}`;
+${trackedActivitiesSummary || t('therapistReflection.noActivitiesRegistered')}
+
+**Contexto del usuario:**${demographicContext}
+
+**Instrucciones importantes:**
+- Mantén un tono ${getTherapistStyle().tone} de manera NATURAL y SUTIL
+- NO exageres ni fuerces el estilo - debe sentirse auténtico
+- Utiliza técnicas de ${getTherapistStyle().techniques} de forma orgánica
+- Adapta tu análisis según la edad y contexto del usuario
+- Mantén un enfoque ${getTherapistStyle().approach} de manera natural`;
         
         const response = await callAI(prompt);
         if (response) {

@@ -129,7 +129,29 @@ Ejemplo: "Aquí tienes una versión mejorada. @@@El texto mejorado va aquí dent
         // Verificar si el texto está vacío
         if (!currentEntry?.text || currentEntry.text.trim() === '') {
             // Sugerir qué y cómo escribir cuando la entrada está vacía
-            const prompt = `Eres un asistente de escritura creativa especializado en diarios personales con un estilo ${styleConfig.tone}. El usuario tiene una entrada de diario vacía y necesita ayuda para comenzar a escribir.
+            // Obtener información demográfica del usuario
+            const userGender = userPrefs.gender || '';
+            let userAge = '';
+            if (userPrefs.birthDate) {
+                const birthDate = new Date(userPrefs.birthDate);
+                const today = new Date();
+                const age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    userAge = age - 1;
+                } else {
+                    userAge = age;
+                }
+            }
+            
+            const demographicInfo = [];
+            if (userAge) demographicInfo.push(`edad: ${userAge} años`);
+            if (userGender) demographicInfo.push(`género: ${userGender}`);
+            const demographicContext = demographicInfo.length > 0 ? `\n- Información demográfica: ${demographicInfo.join(', ')}` : '';
+
+            const prompt = `Eres un asistente de escritura creativa especializado en diarios personales con un enfoque ${styleConfig.approach}. El usuario tiene una entrada de diario vacía y necesita ayuda para comenzar a escribir.
+
+**Contexto del usuario:**${demographicContext}
 
 Proporciona sugerencias útiles y motivadoras que incluyan:
 
@@ -138,7 +160,7 @@ Proporciona sugerencias útiles y motivadoras que incluyan:
 3. **Técnicas de escritura** (2-3 consejos prácticos) para superar el bloqueo del escritor
 4. **Un ejemplo breve** de cómo podría comenzar una entrada de diario
 
-Mantén un tono ${styleConfig.tone} y un enfoque ${styleConfig.approach}. No uses formato especial, solo texto natural y conversacional.
+Mantén un tono ${styleConfig.tone} de manera NATURAL y un enfoque ${styleConfig.approach}. NO exageres el estilo - debe sentirse auténtico. Adapta tus sugerencias según la edad y contexto del usuario. No uses formato especial, solo texto natural y conversacional.
 
 Ejemplo de estructura:
 "¡Hola! Veo que tienes una página en blanco esperando tus pensamientos. Aquí tienes algunas ideas para comenzar:
@@ -167,12 +189,37 @@ Ejemplo de estructura:
 
         // Comportamiento actual para texto existente con estilo personalizado
         const currentText = currentEntry.text.trim();
-        const prompt = `Eres un editor de texto con estilo ${styleConfig.tone}. Revisa la siguiente entrada de diario con un enfoque ${styleConfig.approach}. 
+        
+        // Obtener información demográfica del usuario
+        const userGender = userPrefs.gender || '';
+        let userAge = '';
+        if (userPrefs.birthDate) {
+            const birthDate = new Date(userPrefs.birthDate);
+            const today = new Date();
+            const age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                userAge = age - 1;
+            } else {
+                userAge = age;
+            }
+        }
+        
+        const demographicInfo = [];
+        if (userAge) demographicInfo.push(`edad: ${userAge} años`);
+        if (userGender) demographicInfo.push(`género: ${userGender}`);
+        const demographicContext = demographicInfo.length > 0 ? `\n- Información demográfica: ${demographicInfo.join(', ')}` : '';
+
+        const prompt = `Eres un editor de texto con un enfoque ${styleConfig.approach}. Revisa la siguiente entrada de diario con un enfoque ${styleConfig.approach}. 
+
+**Contexto del usuario:**${demographicContext}
 
 - Corrige gramática y ortografía
-- Mejora el flujo del texto manteniendo el estilo ${styleConfig.tone}
+- Mejora el flujo del texto manteniendo un estilo ${styleConfig.tone} NATURAL
 - Ofrece ${styleConfig.suggestions}
 - No cambies la voz del autor
+- NO exageres el estilo - debe sentirse auténtico
+- Adapta tus sugerencias según la edad y contexto del usuario
 - Ofrece tus explicaciones o comentarios si lo deseas
 - Al final, presenta la versión mejorada del texto envuelta entre tres arrobas
 
