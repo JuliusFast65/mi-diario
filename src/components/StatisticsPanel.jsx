@@ -12,44 +12,91 @@ const StatisticsPanel = ({ db, userId, appId, activities, subscription, onUpgrad
     const [selectedRange, setSelectedRange] = useState('this_week');
 
     const dateRanges = useMemo(() => {
-        const getFormattedDate = (date) => date.toISOString().split('T')[0];
+        // Función para obtener la fecha local en formato YYYY-MM-DD
+        const getLocalFormattedDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        
+        // Obtener la fecha actual en la zona horaria local
         const today = new Date();
+        
         const ranges = {
             this_week: {
                 name: t('statistics.dateRanges.this_week'),
                 startDate: (() => {
-                    const d = new Date(today);
-                    const day = d.getDay();
-                    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-                    return getFormattedDate(new Date(d.setDate(diff)));
+                    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+                    // Calcular días para llegar al domingo (inicio de semana)
+                    const daysToSubtract = dayOfWeek; // Si es domingo (0), no restar días
+                    const sunday = new Date(today);
+                    sunday.setDate(today.getDate() - daysToSubtract);
+                    const startDate = getLocalFormattedDate(sunday);
+                    return startDate;
                 })(),
-                endDate: getFormattedDate(today)
+                endDate: (() => {
+                    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+                    // Calcular días para llegar al sábado (fin de semana)
+                    const daysToAdd = 6 - dayOfWeek; // Si es domingo (0), sumar 6 días para llegar al sábado
+                    const saturday = new Date(today);
+                    saturday.setDate(today.getDate() + daysToAdd);
+                    const endDate = getLocalFormattedDate(saturday);
+                    return endDate;
+                })()
             },
             this_month: {
                 name: t('statistics.dateRanges.this_month'),
-                startDate: getFormattedDate(new Date(today.getFullYear(), today.getMonth(), 1)),
-                endDate: getFormattedDate(today)
+                startDate: getLocalFormattedDate(new Date(today.getFullYear(), today.getMonth(), 1)),
+                endDate: getLocalFormattedDate(today)
             },
             this_year: {
                 name: t('statistics.dateRanges.this_year'),
-                startDate: getFormattedDate(new Date(today.getFullYear(), 0, 1)),
-                endDate: getFormattedDate(today)
+                startDate: getLocalFormattedDate(new Date(today.getFullYear(), 0, 1)),
+                endDate: getLocalFormattedDate(today)
             },
             last_year: {
                 name: t('statistics.dateRanges.last_year'),
-                startDate: getFormattedDate(new Date(today.getFullYear() - 1, 0, 1)),
-                endDate: getFormattedDate(new Date(today.getFullYear() - 1, 11, 31))
+                startDate: getLocalFormattedDate(new Date(today.getFullYear() - 1, 0, 1)),
+                endDate: getLocalFormattedDate(new Date(today.getFullYear() - 1, 11, 31))
             },
             since_last_year: {
                 name: t('statistics.dateRanges.since_last_year'),
-                startDate: getFormattedDate(new Date(today.getFullYear() - 1, 0, 1)),
-                endDate: getFormattedDate(today)
+                startDate: getLocalFormattedDate(new Date(today.getFullYear() - 1, 0, 1)),
+                endDate: getLocalFormattedDate(today)
             }
         };
+        
         return ranges;
-    }, [t]);
+    }, [t, new Date().toDateString()]); // Force recalculation daily
 
     const { startDate, endDate } = dateRanges[selectedRange];
+
+    // Debug logs for date range calculation
+    const getLocalFormattedDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    
+    console.log('🔍 StatisticsPanel Debug:');
+    console.log('  - selectedRange:', selectedRange);
+    console.log('  - startDate:', startDate);
+    console.log('  - endDate:', endDate);
+    console.log('  - Today (local):', getLocalFormattedDate(new Date()));
+    console.log('  - Today (UTC):', new Date().toISOString().split('T')[0]);
+    
+    // Additional debugging for this_week calculation
+    if (selectedRange === 'this_week') {
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        console.log('🔍 This week calculation details:');
+        console.log('  - Today (local):', getLocalFormattedDate(today));
+        console.log('  - Day of week:', dayOfWeek, '(0=Sunday, 1=Monday, etc.)');
+        console.log('  - Days to subtract for Sunday (start):', dayOfWeek);
+        console.log('  - Days to add for Saturday (end):', 6 - dayOfWeek);
+    }
 
     useEffect(() => {
         const fetchEntries = async () => {
@@ -58,9 +105,29 @@ const StatisticsPanel = ({ db, userId, appId, activities, subscription, onUpgrad
             setError(null);
             try {
                 const entriesRef = collection(db, 'artifacts', appId, 'users', userId, 'entries');
-                const entriesQuery = query(entriesRef, where(documentId(), '>=', startDate), where(documentId(), '<=', endDate));
-                const querySnapshot = await getDocs(entriesQuery);
-                const entries = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Intentar la consulta con filtros de fecha
+                let entries = [];
+                try {
+                    console.log('🔍 Querying with date range:', startDate, 'to', endDate);
+                    const entriesQuery = query(entriesRef, where(documentId(), '>=', startDate), where(documentId(), '<=', endDate));
+                    const querySnapshot = await getDocs(entriesQuery);
+                    entries = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    console.log('🔍 Query successful, found entries:', entries.length);
+                    console.log('🔍 Entry IDs:', entries.map(e => e.id));
+                } catch (queryError) {
+                    console.warn('⚠️ Date filter query failed, fetching all entries:', queryError);
+                    // Fallback: obtener todas las entradas y filtrar en memoria
+                    const allEntriesQuery = query(entriesRef);
+                    const allQuerySnapshot = await getDocs(allEntriesQuery);
+                    const allEntries = allQuerySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    console.log('🔍 All entries found:', allEntries.length);
+                    console.log('🔍 All entry IDs:', allEntries.map(e => e.id));
+                    entries = allEntries.filter(entry => entry.id >= startDate && entry.id <= endDate);
+                    console.log('🔍 After filtering, entries:', entries.length);
+                    console.log('🔍 Filtered entry IDs:', entries.map(e => e.id));
+                }
+                
                 setRawEntries(entries);
             } catch (err) {
                 console.error("Error fetching statistics:", err);
@@ -184,13 +251,15 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
             }
         });
         
-        return Object.values(activityStats)
+        const result = Object.values(activityStats)
             .sort((a, b) => {
                 // Ordenar por el valor relevante (puntos o conteo)
                 const aValue = a.isSimple ? a.totalCount : a.totalPoints;
                 const bValue = b.isSimple ? b.totalCount : b.totalPoints;
                 return bValue - aValue;
             });
+            
+        return result;
     }, [rawEntries, activities, t]);
 
     const CustomTooltip = ({ active, payload, label }) => {
@@ -296,9 +365,19 @@ const StatisticsOverview = ({ rawEntries, activities, onBarClick, dateRanges, se
                         ))}
                     </div>
                 ) : (
-                    <p className={`text-center italic ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                        {t('statistics.noDataForRange')}
-                    </p>
+                    <div className={`text-center py-8 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <p className="text-lg font-semibold mb-2">{t('statistics.noDataForRange')}</p>
+                        <p className="text-sm">
+                            {selectedRange === 'this_week' && t('statistics.noDataThisWeek')}
+                            {selectedRange === 'this_month' && t('statistics.noDataThisMonth')}
+                            {selectedRange === 'this_year' && t('statistics.noDataThisYear')}
+                            {selectedRange === 'last_year' && t('statistics.noDataLastYear')}
+                            {selectedRange === 'since_last_year' && t('statistics.noDataSinceLastYear')}
+                        </p>
+                        <p className="text-xs mt-2 opacity-75">
+                            {t('statistics.tipRegisterActivities')}
+                        </p>
+                    </div>
                 )}
             </div>
         </div>

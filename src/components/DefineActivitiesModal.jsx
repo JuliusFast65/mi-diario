@@ -88,19 +88,7 @@ const DefineActivitiesModal = ({
                         </button>
                     </div>
 
-                    <div className="flex justify-between items-center mb-4">
-                        <div className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                            {sortedActivities.length} {sortedActivities.length === 1 ? t('activities.activity') : t('activities.activities')} {sortedActivities.length === 1 ? t('activities.defined') : t('activities.definedPlural')}
-                        </div>
-                        <button 
-                            onClick={handleCreate}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                        >
-                            + {t('activities.newActivity')}
-                        </button>
-                    </div>
-
-                    <div className="overflow-y-auto space-y-3 pr-2">
+                    <div className="overflow-y-auto space-y-3 pr-2 flex-grow">
                         {sortedActivities.length === 0 ? (
                             <div className={`text-center py-8 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                                 <p>{t('activities.noActivitiesDefined')}</p>
@@ -207,6 +195,22 @@ const DefineActivitiesModal = ({
                                 );
                             })
                         )}
+                    </div>
+
+                    {/* Footer con contador y botón de nueva actividad */}
+                    <div className="flex justify-between items-center pt-4 mt-4 border-t border-gray-300 dark:border-gray-600">
+                        <button 
+                            onClick={handleCreate}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                        >
+                            + {t('activities.newActivity')}
+                        </button>
+                        <button 
+                            onClick={onClose}
+                            className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                        >
+                            {t('common.close')}
+                        </button>
                     </div>
                 </div>
             </div>
