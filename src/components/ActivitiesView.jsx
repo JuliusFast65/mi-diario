@@ -34,23 +34,6 @@ const ActivitiesView = ({
         return { trackedActivities: tracked, availableActivities: available };
     }, [activities, currentEntry?.tracked]);
 
-    // Función para agregar actividad
-    const handleAddActivity = (activityId) => {
-        const activity = activities[activityId];
-        if (!activity) return;
-
-        // Para actividades simples, solo registrar que se hizo
-        if (isSimpleActivity(activity.id)) {
-            onTrackActivity(activityId, '1');
-        } else {
-            // Para actividades premium, usar el primer valor disponible
-            const firstOption = activity.options?.[0] || '';
-            onTrackActivity(activityId, firstOption);
-        }
-    };
-
-
-
     return (
         <div className="space-y-4 p-4">
             {/* Lista de actividades trackeadas */}
@@ -69,47 +52,21 @@ const ActivitiesView = ({
                 />
             ))}
 
-            {/* Combo para agregar actividad */}
-            {availableActivities.length > 0 && (
-                <div className="flex items-center gap-2">
-                    <select
-                        onChange={(e) => {
-                            if (e.target.value) {
-                                handleAddActivity(e.target.value);
-                                e.target.value = '';
-                            }
-                        }}
-                        className={`flex-grow rounded-md p-2 border ${
-                            currentTheme === 'dark' 
-                                ? 'bg-gray-600 border-gray-500 text-white' 
-                                : 'bg-white border-gray-300 text-gray-900'
-                        }`}
-                        defaultValue=""
-                    >
-                        <option value="">{t('diary.registerActivity')}...</option>
-                        {availableActivities.map(activity => (
-                            <option key={activity.id} value={activity.id}>
-                                {activity.name}
-                            </option>
-                        ))}
-                    </select>
+            {/* Mensaje cuando no hay actividades registradas */}
+            {trackedActivities.length === 0 && (
+                <div className={`text-center py-8 ${currentTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <p>{t('diary.noActivitiesRegistered')}</p>
+                    <p className="text-sm mt-2">{t('diary.tapActivityToRegister')}</p>
                 </div>
             )}
 
             {/* Botones de acción */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex justify-center pt-4">
                 <button
                     onClick={onOpenDefineActivitiesModal}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                 >
-                    {t('diary.defineActivities')}
-                </button>
-                
-                <button
-                    onClick={onOpenStatisticsModal}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-                >
-                    {t('navigation.statistics')}
+                    Registrar Actividad
                 </button>
             </div>
         </div>

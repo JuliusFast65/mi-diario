@@ -2,7 +2,25 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import CreateActivityModal from './CreateActivityModal';
 
-const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, onDeleteActivity, onAddOption, onDeleteOption, onSaveGoal, onUpdatePoints, activityLimits, onUpgradeClick, subscription, currentTheme = 'dark' }) => {
+const DefineActivitiesModal = ({ 
+    isOpen, 
+    onClose, 
+    activities, 
+    onCreateActivity, 
+    onDeleteActivity, 
+    onAddOption, 
+    onDeleteOption, 
+    onSaveGoal, 
+    onUpdatePoints, 
+    activityLimits, 
+    onUpgradeClick, 
+    subscription, 
+    currentTheme = 'dark',
+    // Nuevas props para registro de actividades
+    onTrackActivity,
+    currentEntry,
+    isSimpleActivity
+}) => {
     const { t } = useTranslation();
     const [modalOpen, setModalOpen] = useState(false);
     const [editingActivity, setEditingActivity] = useState(null);
@@ -31,6 +49,26 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
         setEditingActivity(null);
     };
 
+    // Función para registrar actividad al hacer clic
+    const handleActivityClick = (activity) => {
+        // Verificar si la actividad ya está registrada
+        const isAlreadyTracked = currentEntry?.tracked?.[activity.id];
+        
+        if (isAlreadyTracked) {
+            // Si ya está registrada, no hacer nada (o podríamos mostrar un mensaje)
+            return;
+        }
+
+        // Para actividades simples, solo registrar que se hizo
+        if (isSimpleActivity(activity.id)) {
+            onTrackActivity(activity.id, '1');
+        } else {
+            // Para actividades premium, usar el primer valor disponible
+            const firstOption = activity.options?.[0] || '';
+            onTrackActivity(activity.id, firstOption);
+        }
+    };
+
     if (!isOpen) return null;
 
     const sortedActivities = Object.values(activities).sort((a, b) => a.name.localeCompare(b.name));
@@ -49,8 +87,6 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
                             </svg>
                         </button>
                     </div>
-
-
 
                     <div className="flex justify-between items-center mb-4">
                         <div className={`${currentTheme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -73,14 +109,28 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
                         ) : (
                             sortedActivities.map(activity => {
                                 const isSimple = !activity.options || activity.options.length === 0;
+                                const isTracked = currentEntry?.tracked?.[activity.id];
                                 
                                 return (
-                                    <div key={activity.id} className={`${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded-lg border ${currentTheme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
+                                    <div 
+                                        key={activity.id} 
+                                        className={`${currentTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded-lg border ${currentTheme === 'dark' ? 'border-gray-600' : 'border-gray-200'} transition-all duration-200 ${
+                                            isTracked 
+                                                ? `${currentTheme === 'dark' ? 'bg-green-800 border-green-600' : 'bg-green-100 border-green-300'} cursor-default` 
+                                                : `${currentTheme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-200'} cursor-pointer`
+                                        }`}
+                                        onClick={() => !isTracked && handleActivityClick(activity)}
+                                    >
                                         <div className="flex items-center justify-between">
                                             <div className="flex-grow">
                                                 <div className="flex items-center gap-3">
                                                     <span className={`font-bold text-lg ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{activity.name}</span>
-                                                    {isFreePlan && (
+                                                    {isTracked && (
+                                                        <span className="bg-green-600 text-white px-2 py-1 rounded text-sm font-semibold">
+                                                            ✓ {t('activities.registered')}
+                                                        </span>
+                                                    )}
+                                                    {isFreePlan && !isTracked && (
                                                         <span className={`text-xs px-2 py-1 rounded ${
                                                             currentTheme === 'dark' 
                                                                 ? 'bg-gray-600 text-gray-300' 
@@ -128,7 +178,10 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
                                             
                                             <div className="flex items-center gap-2 ml-4">
                                                 <button 
-                                                    onClick={() => handleEdit(activity)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Evitar que se registre la actividad
+                                                        handleEdit(activity);
+                                                    }}
                                                     className="p-2 bg-blue-600 hover:bg-blue-700 rounded-full text-white"
                                                     title={t('activities.editActivity')}
                                                 >
@@ -137,7 +190,10 @@ const DefineActivitiesModal = ({ isOpen, onClose, activities, onCreateActivity, 
                                                     </svg>
                                                 </button>
                                                 <button 
-                                                    onClick={() => onDeleteActivity(activity.id)} 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Evitar que se registre la actividad
+                                                        onDeleteActivity(activity.id);
+                                                    }}
                                                     className="p-2 bg-red-800 hover:bg-red-700 rounded-full text-white" 
                                                     aria-label={`${t('activities.deletePermanently')} ${activity.name}`}
                                                 >

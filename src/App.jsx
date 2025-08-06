@@ -925,6 +925,9 @@ No añadas introducciones, saludos, ni comillas, solo la frase.`;
                 subscription={subscription}
                 onUpgradeClick={() => setIsSubscriptionModalOpen(true)}
                 currentTheme={currentTheme}
+                onTrackActivity={handleTrackActivity}
+                currentEntry={currentEntry}
+                isSimpleActivity={isSimpleActivity}
             />
             <ExportModal isOpen={isExportModalOpen} onClose={() => setExportModalOpen(false)} onExport={handleExportEntries} currentTheme={currentTheme} />
             <ImportModal 

@@ -46,6 +46,7 @@
     "writingAssistant": "Get suggestions to improve your writing (Free)",
     "aiConsult": "Get a reflection on your entry and activities",
     "noActivitiesRegistered": "No activities registered for this day.",
+    "tapActivityToRegister": "Tap an activity to register it for this day",
     "registerActivity": "+ Register an activity...",
     "defineActivities": "Define Activities",
     "completed": "Completed",
@@ -113,6 +114,7 @@
     "weekly": "weekly",
     "monthly": "monthly",
     "deletePermanently": "Delete permanently",
+    "registered": "Registered",
     "freePlanLabel": "Free Plan:"
   },
   "writingAssistant": {
