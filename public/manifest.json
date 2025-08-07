@@ -1,6 +1,7 @@
 {
   "name": "Introspect - Tu Diario Personal",
   "short_name": "Introspect",
+  "id": "/",
   "description": "Tu diario personal seguro y privado para guardar pensamientos y cultivar hábitos con propósito",
   "theme_color": "#111827",
   "background_color": "#111827",
@@ -23,12 +24,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ],
   "screenshots": [

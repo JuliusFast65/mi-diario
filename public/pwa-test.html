@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Test - Introspect</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .pass {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+        }
+        .fail {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+        }
+        .warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+        }
+        .icon-preview {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+        .icon-preview img {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 PWA Installation Test</h1>
+    <p>Esta página verifica que Introspect cumple con todos los criterios para ser instalable como PWA.</p>
+
+    <div id="test-results">
+        <h2>Resultados de las Pruebas:</h2>
+        <div id="tests"></div>
+    </div>
+
+    <h2>Iconos de la PWA:</h2>
+    <div class="icon-preview">
+        <img src="/pwa-192x192.png" alt="192x192" width="96" height="96">
+        <p>192x192</p>
+    </div>
+    <div class="icon-preview">
+        <img src="/pwa-512x512.png" alt="512x512" width="128" height="128">
+        <p>512x512</p>
+    </div>
+    <div class="icon-preview">
+        <img src="/pwa-192x192.png" alt="180x180" width="90" height="90">
+        <p>180x180 (Apple)</p>
+    </div>
+    <div class="icon-preview">
+        <img src="/favicon-196.svg" alt="196x196" width="98" height="98">
+        <p>196x196 (Favicon)</p>
+    </div>
+
+    <script>
+        const tests = [];
+        
+        function addTest(name, test, required = true) {
+            const result = test();
+            tests.push({ name, result, required });
+        }
+
+        // Test 1: HTTPS
+        addTest('HTTPS', () => {
+            return window.location.protocol === 'https:';
+        });
+
+        // Test 2: Manifest exists
+        addTest('Manifest JSON', async () => {
+            try {
+                const response = await fetch('/manifest.json');
+                return response.ok;
+            } catch {
+                return false;
+            }
+        });
+
+        // Test 3: Service Worker
+        addTest('Service Worker', () => {
+            return 'serviceWorker' in navigator;
+        });
+
+        // Test 4: Manifest is valid
+        addTest('Manifest Valid', async () => {
+            try {
+                const response = await fetch('/manifest.json');
+                const manifest = await response.json();
+                
+                const required = ['name', 'short_name', 'start_url', 'display', 'icons'];
+                return required.every(field => manifest[field]);
+            } catch {
+                return false;
+            }
+        });
+
+        // Test 5: Icons exist
+        addTest('Icons Exist', async () => {
+            const icons = [
+                '/pwa-192x192.png',
+                '/pwa-512x512.png',
+                '/pwa-192x192.png',
+                '/favicon-196.svg'
+            ];
+            
+            for (const icon of icons) {
+                try {
+                    const response = await fetch(icon);
+                    if (!response.ok) return false;
+                } catch {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        // Test 6: Display standalone
+        addTest('Display Standalone', async () => {
+            try {
+                const response = await fetch('/manifest.json');
+                const manifest = await response.json();
+                return manifest.display === 'standalone';
+            } catch {
+                return false;
+            }
+        });
+
+        // Test 7: Icons with correct sizes
+        addTest('Icons with Correct Sizes', async () => {
+            try {
+                const response = await fetch('/manifest.json');
+                const manifest = await response.json();
+                
+                const has192 = manifest.icons.some(icon => 
+                    icon.sizes === '192x192' && icon.type === 'image/png'
+                );
+                const has512 = manifest.icons.some(icon => 
+                    icon.sizes === '512x512' && icon.type === 'image/png'
+                );
+                
+                return has192 && has512;
+            } catch {
+                return false;
+            }
+        });
+
+        // Test 8: Maskable icons
+        addTest('Maskable Icons', async () => {
+            try {
+                const response = await fetch('/manifest.json');
+                const manifest = await response.json();
+                
+                return manifest.icons.some(icon => 
+                    icon.purpose && icon.purpose.includes('maskable')
+                );
+            } catch {
+                return false;
+            }
+        });
+
+        // Test 9: Theme color
+        addTest('Theme Color', async () => {
+            try {
+                const response = await fetch('/manifest.json');
+                const manifest = await response.json();
+                return !!manifest.theme_color;
+            } catch {
+                return false;
+            }
+        });
+
+        // Test 10: Background color
+        addTest('Background Color', async () => {
+            try {
+                const response = await fetch('/manifest.json');
+                const manifest = await response.json();
+                return !!manifest.background_color;
+            } catch {
+                return false;
+            }
+        });
+
+        // Run all tests
+        async function runTests() {
+            const resultsDiv = document.getElementById('tests');
+            
+            for (const test of tests) {
+                const result = await test.result;
+                const div = document.createElement('div');
+                div.className = `test-item ${result ? 'pass' : (test.required ? 'fail' : 'warning')}`;
+                div.innerHTML = `
+                    <strong>${test.name}:</strong> 
+                    ${result ? '✅ PASÓ' : (test.required ? '❌ FALLÓ' : '⚠️ ADVERTENCIA')}
+                `;
+                resultsDiv.appendChild(div);
+            }
+            
+            // Summary
+            const passed = tests.filter(t => t.result).length;
+            const total = tests.length;
+            const summary = document.createElement('div');
+            summary.className = `test-item ${passed === total ? 'pass' : 'fail'}`;
+            summary.innerHTML = `<strong>Resumen:</strong> ${passed}/${total} pruebas pasaron`;
+            resultsDiv.appendChild(summary);
+        }
+
+        // Run tests when page loads
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html> 

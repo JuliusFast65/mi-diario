@@ -15,6 +15,7 @@ import ExportModal from './components/ExportModal';
 import ImportModal from './components/ImportModal';
 import UserProfileModal from './components/UserProfileModal';
 import UpdateNotification from './components/UpdateNotification';
+import InstallPWA from './components/InstallPWA';
 
 
 
@@ -642,6 +643,7 @@ No añadas introducciones, saludos, ni comillas, solo la frase.`;
         >
             <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen font-sans flex flex-col">
                 <UpdateNotification />
+                <InstallPWA />
                 <div className="max-w-5xl mx-auto w-full flex flex-col flex-grow">
                 <header className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center flex-shrink-0 bg-gray-50 dark:bg-gray-800">
                     <div className="flex items-center gap-4">
