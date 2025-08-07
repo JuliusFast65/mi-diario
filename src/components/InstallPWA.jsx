@@ -8,11 +8,22 @@ const InstallPWA = () => {
     const [isInstalling, setIsInstalling] = useState(false);
     const [isIOS, setIsIOS] = useState(false);
     const [isStandalone, setIsStandalone] = useState(false);
+    const [isChrome, setIsChrome] = useState(false);
+    const [isEdge, setIsEdge] = useState(false);
+    const [isAndroid, setIsAndroid] = useState(false);
 
     useEffect(() => {
-        // Detectar si es iOS
-        const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        // Detectar navegador y plataforma
+        const userAgent = navigator.userAgent;
+        const isIOSDevice = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+        const isAndroidDevice = /Android/.test(userAgent);
+        const isChromeBrowser = /Chrome/.test(userAgent) && !/Edge/.test(userAgent);
+        const isEdgeBrowser = /Edge/.test(userAgent);
+        
         setIsIOS(isIOSDevice);
+        setIsAndroid(isAndroidDevice);
+        setIsChrome(isChromeBrowser);
+        setIsEdge(isEdgeBrowser);
 
         // Detectar si ya está instalada como PWA
         const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
@@ -26,6 +37,8 @@ const InstallPWA = () => {
 
         // Capturar el evento beforeinstallprompt (Chrome, Edge, etc.)
         const handleBeforeInstallPrompt = (e) => {
+            console.log('beforeinstallprompt event fired');
+            
             // Prevenir que Chrome muestre el prompt automático
             e.preventDefault();
             
@@ -35,14 +48,29 @@ const InstallPWA = () => {
             // Mostrar nuestro modal personalizado después de un pequeño delay
             setTimeout(() => {
                 setShowInstallModal(true);
-            }, 2000); // 2 segundos después de cargar la página
+            }, 3000); // 3 segundos después de cargar la página
         };
 
         // Para iOS Safari, mostrar instrucciones de instalación manual
         if (isIOSDevice && !isStandaloneMode) {
             setTimeout(() => {
                 setShowInstallModal(true);
-            }, 3000); // 3 segundos para iOS
+            }, 4000); // 4 segundos para iOS
+        }
+
+        // Para Android Chrome/Edge, verificar si podemos mostrar el prompt
+        if ((isChromeBrowser || isEdgeBrowser) && isAndroidDevice && !isStandaloneMode) {
+            // Verificar si el Service Worker está registrado
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(() => {
+                    // Si no se disparó beforeinstallprompt después de 5 segundos, mostrar instrucciones manuales
+                    setTimeout(() => {
+                        if (!deferredPrompt) {
+                            setShowInstallModal(true);
+                        }
+                    }, 5000);
+                });
+            }
         }
 
         // Escuchar el evento beforeinstallprompt
@@ -52,7 +80,7 @@ const InstallPWA = () => {
         return () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
         };
-    }, []);
+    }, [deferredPrompt]);
 
     const handleInstallClick = async () => {
         if (!deferredPrompt) return;
@@ -86,13 +114,18 @@ const InstallPWA = () => {
         setDeferredPrompt(null);
     };
 
-    // No mostrar nada si ya está instalada o no hay prompt de instalación
-    if (isStandalone || (!showInstallModal && !isIOS)) {
+    // No mostrar nada si ya está instalada
+    if (isStandalone) {
         return null;
     }
 
     // Para iOS, mostrar aunque no haya deferredPrompt
     if (isIOS && !deferredPrompt && !showInstallModal) {
+        return null;
+    }
+
+    // Para Android, mostrar si no hay deferredPrompt después del timeout
+    if (isAndroid && !deferredPrompt && !showInstallModal) {
         return null;
     }
 
@@ -128,6 +161,26 @@ const InstallPWA = () => {
                                     <li>1. Toca el botón <strong>Compartir</strong> 📤</li>
                                     <li>2. Selecciona <strong>"Agregar a Pantalla de Inicio"</strong></li>
                                     <li>3. Toca <strong>"Agregar"</strong> para confirmar</li>
+                                </ol>
+                            </div>
+                            
+                            <button
+                                onClick={handleDismiss}
+                                className="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                            >
+                                Entendido
+                            </button>
+                        </div>
+                    ) : isAndroid && !deferredPrompt ? (
+                        <div className="space-y-4">
+                            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                                <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">
+                                    📱 Instrucciones para Android:
+                                </h4>
+                                <ol className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                                    <li>1. Toca el menú (⋮) en la esquina superior derecha</li>
+                                    <li>2. Selecciona <strong>"Instalar aplicación"</strong></li>
+                                    <li>3. Confirma la instalación</li>
                                 </ol>
                             </div>
                             
