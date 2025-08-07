@@ -153,14 +153,21 @@ Para que el navegador muestre el prompt de instalación, la app debe cumplir:
 ```javascript
 // No mostrar si:
 - Ya está instalada (isStandalone)
-- No hay prompt y no es iOS
-- iOS sin modal activo
+- No hay prompt y no es iOS y no hay modal activo
 
 // Mostrar si:
-- Hay deferredPrompt (Chrome/Edge)
-- Es iOS y no está instalada
+- Hay deferredPrompt (Chrome/Edge) - Usa instalador nativo
+- Es iOS y no está instalada - Instrucciones manuales
+- PWA es instalable pero no hay prompt - Instrucciones manuales
 - Modal está activo
 ```
+
+#### **Flujo de Instalación Mejorado**
+1. **Verificación de criterios**: Se verifica que la PWA cumpla todos los criterios de instalación
+2. **Espera del evento**: Se espera hasta 10 segundos por el evento `beforeinstallprompt`
+3. **Instalación nativa**: Si hay prompt, se usa el instalador nativo del navegador
+4. **Fallback manual**: Si no hay prompt pero la PWA es instalable, se muestran instrucciones manuales
+5. **iOS especial**: Para Safari iOS, siempre se muestran instrucciones manuales
 
 ### 🛠️ Configuración Técnica
 

@@ -37,6 +37,16 @@
     
     <title>Introspect | Tu Diario Personal</title>
     <link rel="manifest" href="/manifest.json" />
+    
+    <!-- NUEVO: Capturar beforeinstallprompt globalmente antes de que React se monte -->
+    <script>
+        // Capturar el evento beforeinstallprompt globalmente
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('🎯 beforeinstallprompt capturado globalmente');
+            e.preventDefault();
+            window.deferredPrompt = e;
+        });
+    </script>
   </head>
   <body>
     <div id="root"></div>

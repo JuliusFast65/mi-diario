@@ -107,11 +107,39 @@ Visita `/pwa-test.html` en tu aplicación para verificar que todos los criterios
 - ✅ `apple-touch-icon` tags en HTML
 - ✅ Tamaños optimizados para dispositivos Apple
 
+### ❌ No aparece el instalador nativo del navegador
+
+**Causas posibles:**
+1. La PWA no cumple todos los criterios de instalación
+2. El componente muestra instrucciones manuales en lugar del instalador nativo
+3. Timeout muy corto para la detección del evento `beforeinstallprompt`
+4. Falta de verificación de criterios de instalación
+
+**Soluciones implementadas:**
+
+#### 1. Verificación de criterios de instalación
+El componente ahora verifica automáticamente:
+- ✅ Service Worker registrado
+- ✅ Manifest válido con todos los campos requeridos
+- ✅ Iconos 192x192 y 512x512 con propósito maskable
+- ✅ HTTPS habilitado
+
+#### 2. Lógica de instalación mejorada
+- ✅ Espera hasta 10 segundos por el evento `beforeinstallprompt`
+- ✅ Usa el instalador nativo cuando está disponible
+- ✅ Solo muestra instrucciones manuales como fallback
+- ✅ Manejo específico para iOS Safari
+
+#### 3. Timeout extendido
+- ✅ Aumentado de 5 a 10 segundos para dar tiempo al navegador
+- ✅ Limpieza automática del timeout si se dispara el evento
+
 ### ❌ Chrome instala pero sin ícono
 
 **Causas posibles:**
 1. Iconos no se cargan correctamente
 2. Problemas con el manifest.json
+3. Falta de iconos maskable
 
 **Soluciones:**
 
@@ -120,20 +148,26 @@ Visita `/pwa-test.html` en tu aplicación para verificar que todos los criterios
 {
   "icons": [
     {
-      "src": "/manifest-icon-192.maskable.png",
+      "src": "/pwa-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/manifest-icon-192.maskable.png",
-      "sizes": "192x192",
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }
 ```
+
+#### 2. Verificar iconos maskable
+Los iconos deben tener el propósito "maskable" para Android. El manifest.json actualizado incluye:
+- Iconos con propósito "any maskable" (compatible con todos los usos)
+- Tamaños 192x192 y 512x512 requeridos
+- Formato PNG para mejor compatibilidad
 
 #### 2. Verificar carga de iconos
 - Abrir DevTools > Network
@@ -142,8 +176,16 @@ Visita `/pwa-test.html` en tu aplicación para verificar que todos los criterios
 
 ## 🧪 Herramientas de Diagnóstico
 
-### 1. Página de Pruebas
+### 1. Página de Pruebas General
 Visita `/pwa-test.html` para verificar automáticamente todos los criterios.
+
+### 2. Página de Prueba de Instalación
+Visita `/pwa-install-test.html` para probar específicamente la funcionalidad de instalación:
+- ✅ Verifica todos los criterios de instalación
+- ✅ Prueba el evento `beforeinstallprompt`
+- ✅ Permite probar la instalación manualmente
+- ✅ Muestra logs detallados de eventos
+- ✅ Información completa del manifest
 
 ### 2. Chrome DevTools
 ```
