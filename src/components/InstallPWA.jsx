@@ -11,6 +11,7 @@ const InstallPWA = () => {
     const [isChrome, setIsChrome] = useState(false);
     const [isEdge, setIsEdge] = useState(false);
     const [isAndroid, setIsAndroid] = useState(false);
+    const [isEdgeAndroid, setIsEdgeAndroid] = useState(false);
     const [isPWAInstallable, setIsPWAInstallable] = useState(false);
     const [debugInfo, setDebugInfo] = useState({});
     const [hasUserDismissed, setHasUserDismissed] = useState(false);
@@ -29,11 +30,13 @@ const InstallPWA = () => {
         const isAndroidDevice = /Android/.test(userAgent);
         const isChromeBrowser = /Chrome/.test(userAgent) && !/Edge/.test(userAgent);
         const isEdgeBrowser = /Edge/.test(userAgent);
+        const isEdgeAndroid = isEdgeBrowser && isAndroidDevice;
         
         setIsIOS(isIOSDevice);
         setIsAndroid(isAndroidDevice);
         setIsChrome(isChromeBrowser);
         setIsEdge(isEdgeBrowser);
+        setIsEdgeAndroid(isEdgeAndroid);
 
         // Detectar si ya está instalada como PWA
         const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
@@ -47,6 +50,7 @@ const InstallPWA = () => {
             isAndroid: isAndroidDevice,
             isChrome: isChromeBrowser,
             isEdge: isEdgeBrowser,
+            isEdgeAndroid: isEdgeAndroid,
             isStandalone: isStandaloneMode,
             timestamp: new Date().toISOString()
         });
@@ -56,6 +60,7 @@ const InstallPWA = () => {
             isAndroid: isAndroidDevice,
             isChrome: isChromeBrowser,
             isEdge: isEdgeBrowser,
+            isEdgeAndroid: isEdgeAndroid,
             isStandalone: isStandaloneMode
         });
 
@@ -166,6 +171,15 @@ const InstallPWA = () => {
             }, 4000); // 4 segundos para iOS
         }
 
+        // NUEVO: Para Edge Android, mostrar instrucciones específicas
+        if (isEdgeAndroid && !isStandaloneMode) {
+            console.log('🔗 Edge Android detectado, mostrando instrucciones específicas');
+            setTimeout(() => {
+                console.log('📱 Mostrando modal para Edge Android');
+                setShowInstallModal(true);
+            }, 3000); // 3 segundos para Edge Android
+        }
+
         // NUEVO: Timeout adicional para mostrar modal cuando PWA es instalable
         // Este timeout se ejecuta independientemente del evento beforeinstallprompt
         const showModalTimeout = setTimeout(() => {
@@ -256,10 +270,10 @@ const InstallPWA = () => {
     // Solo mostrar si:
     // 1. No está instalada
     // 2. No fue cerrada recientemente
-    // 3. Y tiene deferredPrompt O es iOS O el modal está activo
+    // 3. Y tiene deferredPrompt O es iOS O es Edge Android O el modal está activo
     const shouldShowModal = !isStandalone && 
                            !hasUserDismissed && 
-                           (deferredPrompt || isIOS || showInstallModal);
+                           (deferredPrompt || isIOS || isEdgeAndroid || showInstallModal);
 
     if (!shouldShowModal) {
         console.log('🚫 No mostrar modal - condiciones no cumplidas');
@@ -279,6 +293,7 @@ const InstallPWA = () => {
                         <div>🤖 Android: {isAndroid ? 'Sí' : 'No'}</div>
                         <div>🌐 Chrome: {isChrome ? 'Sí' : 'No'}</div>
                         <div>🔗 Edge: {isEdge ? 'Sí' : 'No'}</div>
+                        <div>🔗 Edge Android: {isEdgeAndroid ? 'Sí' : 'No'}</div>
                         <div>📦 Standalone: {isStandalone ? 'Sí' : 'No'}</div>
                         <div>✅ Installable: {isPWAInstallable ? 'Sí' : 'No'}</div>
                         <div>🎯 DeferredPrompt: {deferredPrompt ? 'Sí' : 'No'}</div>
@@ -345,6 +360,33 @@ const InstallPWA = () => {
                                         <li>2. Selecciona <strong>"Agregar a Pantalla de Inicio"</strong></li>
                                         <li>3. Toca <strong>"Agregar"</strong> para confirmar</li>
                                     </ol>
+                                </div>
+                                
+                                <button
+                                    onClick={handleDismiss}
+                                    className="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                                >
+                                    Entendido
+                                </button>
+                            </div>
+                        ) : isEdgeAndroid ? (
+                            <div className="space-y-4">
+                                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">
+                                        📱 Instrucciones para Edge Android:
+                                    </h4>
+                                    <p className="text-sm text-purple-700 dark:text-purple-300 mb-3">
+                                        Edge en Android tiene limitaciones con la instalación automática. Sigue estos pasos:
+                                    </p>
+                                    <ol className="text-sm text-purple-700 dark:text-purple-300 space-y-1">
+                                        <li>1. Toca el menú (⋮) en la esquina superior derecha</li>
+                                        <li>2. Selecciona <strong>"Aplicaciones"</strong></li>
+                                        <li>3. Busca <strong>"Instalar aplicación"</strong> o <strong>"Agregar a pantalla de inicio"</strong></li>
+                                        <li>4. Confirma la instalación</li>
+                                    </ol>
+                                    <p className="text-xs text-purple-600 dark:text-purple-400 mt-2">
+                                        💡 Alternativa: Usa Chrome para una instalación más sencilla
+                                    </p>
                                 </div>
                                 
                                 <button
